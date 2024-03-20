@@ -1,0 +1,25 @@
+[
+	{
+		"name": "Ban 1",
+		"password": "0",
+		"metadata": {
+			"column": "600",
+			"change": "0",
+			"thongso": {
+				"id": "id_lls8edgj9",
+				"value": "1",
+				"name": "A"
+			},
+			"features": {
+				"N:2": {
+					"status": false,
+					"value": "0"
+				},
+				"N=2": {
+					"status": false
+				}
+			}
+		},
+		"data": []
+	}
+]
