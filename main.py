@@ -3,8 +3,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 from PySide6.QtGui import QIcon
 from Router.navigate import Navbar
 from Controller.main import Controller
-from logo import Logo
-
+from Pages.components.path import Path
 basedir = os.path.dirname(__file__)
 
 try:
@@ -24,7 +23,7 @@ class FullScreenApp(QMainWindow):
 
         # Main layout containing stacked widget and navbar
         main_layout = QVBoxLayout(self.central_widget)
-        logo_path = Logo().getLogo()
+        logo_path = Path().path_logo()
         icon = QIcon(logo_path)
         # Setting application icon
         self.setWindowIcon(icon)
@@ -32,9 +31,6 @@ class FullScreenApp(QMainWindow):
         # Stacked widget to manage pages
         self.stacked_widget = QStackedWidget()
         main_layout.addWidget(self.stacked_widget)
-
-        # layout = QVBoxLayout()  # Main layout for the central widget
-        # self.central_widget.setLayout(layout)
 
         # Controller to manage page switching
         self.controller = Controller()
