@@ -246,16 +246,21 @@ def TachVaGhep(number, value):
     return result_int
 
 def createBan(data):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, '..','Pages','data','database','index.json')
-    with open(file_path,'r') as file:
-        old_data = json.load(file)
+    path_db = Path().path_db()
+    id = Generate_Id()
+    data['id'] = id
+    with open(path_db, 'r') as file:
+        data_db = json.load(file)
+    
+    data_find = [item for item in data_db if item['name'] == data['name']]
+    if len(data_find) > 0:
+        return 'Tên bảng đã được tạo, xin vui lòng kiểm tra lại!'
+    data_filter = [item for item in data_db if item['id'] != id and item['name'] != data['name']]
+    data_filter.append(data)
+    with open(path_db, 'w') as file:
+        json.dump(data_filter, file)
+    return data_filter
 
-    old_data.append(data)
-
-    with open(file_path,'w') as file:
-        json.dump(old_data, file)
-    return
 
 def CreateNumber():
     path = Path()
@@ -276,10 +281,7 @@ def createThong(data):
     col_custom = 3
     value = data.get('value')
     col = int(value)
-    #/ Generate 2 bytes of random data and ID
-    random_bytes = secrets.token_bytes(8)
-    # Convert the random bytes to hexadecimal
-    id = random_bytes.hex()
+    id = Generate_Id()
 
     thong_file = []
     #/ Create Thong
@@ -333,3 +335,10 @@ def getFileWithOutBackUp(files):
         return files
     else:
         return file
+    
+def Generate_Id():
+    #/ Generate 2 bytes of random data and ID
+    random_bytes = secrets.token_bytes(8)
+    # Convert the random bytes to hexadecimal
+    id = random_bytes.hex()
+    return id

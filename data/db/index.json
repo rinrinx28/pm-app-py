@@ -1,25 +1,15 @@
 [
 	{
-		"name": "Ban 1",
+		"name": "B1",
 		"password": "0",
-		"metadata": {
-			"column": "600",
-			"change": "0",
-			"thongso": {
-				"id": "id_lls8edgj9",
-				"value": "1",
-				"name": "A"
-			},
-			"features": {
-				"N:2": {
-					"status": false,
-					"value": "0"
-				},
-				"N=2": {
-					"status": false
-				}
-			}
+		"col": 15,
+		"thong": { "name": "1", "value": 600, "id": "1819c55116902938" },
+		"change": 1,
+		"meta": {
+			"notice": { "count": [0, 0], "color": [0, 0] },
+			"features": { "N:2": true, "N=0": { "status": false, "value": 0 } }
 		},
-		"data": []
+		"data": [],
+		"id": "b305a9f63d4292f3"
 	}
 ]

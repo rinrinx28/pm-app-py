@@ -12,6 +12,7 @@ from Controller.handler import createThong, find_files_by_pattern, getFileWithOu
 import os
 
 class ThongPage(QWidget):
+    
     def __init__(self):
         super().__init__()
         self.path = Path()

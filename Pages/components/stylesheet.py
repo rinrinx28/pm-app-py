@@ -84,6 +84,13 @@ css_input = """
     background-color: #F9FAFB; 
 """
 
+# TODO Css Color Thong
+css_title = """
+    color: rgb(239, 1, 7);
+    font-size: 24px;
+    font-weight: bold; 
+"""
+
 # TODO Font configuration
 def Font():
     font = QFont()

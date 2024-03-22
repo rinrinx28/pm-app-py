@@ -39,4 +39,9 @@ class Controller:
         self.main_widget.layout().addWidget(self.current_page)
 
     def show_tinh_mau_page(self):
-        TinhAndMauPage()
+        if self.current_page:
+            self.main_widget.layout().removeWidget(self.current_page)
+            self.current_page.deleteLater()
+        self.current_page = TinhAndMauPage()
+        self.main_widget.layout().addWidget(self.current_page)
+        
