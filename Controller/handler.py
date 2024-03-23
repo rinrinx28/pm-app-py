@@ -261,6 +261,36 @@ def createBan(data):
         json.dump(data_filter, file)
     return data_filter
 
+def updateBanInsert(data):
+    path_db = Path().path_db()
+    with open(path_db, 'r') as file:
+        data_db = json.load(file)
+    insert = data['insert']
+    update = data['update']
+    id = data['id']
+    find_info = [item for item in data_db if item['id'] == id]
+    if len(find_info) > 0:
+        #/ Insert
+        date_insert = insert['date']
+        find_datas = [item for item in find_info[0]['data'] if item['date'] != date_insert]
+        find_datas.append(insert)
+        #/ Save insert date
+        find_info[0]['data'] = find_datas
+        
+        #/ Update meta features
+        find_info[0]['meta']['features'] = update
+
+        #/ Save data find
+        find_save = [item for item in data_db if item['id'] != id]
+        find_save.append(find_info[0])
+
+        #/ Write File JSON
+        with open(path_db, 'w') as file:
+            json.dump(find_save, file)
+        
+        return {"status": True, "msg":'Đã nhập liệu thành công!', "data": find_info[0]}
+    else:
+        return {"status": False, "msg":'Đã xảy ra lỗi!'}
 
 def CreateNumber():
     path = Path()

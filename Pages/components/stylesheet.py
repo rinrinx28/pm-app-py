@@ -6,8 +6,8 @@ css_button_submit = """
     QPushButton {
         padding: 10px;
         border-radius: 8px; 
-        font-size: 24px;
-        font-weight: bold; 
+        font-size: 32px;
+        font-weight: 600; 
         color: #ffffff; 
         background-color: #1D4ED8;
     } 
@@ -21,8 +21,8 @@ css_button_cancel = """
         border-radius: 8px; 
         border-width: 1px; 
         border-color: #E5E7EB; 
-        font-size: 24px;
-        font-weight: bold; 
+        font-size: 32px;
+        font-weight: 600; 
         color: #111827; 
         background-color: #ffffff;
     }
@@ -37,8 +37,8 @@ css_button_view = """
         border-radius: 8px; 
         border-width: 1px; 
         border-color: #E5E7EB; 
-        font-size: 24px;
-        font-weight: bold;
+        font-size: 32px;
+        font-weight: 600;
         background-color: #F0F8FF;
     }
 """
@@ -48,8 +48,8 @@ css_button_notice = """
         border-radius: 8px; 
         border-width: 1px; 
         border-color: #E5E7EB; 
-        font-size: 24px;
-        font-weight: bold;
+        font-size: 32px;
+        font-weight: 600;
         background-color: #FFD700;
     }
 """
@@ -59,8 +59,8 @@ css_button_normal = """
         border-radius: 8px; 
         border-width: 1px; 
         border-color: #E5E7EB; 
-        font-size: 24px;
-        font-weight: bold;
+        font-size: 32px;
+        font-weight: 600;
         background-color: #ffffff;
     }
 """
@@ -69,17 +69,18 @@ css_button_normal = """
 
 css_lable = """
     padding: 10px;
-    font-size: 24px;
-    font-weight: bold; 
+    font-size: 32px;
+    font-weight: 600; 
     color: #111827;
 """
 
 css_input = """
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px; 
     border-width: 1px; 
     border-color: #E5E7EB;
-    font-size: 24px;
+    font-size: 32px;
+    font-weight: 600; 
     color: #111827; 
     background-color: #F9FAFB; 
 """
@@ -87,8 +88,36 @@ css_input = """
 # TODO Css Color Thong
 css_title = """
     color: rgb(239, 1, 7);
-    font-size: 24px;
-    font-weight: bold; 
+    font-size: 32px;
+    font-weight: 600; 
+"""
+
+css_customs_table = """
+            QLabel {
+                border: 2px solid black;
+                background-color: #FFFFFF;
+                color: #000000;
+                font-size: 32px;
+                font-weight: 600;
+            }
+"""
+
+css_button_checkbox = """
+    QCheckBox {
+        font-size: 32px;
+        font-weight: 600; 
+        spacing: 5px;
+    }
+"""
+
+css_table_header ="""
+    QTableView {
+        gridline-color: black;
+    }
+    QTableView::item:selected {
+        background-color: #FEBE10;
+        color: black;
+    }
 """
 
 # TODO Font configuration
