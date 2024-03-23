@@ -292,6 +292,27 @@ def updateBanInsert(data):
     else:
         return {"status": False, "msg":'Đã xảy ra lỗi!'}
 
+def updateThongInsert(data):
+    path_db = Path().path_db()
+    with open(path_db, 'r') as file:
+        data_db = json.load(file)
+    update = data['thong']
+    id = data['id']
+    find_info = [item for item in data_db if item['id'] == id]
+    if len(find_info) > 0:
+        #/ Save insert date
+        find_info[0]['data'][-1] = update
+        #/ Save data find
+        find_save = [item for item in data_db if item['id'] != id]
+        find_save.append(find_info[0])
+        #/ Write File JSON
+        with open(path_db, 'w') as file:
+            json.dump(find_save, file)
+        
+        return {"status": True, "msg":'Đã nhập thông thành công!', "data": find_info[0]}
+    else:
+        return {"status": False, "msg":'Đã xảy ra lỗi!'}
+
 def CreateNumber():
     path = Path()
     path_number = path.path_number()

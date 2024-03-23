@@ -12,7 +12,7 @@ from Pages.components.stylesheet import (
     css_button_checkbox,css_table_header
     )
 import json
-from Controller.handler import updateBanInsert
+from Controller.handler import updateBanInsert, updateThongInsert
 import os
 import bisect
 class TinhAndMauPage(QWidget):
@@ -55,6 +55,14 @@ class TinhAndMauPage(QWidget):
         #/ Table main
         self.table_main = None
 
+        #/ List Table
+        #* Count
+        self.frozen_table_count = None
+        self.table_scroll_count = None
+        # * Color
+        self.table_scroll = None
+        self.frozen_table = None
+
         #/ Button Main
         self.button_wid_main =QWidget()
         self.button_layout = QHBoxLayout(self.button_wid_main)
@@ -62,8 +70,8 @@ class TinhAndMauPage(QWidget):
         self.layout.addWidget(self.button_wid_main)
 
         #/ Show Select Bang and Login into Bang
-        self.showSelectBan()
-    
+        self.showSelectBan()   
+   
     # TODO handler Render Components
     def showSelectBan(self):
         #/ Config Icon Windows
@@ -168,6 +176,7 @@ class TinhAndMauPage(QWidget):
                 number_info = json.load(file)
                 self.number_info = [number_rang[:col_value] for number_rang in number_info]
 
+            self.handlerData()
             self.renderNavigation()
             self.renderTableCount()
             self.renderButton()
@@ -236,11 +245,6 @@ class TinhAndMauPage(QWidget):
         self.table_main.addWidget(self.table_scroll_count)
         self.widget_main.addWidget(self.table_main)
 
-        #/ Config table
-        rowCount = len(ban_info['data'])
-        self.frozen_table_count.setRowCount(rowCount)
-        self.table_scroll_count.setRowCount(rowCount)
-
         #/ Config Header
         ranges = []
         cols_arr = []
@@ -266,6 +270,7 @@ class TinhAndMauPage(QWidget):
 
         self.table_scroll_count.setColumnCount(len(cols_arr))
         self.frozen_table_count.setColumnCount(1)
+
         for i, item in enumerate(cols_arr):
             self.table_scroll_count.setHorizontalHeaderItem(i, item)
 
@@ -275,13 +280,6 @@ class TinhAndMauPage(QWidget):
             item.setForeground(self.red)
             self.frozen_table_count.setHorizontalHeaderItem(i, item)
     
-        for i in range(rowCount):
-            date = ban_info['data'][i]['date'].split('/')
-            item = QTableWidgetItem(f'{date[0]}/{date[1]}/.')
-            # item = QTableWidgetItem(f'03/04/.')
-            # item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_count.setVerticalHeaderItem(i, item)
-
         #/ Config Font
         self.frozen_table_count.setFont(self.font)
         self.frozen_table_count.horizontalHeader().setFont(self.font)
@@ -296,6 +294,8 @@ class TinhAndMauPage(QWidget):
 
         self.frozen_table_count.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.frozen_table_count.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
+
+        self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
 
         self.table_scroll_count.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_scroll_count.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
@@ -333,6 +333,13 @@ class TinhAndMauPage(QWidget):
                 return
             thong_header = ranges[index]['thong']
             self.frozen_table_count.horizontalHeaderItem(0).setText(f'T.{thong_header + 1}')
+            for i, item in enumerate(ban_info['data']):
+                item_thong = item['thong']
+                thong_value = self.thong_info[thong_header][item_thong]
+                item_table = QTableWidgetItem(f'{thong_value}')
+                item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                item_table.setForeground(self.red)
+                self.frozen_table_count.setItem(i,0,item_table)
             ranges[index]['value'] = new_value
            
         def sync_vertical_scroll(vale):
@@ -343,6 +350,8 @@ class TinhAndMauPage(QWidget):
 
         self.table_scroll_count.verticalScrollBar().valueChanged.connect(sync_vertical_scroll)
         self.frozen_table_count.verticalScrollBar().valueChanged.connect(sync_vertical_scroll)
+
+        self.updateTableCount()
         
     def renderTableColor(self):
         ban_info = self.ban_info
@@ -584,6 +593,7 @@ class TinhAndMauPage(QWidget):
         self.button_layout.addWidget(self.TableChange)
 
         InsertData.clicked.connect(self.insertData)
+        InsertThong.clicked.connect(self.insertThong)
 
     # TODO Handler Button
     def insertData(self):
@@ -761,11 +771,11 @@ class TinhAndMauPage(QWidget):
 
         def changeThongEdit(value):
             insert_thong_table.clearSelection()
+            old_data['thong'] = value
             if value <= 0 and value >= 120:
                 return
-            data['insert']['thong'] = value
-            thong_value = self.thong_info[value - 1][:2]
-            insert_thong_edit_first.setText(f'{thong_value[0]}')
+            thong_value = self.thong_info[0][value]
+            insert_thong_edit_first.setText(f'{thong_value}')
 
             col = value // 15  # Calculate column index
             row = value % 15  # Calculate row index
@@ -856,14 +866,592 @@ class TinhAndMauPage(QWidget):
         if msg['status']:
             dialog.reject()
             self.ban_info = msg['data']
-            self.insertTableCount(len(self.ban_info['data']))
+            self.handlerDataUpdate()
+            self.updateTableCount()
         return
 
-    # TODO Handler Insert table
-    def insertTableCount(self, rowCount):
+    def insertThong(self):
+        #/ Config Data
+        old_data = self.ban_info['data'][-1] if len(self.ban_info['data']) > 0 else None
+        #/ Config Icon Windows
+        icon = self.path.path_logo()
+
+        # / Create Dialog Windows
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Bảng Nhập Thông')
+        dialog.setWindowIcon(QIcon(icon))
+        dialog.setFixedSize(1270,850)
+        dialog.show()
+
+        #/ Create Layout
+        layout = QGridLayout()
+        layout.setSpacing(0)
+        dialog.setLayout(layout)
+
+        #/ Table Insert
+        insert_thong_table = QTableWidget()
+        insert_thong_table.setFixedSize(720, 850)
+        insert_thong_table.setStyleSheet(css_table_header)
+        layout.addWidget(insert_thong_table, 0,0,Qt.AlignmentFlag.AlignLeft)
+        #/ Config Table
+        insert_thong_table.setColumnCount(8)
+        insert_thong_table.setRowCount(15)
+
+        insert_thong_table.horizontalHeader().hide()
+        insert_thong_table.verticalHeader().hide()
+
+        insert_thong_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
+        insert_thong_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+
+        insert_thong_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        insert_thong_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        insert_thong_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        insert_thong_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        insert_thong_table.setFont(self.font)
+        insert_thong_table.horizontalHeader().setFont(self.font)
+        insert_thong_table.verticalHeader().setFont(self.font)
+
+        #/ Render Row Table
+        for i in range(15):
+            for j in range(8):
+                value = i + j * 15
+                value = value if value > 9 else f'0{value}'
+                item = QTableWidgetItem(f'{value}')
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                insert_thong_table.setItem(i, j, item)
+        
+        #/ Insert From
+        insert_from_w = QWidget()
+        insert_from_w.setMinimumWidth(530)
+        insert_from_l = QGridLayout(insert_from_w)
+        insert_from_l.setSpacing(20)
+        layout.addWidget(insert_from_w, 0, 1, Qt.AlignmentFlag.AlignTop)
+
+        #/ Insert Thong
+        insert_thong_label = QLabel('Thông số')
+        insert_thong_label.setStyleSheet(css_lable)
+
+        insert_thong_grid_w = QWidget()
+        insert_thong_gird = QGridLayout(insert_thong_grid_w)
+
+        insert_thong_edit = QSpinBox()
+        insert_thong_edit.setMinimum(-1)
+        insert_thong_edit.setMaximum(120)
+        insert_thong_edit.setStyleSheet(css_input)
+
+        insert_thong_edit_first = QLabel('')
+        insert_thong_edit_first.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        insert_thong_edit_first.setStyleSheet(
+            css_customs_table
+        )
+
+        insert_thong_gird.addWidget(insert_thong_edit, 0,0)
+        insert_thong_gird.addWidget(insert_thong_edit_first, 0,1)
+
+
+        insert_from_l.addWidget(insert_thong_label, 3,0)
+        insert_from_l.addWidget(insert_thong_grid_w, 3,1)
+
+        #/ Button Insert
+        submit = QPushButton('Nhập Thông')
+        submit.setCursor(QCursor(Qt.PointingHandCursor))
+        submit.setStyleSheet(css_button_submit)
+
+        exit = QPushButton('Thoát')
+        exit.setCursor(QCursor(Qt.PointingHandCursor))
+        exit.setStyleSheet(css_button_cancel)
+
+        label_submit = QLabel()
+        label_exit = QLabel()
+
+        insert_from_l.addWidget(label_submit,6,1)
+        insert_from_l.addWidget(submit,7,1)
+        insert_from_l.addWidget(label_exit,8,1)
+        insert_from_l.addWidget(exit,9,1)
+
+        #TODO Set Default for insert
+        #TODO Handler Button exit
+        def exit_click():
+            dialog.reject()
+
+        def changeThongTable(value):
+            item = value.text()
+            insert_thong_edit.setValue(int(item))
+
+        def changeThongEdit(value):
+            insert_thong_table.clearSelection()
+            old_data['thong'] = value
+            if value <= 0 and value >= 120:
+                return
+            thong_value = self.thong_info[0][value]
+            insert_thong_edit_first.setText(f'{thong_value}')
+
+            col = value // 15  # Calculate column index
+            row = value % 15  # Calculate row index
+            item = insert_thong_table.item(row, col)
+            if item:
+                item.setSelected(True)
+
+        if old_data:
+            thong_value = old_data['thong']
+            changeThongEdit(thong_value)
+            insert_thong_edit.setValue(thong_value)
+
+        
+
+        exit.clicked.connect(exit_click)
+        submit.clicked.connect(lambda: self.update_thong_insert(old_data, dialog))
+        #/ Thong
+        insert_thong_table.itemClicked.connect(changeThongTable)
+        insert_thong_edit.valueChanged.connect(changeThongEdit)
+    
+    def update_thong_insert(self, data, dialog):
+        data_send = {}
+        data_send['thong'] = data
+        data_send['id'] = self.ban_info['id']
+        msg = updateThongInsert(data_send)
+        SendMessage(msg['msg'])
+        if msg['status']:
+            dialog.reject()
+            self.ban_info = msg['data']
+            self.handlerDataUpdate()
+            self.updateTableCount()
+        return
+
+    # TODO Handler Data Table
+    def updateTableCount(self):
+        self.frozen_table_count.setRowCount(0)
+        self.table_scroll_count.setRowCount(0)
+        ban_info = self.ban_info
+        #/ Config table
+        rowCount = len(ban_info['data'])
         self.frozen_table_count.setRowCount(rowCount)
         self.table_scroll_count.setRowCount(rowCount)
 
-        data = self.ban_info['data'][-1]
-        day = data['date'].split('/')
-        self.frozen_table_count.setVerticalHeaderItem(rowCount -1 , QTableWidgetItem(f'{day[0]}/{day[1]}/.'))
+        for i in range(rowCount):
+            date = ban_info['data'][i]['date'].split('/')
+            item = QTableWidgetItem(f'{date[0]}/{date[1]}/.')
+            self.frozen_table_count.setVerticalHeaderItem(i, item)
+
+        #/ Render Row without Thong
+        for item in self.dataCount:
+            row_item = item['row']
+            col_item = item['col']
+            data_item = item['data']
+            color_item = item['color']
+            notice_item = item['notice']
+            item_table = QTableWidgetItem(f'{data_item}')
+            item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if color_item:
+                item_table.setForeground(color_item)
+            if notice_item:
+                item_table.setBackground(notice_item)
+            if 'action' in item:
+                item_table.setData(Qt.ItemDataRole.UserRole, item['action'])
+            self.table_scroll_count.setItem(row_item, col_item, item_table)
+
+        for i, item in enumerate(ban_info['data']):
+            item_thong = item['thong']
+            jump_col = 0
+            for j in range(ban_info['thong']['value']):
+                thong_value = self.thong_info[j][item_thong]
+                if j == 0:
+                    item_table = QTableWidgetItem(f'{thong_value}')
+                    item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    item_table.setForeground(self.red)
+                    self.frozen_table_count.setItem(i, 0, item_table)
+                else:
+                    item_table = QTableWidgetItem(f'{thong_value}')
+                    item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    item_table.setForeground(self.red)
+                    self.table_scroll_count.setItem(i, jump_col, item_table)
+                    jump_col += 1
+                jump_col += 15
+
+
+    def handlerData(self):
+        #/ Config Data
+        thong_info = self.thong_info
+        ngang_info = self.number_info
+        thong = self.ban_info['thong']['value']
+        ngang = self.ban_info['col']
+        data = self.ban_info['data']
+        meta = self.ban_info['meta']['notice']
+        notice_count = meta['count']
+        notice_color = meta['color']
+
+        #/ Setup Variable
+        self.count_handler = {} # data so dem (d = Bang tinh, e = Bang mau)
+        self.math_isFirst = {} # data toan duoc (c1 = Bang tinh, STT = Bang Mau (Min 3 - Max 4))
+        self.isFrits = {} # So dau tien
+        self.dataCount = [] # Data Bang tinh
+        self.dataColor = [] # Data Bang mau
+        #/ Start Render data
+        for i, item in enumerate(data):
+            item_thong = item.get('thong')
+            item_ngang = item.get('ngang') - 1
+            total_column = 0
+            for t in range(thong):
+                col_t = thong_info[t][item_thong] if item_thong > -1 else ''
+                if t != 0:
+                    total_column += 1
+                for c in range(ngang):
+                    col_a = ngang_info[item_ngang][c]
+                    stt_cot = c + 1
+
+                    #/ Start Count Handler
+                    dem_col_row = f'{stt_cot}:{t}'
+                    if not dem_col_row in self.count_handler:
+                        self.count_handler[dem_col_row] = 1
+                    else:
+                        self.count_handler[dem_col_row] += 1
+                    #/ End Count Handler
+                    col_d = self.count_handler[dem_col_row] # so dem Bang tinh
+                    isNoticeCount = self.checkNotice(col_d, notice_count[0], notice_count[1])
+
+                    #/ Start check isFirst
+                    isColFisrt = f'{col_a}:{i}:{t}'
+
+                    #/ Check col_a equal col_t
+                    isEqual = self.checkColor(str(col_a), str(col_t))
+
+                    if col_d == 1:
+                        self.dataCount.append({
+                            "row": i,
+                            "col": total_column,
+                            "color": isEqual,
+                            "data": f'{col_a}/{col_d}',
+                            "notice": isNoticeCount
+                        })
+                    else:
+                        if not isColFisrt in self.isFrits:
+                            self.isFrits[isColFisrt] = True
+
+                            #/ Start check col_c is first Like first check
+                            maths_c1 = f'{col_d}:{t}:{i}:_color'
+                            if not maths_c1 in self.math_isFirst:
+                                self.math_isFirst[maths_c1] = 1
+                                col_c1 = self.math_isFirst[maths_c1] # toan duoc lan 1
+
+                                #/ Start check col_stt table count min 3 and max 4 with every count_handler
+                                math_count_handler = f'{col_d}:{i}:_color'
+                                if not math_count_handler in self.count_handler:
+                                    self.count_handler[math_count_handler] = 1
+                                else:
+                                    self.count_handler[math_count_handler] += 1
+
+                                #/ End check col_stt table count
+                                stt_count_with_d = self.count_handler[math_count_handler] # So thu tu cua so dem
+
+                                #/ Start Check count handler with if and else
+                                if stt_count_with_d <= 4:
+
+                                    #/ Start count color with col_d
+                                    col_e_count = f'{col_d}:{stt_count_with_d}:col_e'
+                                    if not col_e_count in self.count_handler:
+                                        self.count_handler[col_e_count] = 1
+                                    else:
+                                        self.count_handler[col_e_count] += 1
+                                    col_e = self.count_handler[col_e_count] # so dem bang mau
+                                    isNoticeColor = self.checkNotice(col_e, notice_color[0], notice_color[1])
+
+                                    #/ End count color with col_d
+                                    if col_d >= 2 and col_d <= 85:
+                                        col_color = (col_d - 2) * 4 + stt_count_with_d + (1 if col_d > 2 else 0) # vi tri col cua item bang mau
+                                        row_count = Qt
+                                        #/ Add Data to Table count
+                                        self.dataCount.append({
+                                            "row": i,
+                                            "col": total_column,
+                                            "data": f'{col_a}/{stt_cot}/{col_c1}/{col_d}',
+                                            "color": isEqual,
+                                            "action":{
+                                                "name": "color",
+                                                "row": i,
+                                                "col": col_color
+                                            },
+                                            "notice": isNoticeCount
+                                        })
+                                        # print('Toan c1', i, total_column, stt_count_with_d, col_d, self.dataCount)
+                                        
+                                        #/ Add data to table color
+                                        self.dataColor.append({
+                                            "row": i,
+                                            "col": col_color,
+                                            "data": f'{t+1}/{col_t}/{stt_cot}/{col_d} - {col_a}/{col_e}',
+                                            "color": isEqual,
+                                            "action":{
+                                                "name": 'count',
+                                                "row": i,
+                                                "col": total_column
+                                            },
+                                            "notice": isNoticeColor
+                                        })
+                                    
+                                    elif col_d >= 86 and col_d <= 110:
+                                        print('Toan c1', i, total_column, stt_count_with_d, col_d)
+                                        col_color = (col_d - 2) * 3 + stt_count_with_d + (83 * 4) + 84 # vi tri col cua item bang mau
+                                        
+                                        #/ Add Data to Table count
+                                        self.dataCount.append({
+                                            "row": i,
+                                            "col": total_column,
+                                            "data": f'{col_a}/{stt_cot}/{col_c1}/{col_d}',
+                                            "color": isEqual,
+                                            "action":{
+                                                "name": "color",
+                                                "row": i,
+                                                "col": col_color
+                                            },
+                                            "notice": isNoticeCount
+                                        })
+                                        
+                                        #/ Add data to table color
+                                        self.dataColor.append({
+                                            "row": i,
+                                            "col": col_color,
+                                            "data": f'{t+1}/{col_t}/{stt_cot}/{col_d} - {col_a}/{col_e}',
+                                            "color": isEqual,
+                                            "action":{
+                                                "name": 'count',
+                                                "row": i,
+                                                "col": total_column
+                                            },
+                                            "notice": isNoticeColor
+                                        })
+                                    
+                                    else:
+                                        self.dataCount.append({
+                                            "row": i,
+                                            "col": total_column,
+                                            "color": isEqual,
+                                            "data": f'{col_a}/{col_d}',
+                                            "notice": isNoticeCount
+                                        })
+
+                                    if isEqual:
+                                        #/ Reset Col_e with isEqual
+                                        self.count_handler[col_e_count] = 0
+                                else:
+                                    #/ Add Data to Table count without math
+                                    self.dataCount.append({
+                                        "row": i,
+                                        "col": total_column,
+                                        "color": isEqual,
+                                        "data": f'{col_a}/{col_d}',
+                                        "notice": isNoticeCount
+                                    })
+                            else:
+                                #/ Add Data to Table count without math
+                                self.dataCount.append({
+                                    "row": i,
+                                    "col": total_column,
+                                    "color": isEqual,
+                                    "data": f'{col_a}/{col_d}',
+                                    "notice": isNoticeCount
+                                })
+                        #/ End check col_c is first
+                        else:
+                            #/ Add Data to Table count without math
+                            self.dataCount.append({
+                                "row": i,
+                                "col": total_column,
+                                "color": isEqual,
+                                "data": f'{col_a}/{col_d}',
+                                "notice": isNoticeCount
+                            })
+                        
+                        if isEqual:
+                            #/ Reset Count col_d if isEqual
+                            self.count_handler[dem_col_row] = 0
+                    
+                    #/ End check isFirst
+                    total_column += 1
+
+    def handlerDataUpdate(self):
+        #/ Config Data
+        thong_info = self.thong_info
+        ngang_info = self.number_info
+        thong = self.ban_info['thong']['value']
+        ngang = self.ban_info['col']
+        meta = self.ban_info['meta']['notice']
+        notice_count = meta['count']
+        notice_color = meta['color']
+        # Determine the index of the new row
+        new_row_index = len(self.ban_info['data']) - 1
+
+        # Retrieve the new row data
+        new_row = self.ban_info['data'][new_row_index]
+
+        # Setup Variable
+        total_column = 0
+
+        # Start Render data for the new row
+        for t in range(thong):
+            col_t = thong_info[t][new_row.get('thong', -1)] if new_row.get('thong', -1) > -1 else ''
+            for c in range(ngang):
+                col_a = ngang_info[new_row.get('ngang', -1) - 1][c]
+                stt_cot = c + 1
+
+                # Start Count Handler for the new row
+                dem_col_row = f'{stt_cot}:{t}'
+                if dem_col_row not in self.count_handler:
+                    self.count_handler[dem_col_row] = 1
+                else:
+                    self.count_handler[dem_col_row] += 1
+
+                col_d = self.count_handler[dem_col_row]  # So dem Bang tinh
+                isNoticeCount = self.checkNotice(col_d, notice_count[0], notice_count[1])
+
+                # Start check isFirst
+                isColFirst = f'{col_a}:{new_row_index}:{t}'
+
+                # Check col_a equal col_t
+                isEqual = self.checkColor(str(col_a), str(col_t))
+
+                if col_d == 1:
+                    self.dataCount.append({
+                        "row": new_row_index,
+                        "col": total_column,
+                        "color": isEqual,
+                        "data": f'{col_a}/{col_d}',
+                        "notice": isNoticeCount
+                    })
+                else:
+                    if isColFirst not in self.isFrits:
+                        self.isFrits[isColFirst] = True
+
+                        # Start check col_c is first Like first check
+                        maths_c1 = f'{col_d}:{t}:{new_row_index}:_color'
+                        if maths_c1 not in self.math_isFirst:
+                            self.math_isFirst[maths_c1] = 1
+                            col_c1 = self.math_isFirst[maths_c1]  # toan duoc lan 1
+
+                            # Start check col_stt table count min 3 and max 4 with every count_handler
+                            math_count_handler = f'{col_d}:{new_row_index}:_color'
+                            if math_count_handler not in self.count_handler:
+                                self.count_handler[math_count_handler] = 1
+                            else:
+                                self.count_handler[math_count_handler] += 1
+
+                            stt_count_with_d = self.count_handler[math_count_handler]  # So thu tu cua so dem
+
+                            if stt_count_with_d <= 4:
+                                col_e_count = f'{col_d}:{stt_count_with_d}:col_e'
+                                if col_e_count not in self.count_handler:
+                                    self.count_handler[col_e_count] = 1
+                                else:
+                                    self.count_handler[col_e_count] += 1
+                                col_e = self.count_handler[col_e_count]  # so dem bang mau
+                                isNoticeColor = self.checkNotice(col_e, notice_color[0], notice_color[1])
+
+                                if 2 <= col_d <= 85:
+                                    col_color = (col_d - 2) * 4 + stt_count_with_d + (1 if col_d > 2 else 0)
+                                    self.dataCount.append({
+                                        "row": new_row_index,
+                                        "col": total_column,
+                                        "data": f'{col_a}/{stt_cot}/{col_c1}/{col_d}',
+                                        "color": isEqual,
+                                        "action": {
+                                            "name": "color",
+                                            "row": new_row_index,
+                                            "col": col_color
+                                        },
+                                        "notice": isNoticeCount
+                                    })
+
+                                    self.dataColor.append({
+                                        "row": new_row_index,
+                                        "col": col_color,
+                                        "data": f'{t + 1}/{col_t}/{stt_cot}/{col_d} - {col_a}/{col_e}',
+                                        "color": isEqual,
+                                        "action": {
+                                            "name": 'count',
+                                            "row": new_row_index,
+                                            "col": total_column
+                                        },
+                                        "notice": isNoticeColor
+                                    })
+
+                                elif 86 <= col_d <= 110:
+                                    col_color = (col_d - 2) * 3 + stt_count_with_d + (83 * 4) + 84
+                                    self.dataCount.append({
+                                        "row": new_row_index,
+                                        "col": total_column,
+                                        "data": f'{col_a}/{stt_cot}/{col_c1}/{col_d}',
+                                        "color": isEqual,
+                                        "action": {
+                                            "name": "color",
+                                            "row": new_row_index,
+                                            "col": col_color
+                                        },
+                                        "notice": isNoticeCount
+                                    })
+
+                                    self.dataColor.append({
+                                        "row": new_row_index,
+                                        "col": col_color,
+                                        "data": f'{t + 1}/{col_t}/{stt_cot}/{col_d} - {col_a}/{col_e}',
+                                        "color": isEqual,
+                                        "action": {
+                                            "name": 'count',
+                                            "row": new_row_index,
+                                            "col": total_column
+                                        },
+                                        "notice": isNoticeColor
+                                    })
+
+                                else:
+                                    self.dataCount.append({
+                                        "row": new_row_index,
+                                        "col": total_column,
+                                        "color": isEqual,
+                                        "data": f'{col_a}/{col_d}',
+                                        "notice": isNoticeCount
+                                    })
+
+                                if isEqual:
+                                    self.count_handler[col_e_count] = 0
+                            else:
+                                self.dataCount.append({
+                                    "row": new_row_index,
+                                    "col": total_column,
+                                    "color": isEqual,
+                                    "data": f'{col_a}/{col_d}',
+                                    "notice": isNoticeCount
+                                })
+                        else:
+                            self.dataCount.append({
+                                "row": new_row_index,
+                                "col": total_column,
+                                "color": isEqual,
+                                "data": f'{col_a}/{col_d}',
+                                "notice": isNoticeCount
+                            })
+                    else:
+                        self.dataCount.append({
+                            "row": new_row_index,
+                            "col": total_column,
+                            "color": isEqual,
+                            "data": f'{col_a}/{col_d}',
+                            "notice": isNoticeCount
+                        })
+
+                    if isEqual:
+                        self.count_handler[dem_col_row] = 0
+
+                total_column += 1
+
+    def checkColor(self,value1, value2):
+        if value1 in value2:
+            return self.red
+        else:
+            return None
+        
+    def checkNotice(self,value1, notice1, notice2):
+        if value1 >= notice1 and value1 <= notice2:
+            return self.yellow
+        else:
+            return None
