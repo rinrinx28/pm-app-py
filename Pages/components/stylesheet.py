@@ -39,7 +39,7 @@ css_button_view = """
         border-color: #E5E7EB; 
         font-size: 32px;
         font-weight: 600;
-        background-color: #F0F8FF;
+        background-color: rgb(178, 255, 255);
     }
 """
 

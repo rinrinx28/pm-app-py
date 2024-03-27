@@ -11,6 +11,7 @@ import json
 from Controller.handler import createBan
 import os
 class ListBanPage(QWidget):
+    
     def __init__(self):
         super().__init__()
         self.path = Path()
@@ -124,7 +125,7 @@ class ListBanPage(QWidget):
         dialog = QDialog(self)
         dialog.setWindowTitle('Tạo Bảng Mới')
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(600, 800)
+        dialog.setFixedSize(700, 1000)
         dialog.show()
 
         #/ Create Layout
@@ -281,7 +282,8 @@ class ListBanPage(QWidget):
             data_create['change'] = change_value
             data_create['meta'] = {
                 "notice": { "count": [0, 0], "color": [0, 0] },
-                "features": { "N:2": True, "N=0": { "status": False, "value": 0 } }
+                "features": { "N:2": True, "N=1": { "status": False, "value": 0 } },
+                "setting": { "col_e": 0}
 		    }
             data_create['data'] = []
             msg = self.submit_create_ban(data_create)

@@ -35,11 +35,6 @@ class Navbar(QtWidgets.QWidget):
         b_tinh_mau.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(b_tinh_mau)
 
-        setting = QtWidgets.QPushButton('Cài Đặt')
-        setting.setStyleSheet(css+"QPushButton:hover {color: #1D4ED8;background-color: #F3F4F6;}")
-        setting.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(setting)
-
         exit = QtWidgets.QPushButton('Thoát')
         exit.setStyleSheet(css+"QPushButton:hover {color: #1D4ED8;background-color: #F3F4F6;}")
         exit.setCursor(QCursor(Qt.PointingHandCursor))
