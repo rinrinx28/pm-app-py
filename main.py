@@ -4,7 +4,10 @@ from PySide6.QtGui import QIcon
 from Router.navigate import Navbar
 from Controller.main import Controller
 from Pages.components.path import Path
+
 basedir = os.path.dirname(__file__)
+
+APP_NAME = "Project Management"
 
 try:
     from ctypes import windll  # Only exists on Windows.

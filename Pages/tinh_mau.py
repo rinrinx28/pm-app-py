@@ -28,7 +28,7 @@ class TinhAndMauPage(QWidget):
         with open(self.bans_path, 'r') as file:
             self.bans_db = json.load(file)
         
-        self.ban_info = None
+        self.ban_info = self.bans_db
 
         #/ Load data Thong and Number
         self.thong_info = None
@@ -55,6 +55,7 @@ class TinhAndMauPage(QWidget):
         #/ Table main
         self.table_main_count = None
         self.table_main_color = None
+        self.ranges = []
 
         #/ List Table
         #* Count
@@ -74,121 +75,34 @@ class TinhAndMauPage(QWidget):
         self.showSelectBan()   
    
     # TODO handler Render Components
+    def loadData(self):
+        #/ Load Info thong and Number
+        ngang_number = self.ban_info['meta']['number']['ngang']
+        thong_number = self.ban_info['meta']['number']['thong']
+        col_value = self.ban_info['col']
+        id_thong = self.ban_info['thong']['id']
+        value_thong = self.ban_info['thong']['value']
+        path_thong = self.path.path_thong_with_id_value(id_thong, thong_number)
+        path_number = self.path.path_number_with_value(ngang_number)
+
+        with open(path_thong, 'r') as file:
+            thong_info = json.load(file)
+            self.thong_info = thong_info[:value_thong]
+
+        with open(path_number, 'r') as file:
+            number_info = json.load(file)
+            self.number_info = [number_rang[:col_value] for number_rang in number_info]
+
     def showSelectBan(self):
-        #/ Config Icon Windows
-        icon = self.path.path_logo()
-
-        # / Create Dialog Windows
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Đăng Nhập Vào Bảng Tính và Màu')
-        dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(800, 600)
-        dialog.show()
-
-        #/ Create Layout
-        layout = QGridLayout()
-        dialog.setLayout(layout)
-
-        #/ Create From
-        from_w = QWidget()
-        from_l = QVBoxLayout(from_w)
-        layout.addWidget(from_w, 0,0)
-
-        #/ Create Input Value
-        #? Name
-        name_w = QWidget()
-        name_l = QVBoxLayout(name_w)
-        from_l.addWidget(name_w)
-
-        label_name = QLabel('Chọn Bảng')
-        label_name.setStyleSheet(css_lable)
-        name_l.addWidget(label_name)
-
-        input_name = QComboBox()
-        input_name.setStyleSheet(css_input)
-        input_name.addItem('Chọn Bảng')
-        for i in range(len(self.bans_db)):
-            name = self.bans_db[i]['name']
-            input_name.addItem(f'Bảng {name}')
-        name_l.addWidget(input_name)
-
-        #? password
-        password_w = QWidget()
-        password_l = QVBoxLayout(password_w)
-        from_l.addWidget(password_w)
-
-        label_password = QLabel('Nhập Mật Khẩu')
-        label_password.setStyleSheet(css_lable)
-        password_l.addWidget(label_password)
-
-        input_password = QLineEdit()
-        input_password.setStyleSheet(css_input)
-        password_l.addWidget(input_password)
-
-        #/ Create Button
-        button_w = QWidget()
-        button_l = QHBoxLayout(button_w)
-        button_l.setSpacing(100)
-        layout.addWidget(button_w)
-
-        #? Submit Button
-        submit = QPushButton('Đăng Nhập')
-        submit.setStyleSheet(css_button_submit)
-        submit.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(submit)
-
-        #? Exit Button
-        Exit = QPushButton('Thoát')
-        Exit.setStyleSheet(css_button_cancel)
-        Exit.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(Exit)
-
-        # TODO Handler Button
-        def  exit():
-            dialog.reject()
-        
-        def submit_click():
-            ban_index = input_name.currentIndex()
-            password_value = input_password.text()
-            if ban_index == 0 or len(password_value) == 0:
-                SendMessage('Xin vui lòng chọn bảng và nhập mật khẩu!')
-                return
-            ban_value = self.bans_db[ban_index - 1]
-            ban_name = ban_value['name']
-            ban_password = ban_value['password']
-            if password_value not in ban_password:
-                SendMessage('Mật khẩu không đúng!')
-                return
-            self.ban_info = ban_value
-            SendMessage(f'Bạn đã đăng nhập thành công vào bảng {ban_name}')
-            dialog.reject()
-            #/ Load Info thong and Number
-            change_number = self.ban_info['change']
-            col_value = self.ban_info['col']
-            id_thong = self.ban_info['thong']['id']
-            value_thong = self.ban_info['thong']['value']
-            path_thong = self.path.path_thong_with_id_value(id_thong,change_number)
-            path_number = self.path.path_number_with_value(change_number)
-
-            with open(path_thong, 'r') as file:
-                thong_info = json.load(file)
-                self.thong_info = thong_info[:value_thong]
-
-            with open(path_number, 'r') as file:
-                number_info = json.load(file)
-                self.number_info = [number_rang[:col_value] for number_rang in number_info]
-
-            self.handlerData()
-            self.renderNavigation()
-            self.renderTableCount()
-            self.renderTableColor()
-            self.renderButton()
-            self.showNoticeColorButton()
-            self.widget_main.setCurrentWidget(self.table_main_count)
-            return
-        
-        submit.clicked.connect(submit_click)
-        Exit.clicked.connect(exit)
+        self.loadData()
+        self.handlerData()
+        self.renderNavigation()
+        self.renderTableCount()
+        self.renderTableColor()
+        self.renderButton()
+        self.showNoticeColorButton()
+        self.widget_main.setCurrentWidget(self.table_main_count)
+        return
 
     def renderNavigation(self):
         ban_info = self.ban_info
@@ -249,34 +163,9 @@ class TinhAndMauPage(QWidget):
         self.widget_main.addWidget(self.table_main_count)
 
         #/ Config Header
-        ranges = []
-        cols_arr = []
-        total_column = 0
-        for i in range(self.ban_info['thong']['value']):
-            range_data = {}
-            thong_name = QTableWidgetItem(f'T.{i+1}')
-            thong_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            thong_name.setForeground(self.red)
-            range_data['start'] = total_column
-            range_data['value'] = total_column
-            if i != 0:
-                cols_arr.append(thong_name)
-                total_column += 1
-            for j in range(self.ban_info['col']):
-                col_name = QTableWidgetItem(f'C.{j + 1}')
-                col_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                cols_arr.append(col_name)
-                total_column += 1
-            range_data['end'] = total_column
-            range_data['thong'] = i
-            ranges.append(range_data)
+        self.updateHeaderCount()
 
-        self.table_scroll_count.setColumnCount(total_column)
         self.frozen_table_count.setColumnCount(1)
-
-        for i, item in enumerate(cols_arr):
-            self.table_scroll_count.setHorizontalHeaderItem(i, item)
-
         for i in range(self.frozen_table_count.columnCount()):
             item = QTableWidgetItem(f'T.{i + 1}')
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -322,7 +211,7 @@ class TinhAndMauPage(QWidget):
 
         def update(value):
             # Create a sorted list of range starts and their corresponding indices
-            filter_near = [item['start'] for item in ranges]
+            filter_near = [item['start'] for item in self.ranges]
             index_near = bisect.bisect_left(filter_near, value)
             
             if index_near > 0:
@@ -330,14 +219,14 @@ class TinhAndMauPage(QWidget):
             else:
                 index = index_near
 
-            if ranges[index]['start'] <= value < ranges[index]['end']:
+            if self.ranges[index]['start'] <= value < self.ranges[index]['end']:
                 new_value = value
-            elif value < ranges[index]['start']:
-                new_value = ranges[index]['start']
+            elif value < self.ranges[index]['start']:
+                new_value = self.ranges[index]['start']
             else:
                 # This shouldn't happen, but handle it just in case
                 return
-            thong_header = ranges[index]['thong']
+            thong_header = self.ranges[index]['thong']
             self.frozen_table_count.horizontalHeaderItem(0).setText(f'T.{thong_header + 1}')
             for i, item in enumerate(self.ban_info['data']):
                 item_thong = item['thong']
@@ -346,7 +235,7 @@ class TinhAndMauPage(QWidget):
                 item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 item_table.setForeground(self.red)
                 self.frozen_table_count.setItem(i,0,item_table)
-            ranges[index]['value'] = new_value
+            self.ranges[index]['value'] = new_value
            
         def sync_vertical_scroll(vale):
             self.frozen_table_count.verticalScrollBar().setValue(vale)
@@ -394,76 +283,7 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_left.setColumnCount(1)
 
         #/ Config Header col
-        current_column  = 0
-        # Tạo cột từ 0 đến 83
-        for i in range(0, 84):
-            current_column  += 5  # Số cột tạo cho mỗi lần là 4 cột + 1 cột phụ trợ
-
-        # Tạo cột từ 84 đến 98
-        for i in range(84, 99):
-            current_column  += 4  # Số cột tạo cho mỗi lần là 3 cột + 1 cột phụ trợ
-
-        # Thiết lập số lượng cột cho bảng
-        self.frozen_table_color.setColumnCount(current_column)
-        self.table_scroll_color.setColumnCount(current_column)
-        
-        # Khởi tạo biến để theo dõi tổng số cột
-        total_columns = 0
-        step_count = 0
-        # Tạo cột từ 0 đến 83
-        for i in range(0, 84):
-            # Xác định số lượng cột cho mỗi lần tạo
-            num_cols = 4  # Số lượng cột tối đa có thể thêm
-
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"Số Đếm {step_count + 2} a/b/c/d - s/m")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_color.setItem(0, total_columns, header_item)
-            self.frozen_table_color.setSpan(0, total_columns, 1, num_cols)
-
-            # Thêm tên cột cho hàng header
-            for j in range(num_cols):
-                col_header = QTableWidgetItem(f'{j + 1}')
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_scroll_color.setHorizontalHeaderItem(total_columns + j, col_header)
-
-            
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(QColor(Qt.GlobalColor.white))  # Đặt màu nền là màu trắng
-            self.table_scroll_color.setHorizontalHeaderItem(total_columns + num_cols, col_null)
-
-
-            # Cập nhật tổng số cột
-            total_columns += num_cols + 1
-            step_count += 1
-
-        # Tạo cột từ 84 đến 98
-        for i in range(84, 99):
-            # Xác định số lượng cột cho mỗi lần tạo
-            num_cols = 3  # Số lượng cột tối đa có thể thêm
-
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"Số Đếm {step_count + 2} a/b/c/d - s/m")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_color.setItem(0, total_columns, header_item)
-            self.frozen_table_color.setSpan(0, total_columns, 1, num_cols)
-
-            # Thêm tên cột cho hàng header
-            for j in range(num_cols):
-                col_header = QTableWidgetItem(f'{j + 1}')
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_scroll_color.setHorizontalHeaderItem(total_columns + j, col_header)
-
-            
-            col_null = QTableWidgetItem()
-            col_null.setBackground(QColor(Qt.GlobalColor.white))  # Đặt màu nền là màu trắng
-            self.table_scroll_color.setHorizontalHeaderItem(total_columns + num_cols, col_null)
-
-            # Cập nhật tổng số cột
-            total_columns += num_cols + 1
-            step_count += 1
-        
+        self.updateHeaderColor()
         #/ config header Row
         for i in range(self.frozen_table_left.rowCount()):
             item = QTableWidgetItem(f'Ngày')
@@ -509,11 +329,11 @@ class TinhAndMauPage(QWidget):
 
         height_of_row = self.frozen_table_color.verticalHeader().sectionSize(0)
         width_of_row = self.frozen_table_color.horizontalHeader().sectionSize(0)
-        self.frozen_table_color.setMaximumHeight(height_of_row)
-        self.frozen_table_color.setMinimumHeight(height_of_row)
+        self.frozen_table_color.setMaximumHeight(height_of_row + 50)
+        self.frozen_table_color.setMinimumHeight(height_of_row + 50)
 
-        self.frozen_table_left.setMaximumSize(width_of_row + 30, height_of_row)
-        self.frozen_table_left.setMinimumSize(width_of_row + 30, height_of_row)
+        self.frozen_table_left.setMaximumSize(width_of_row + 30, height_of_row + 50)
+        self.frozen_table_left.setMinimumSize(width_of_row + 30, height_of_row + 50)
 
         self.frozen_table_left.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_left.horizontalHeader().setStretchLastSection(True)
@@ -1091,8 +911,12 @@ class TinhAndMauPage(QWidget):
             return
 
     def changeSettingColor(self):
+        change_data = self.ban_info['meta']['number']
         old_data = self.ban_info['meta']['notice']
         col_e = self.ban_info['meta']['setting']
+        col_ngang = self.ban_info
+        col_thong = self.ban_info['thong']
+        maxRow = self.ban_info['meta']
         #/ Config Icon Windows
         icon = self.path.path_logo()
 
@@ -1105,7 +929,7 @@ class TinhAndMauPage(QWidget):
 
         #/ Create Layout
         layout = QGridLayout()
-        layout.setSpacing(50)
+        layout.setSpacing(6)
         dialog.setLayout(layout)
 
         #/ Setting Color Table Count
@@ -1159,31 +983,95 @@ class TinhAndMauPage(QWidget):
         layout.addWidget(setting_color_color_label, 0,1)
         layout.addWidget(setting_color_color_w, 1, 1)
 
-        # #/ Setting Color Table Color
-        # setting_col_e_w = QWidget()
-        # setting_col_e_l = QGridLayout(setting_col_e_w)
-
-        # setting_col_e_label = QLabel('Thống Kê D Bảng Màu')
-        # setting_col_e_label.setStyleSheet(css_lable)
+        #/ Setting Thong Change
+        setting_thong_change_label = QLabel('Bộ Chuyển Đổi B Thông')
+        setting_thong_change_label.setStyleSheet(css_lable)
         
-        # setting_col_e_edit_fisrt = QSpinBox()
-        # setting_col_e_edit_fisrt.setMinimum(0)
-        # setting_col_e_edit_fisrt.setMaximum(120)
-        # setting_col_e_edit_fisrt.setStyleSheet(css_input)
-        # setting_col_e_edit_fisrt.setValue(col_e['col_e'][0])
-        
-        # setting_col_e_edit_second = QSpinBox()
-        # setting_col_e_edit_second.setMinimum(0)
-        # setting_col_e_edit_second.setMaximum(120)
-        # setting_col_e_edit_second.setStyleSheet(css_input)
-        # setting_col_e_edit_second.setValue(col_e['col_e'][1])
+        setting_thong_change_edit_fisrt = QSpinBox()
+        setting_thong_change_edit_fisrt.setMinimum(0)
+        setting_thong_change_edit_fisrt.setMaximum(5)
+        setting_thong_change_edit_fisrt.setStyleSheet(css_input)
+        setting_thong_change_edit_fisrt.setValue(change_data['thong'])
 
-        # setting_col_e_l.addWidget(setting_col_e_edit_fisrt, 0,0)
-        # setting_col_e_l.addWidget(setting_col_e_edit_second, 0,1)
+        layout.addWidget(setting_thong_change_label, 2,0)
+        layout.addWidget(setting_thong_change_edit_fisrt, 3, 0)
 
+        #/ Setting Ngang Change
+        setting_ngang_change_label = QLabel('Bộ Chuyển Đổi B Ngang')
+        setting_ngang_change_label.setStyleSheet(css_lable)
         
-        # layout.addWidget(setting_col_e_label, 2,0)
-        # layout.addWidget(setting_col_e_w, 3, 0)
+        setting_ngang_change_edit_fisrt = QSpinBox()
+        setting_ngang_change_edit_fisrt.setMinimum(0)
+        setting_ngang_change_edit_fisrt.setMaximum(5)
+        setting_ngang_change_edit_fisrt.setStyleSheet(css_input)
+        setting_ngang_change_edit_fisrt.setValue(change_data['ngang'])
+
+        layout.addWidget(setting_ngang_change_label, 2,1)
+        layout.addWidget(setting_ngang_change_edit_fisrt, 3, 1)
+
+        #/ Setting Thong Value
+        setting_thong_value_label = QLabel('Số Thông Sử Dụng')
+        setting_thong_value_label.setStyleSheet(css_lable)
+        
+        setting_thong_value_edit_fisrt = QSpinBox()
+        setting_thong_value_edit_fisrt.setMinimum(10)
+        setting_thong_value_edit_fisrt.setMaximum(300)
+        setting_thong_value_edit_fisrt.setStyleSheet(css_input)
+        setting_thong_value_edit_fisrt.setValue(col_thong['value'])
+
+        layout.addWidget(setting_thong_value_label, 4,0)
+        layout.addWidget(setting_thong_value_edit_fisrt, 5, 0)
+
+        #/ Setting Ngang Value
+        setting_ngang_value_label = QLabel('Số Cột Ngang')
+        setting_ngang_value_label.setStyleSheet(css_lable)
+        
+        setting_ngang_value_edit_fisrt = QSpinBox()
+        setting_ngang_value_edit_fisrt.setMinimum(10)
+        setting_ngang_value_edit_fisrt.setMaximum(600)
+        setting_ngang_value_edit_fisrt.setStyleSheet(css_input)
+        setting_ngang_value_edit_fisrt.setValue(col_ngang['col'])
+
+        layout.addWidget(setting_ngang_value_label, 4,1)
+        layout.addWidget(setting_ngang_value_edit_fisrt, 5, 1)
+
+        #/ Setting Thong Ke D B Tinh
+        setting_count_d_label = QLabel('Thông Kê D B Tính')
+        setting_count_d_label.setStyleSheet(css_lable)
+
+        setting_count_d_w = QWidget()
+        setting_count_d_l = QGridLayout(setting_count_d_w)
+        
+        setting_count_d_edit_fisrt = QSpinBox()
+        setting_count_d_edit_fisrt.setMinimum(2)
+        setting_count_d_edit_fisrt.setMaximum(120)
+        setting_count_d_edit_fisrt.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt.setValue(col_e['col_e'][0])
+        
+        setting_count_d_edit_second = QSpinBox()
+        setting_count_d_edit_second.setMinimum(2)
+        setting_count_d_edit_second.setMaximum(120)
+        setting_count_d_edit_second.setStyleSheet(css_input)
+        setting_count_d_edit_second.setValue(col_e['col_e'][1])
+
+        setting_count_d_l.addWidget(setting_count_d_edit_fisrt, 0,0)
+        setting_count_d_l.addWidget(setting_count_d_edit_second, 0,1)
+
+        layout.addWidget(setting_count_d_label, 6,0)
+        layout.addWidget(setting_count_d_w, 7, 0)
+
+        #/ Setting Thong Value
+        setting_max_row_label = QLabel('Tối Đa Dòng Tồn Tại')
+        setting_max_row_label.setStyleSheet(css_lable)
+        
+        setting_max_row_edit_fisrt = QSpinBox()
+        setting_max_row_edit_fisrt.setMinimum(10)
+        setting_max_row_edit_fisrt.setMaximum(300)
+        setting_max_row_edit_fisrt.setStyleSheet(css_input)
+        setting_max_row_edit_fisrt.setValue(maxRow['maxRow'])
+
+        layout.addWidget(setting_max_row_label, 6,1)
+        layout.addWidget(setting_max_row_edit_fisrt, 7, 1)
 
         #/ Button Save And Exit
         submit_w = QWidget()
@@ -1198,8 +1086,8 @@ class TinhAndMauPage(QWidget):
         exit.setStyleSheet(css_button_cancel)
         exit_l.addWidget(exit)
 
-        layout.addWidget(submit_w, 4,0)
-        layout.addWidget(exit_w, 4, 1)
+        layout.addWidget(submit_w, 8,0)
+        layout.addWidget(exit_w, 8, 1)
 
         #TODO Handler Button
         def changeColorCount():
@@ -1211,17 +1099,41 @@ class TinhAndMauPage(QWidget):
             value1 = setting_color_color_edit_fisrt.value()
             value2 = setting_color_color_edit_second.value()
             old_data['color'] = [value1, value2]
-        
-        # def changeColE():
-        #     value1 = setting_col_e_edit_fisrt.value()
-        #     value2 = setting_col_e_edit_second.value()
-        #     col_e['col_e'] = [value1, value2]
+
+        def changeThong():
+            value = setting_thong_change_edit_fisrt.value()
+            change_data['thong'] = value
+
+        def changeNgang():
+            value = setting_ngang_change_edit_fisrt.value()
+            change_data['ngang'] = value
+
+        def changeThongValue():
+            value = setting_thong_value_edit_fisrt.value()
+            col_thong['value'] = value
+
+        def changeNgangValue():
+            value = setting_ngang_value_edit_fisrt.value()
+            col_ngang['col'] = value
+
+        def changeColunmE():
+            value1 = setting_count_d_edit_fisrt.value()
+            value2 = setting_count_d_edit_second.value()
+            col_e['col_e'] = [value1, value2]
+
+        def changeMaxRow():
+            value = setting_max_row_edit_fisrt.value()
+            maxRow['maxRow'] = value
 
         def submit_click():
             data = {
                 "id": self.ban_info['id'],
                 "notice": old_data,
-                "col_e": col_e['col_e']
+                "col_e": col_e['col_e'],
+                "number": change_data,
+                "col": col_ngang['col'],
+                "thong": col_thong,
+                "maxRow": maxRow['maxRow'],
             }
             msg = updateColorInsert(data)
             SendMessage(msg['msg'])
@@ -1230,7 +1142,10 @@ class TinhAndMauPage(QWidget):
                 self.ban_info = msg['data']
                 self.widget_main.setCurrentWidget(self.table_main_count)
                 self.TableChange.setText('Bảng Màu')
-                self.handlerDataColorUpdate()
+                self.loadData()
+                self.handlerData()
+                self.updateHeaderCount()
+                self.updateHeaderColor()
                 self.updateTableCount()
                 self.updateTableColor()
                 self.showNoticeColorButton()
@@ -1245,8 +1160,16 @@ class TinhAndMauPage(QWidget):
         setting_color_count_edit_fisrt.valueChanged.connect(changeColorCount)
         setting_color_count_edit_second.valueChanged.connect(changeColorCount)
 
-        # setting_col_e_edit_fisrt.valueChanged.connect(changeColE)
-        # setting_col_e_edit_second.valueChanged.connect(changeColE)
+        setting_ngang_change_edit_fisrt.valueChanged.connect(changeNgang)
+        setting_thong_change_edit_fisrt.valueChanged.connect(changeThong)
+
+        setting_ngang_value_edit_fisrt.valueChanged.connect(changeNgangValue)
+        setting_thong_value_edit_fisrt.valueChanged.connect(changeThongValue)
+
+        setting_count_d_edit_fisrt.valueChanged.connect(changeColunmE)
+        setting_count_d_edit_second.valueChanged.connect(changeColunmE)
+
+        setting_max_row_edit_fisrt.valueChanged.connect(changeMaxRow)
 
         submit.clicked.connect(submit_click)
         exit.clicked.connect(exit_click)
@@ -1461,6 +1384,35 @@ class TinhAndMauPage(QWidget):
                     jump_col += 1
                 jump_col += value_col
 
+    def updateHeaderCount(self):
+        self.table_scroll_count.setColumnCount(0)
+        self.ranges = []
+        cols_arr = []
+        total_column = 0
+        for i in range(self.ban_info['thong']['value']):
+            range_data = {}
+            thong_name = QTableWidgetItem(f'T.{i+1}')
+            thong_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            thong_name.setForeground(self.red)
+            range_data['start'] = total_column
+            range_data['value'] = total_column
+            if i != 0:
+                cols_arr.append(thong_name)
+                total_column += 1
+            for j in range(self.ban_info['col']):
+                col_name = QTableWidgetItem(f'C.{j + 1}')
+                col_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                cols_arr.append(col_name)
+                total_column += 1
+            range_data['end'] = total_column
+            range_data['thong'] = i
+            self.ranges.append(range_data)
+        
+        self.table_scroll_count.setColumnCount(total_column)
+
+        for i, item in enumerate(cols_arr):
+            self.table_scroll_count.setHorizontalHeaderItem(i, item)
+
     def updateTableColor(self):
         #/ Set RowCount = 0
         self.table_scroll_color.setRowCount(0)
@@ -1476,11 +1428,14 @@ class TinhAndMauPage(QWidget):
                     self.table_scroll_left.setItem(i,0, item)
         self.table_scroll_left.setHorizontalHeaderItem(0, QTableWidgetItem())
         #/ render row defalut
+        col_e = self.ban_info['meta']['setting']['col_e']
+        value1 = col_e[0]
+        value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
-            for c in range(0, 84):
+            for c in range(value1 - 2, value2 - 1):
                 num_cols = 4  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
@@ -1491,24 +1446,6 @@ class TinhAndMauPage(QWidget):
                 col_null = QTableWidgetItem()
                 col_null.setBackground(QColor(Qt.GlobalColor.white))  # Đặt màu nền là màu trắng
                 self.table_scroll_color.setItem(i,total_columns + num_cols, col_null)
-
-
-                # Cập nhật tổng số cột
-                total_columns += num_cols + 1
-
-            # Tạo cột từ 84 đến 98
-            for c in range(84, 99):
-                num_cols = 3  # Số lượng cột tối đa có thể thêm
-                # Thêm tên cột cho hàng header
-                for j in range(num_cols):
-                    col_header = QTableWidgetItem(f'*')
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_color.setItem(i,total_columns + j, col_header)
-                # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(QColor(Qt.GlobalColor.white))  # Đặt màu nền là màu trắng
-                self.table_scroll_color.setItem(i,total_columns + num_cols, col_null)
-
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
         
@@ -1534,6 +1471,51 @@ class TinhAndMauPage(QWidget):
             width = self.table_scroll_color.columnWidth(i)
             self.frozen_table_color.setColumnWidth(i, width)
 
+    def updateHeaderColor(self):
+        current_column  = 0
+        # Khởi tạo biến để theo dõi tổng số cột
+        total_columns = 0
+        step_count = 0
+
+        col_e = self.ban_info['meta']['setting']['col_e']
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 2, value2 - 1):
+            current_column  += 5  # Số cột tạo cho mỗi lần là 4 cột + 1 cột phụ trợ
+
+        # Thiết lập số lượng cột cho bảng
+        self.frozen_table_color.setColumnCount(current_column)
+        self.table_scroll_color.setColumnCount(current_column)
+        
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 2, value2  - 1):
+            # Xác định số lượng cột cho mỗi lần tạo
+            num_cols = 4  # Số lượng cột tối đa có thể thêm
+
+            # Tạo hàng header cho mỗi lần tạo cột
+            header_item = QTableWidgetItem(f"Số Đếm {i + 2} a/b/c/d - s/m")
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_color.setItem(0, total_columns, header_item)
+            self.frozen_table_color.setSpan(0, total_columns, 1, num_cols)
+
+            # Thêm tên cột cho hàng header
+            for j in range(num_cols):
+                col_header = QTableWidgetItem(f'{j + 1}')
+                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_scroll_color.setHorizontalHeaderItem(total_columns + j, col_header)
+
+            
+            # Tạo ô trống ở cột cuối cùng
+            col_null = QTableWidgetItem()
+            col_null.setBackground(QColor(Qt.GlobalColor.white))  # Đặt màu nền là màu trắng
+            self.table_scroll_color.setHorizontalHeaderItem(total_columns + num_cols, col_null)
+
+
+            # Cập nhật tổng số cột
+            total_columns += num_cols + 1
+            step_count += 1
+ 
     def handlerData(self):
         #/ Config Data
         thong_info = self.thong_info
@@ -1544,6 +1526,10 @@ class TinhAndMauPage(QWidget):
         meta = self.ban_info['meta']['notice']
         notice_count = meta['count']
         notice_color = meta['color']
+
+        col_e = self.ban_info['meta']['setting']['col_e']
+        value1 = col_e[0]
+        value2 = col_e[1]
 
         #/ Setup Variable
         self.count_handler = {} # data so dem (d = Bang tinh, e = Bang mau)
@@ -1626,46 +1612,9 @@ class TinhAndMauPage(QWidget):
                                     find_null_color = (1 if col_d - 2 > 0 else 0) * (col_d - 2)
                                     find_stt_color = stt_count_with_d - 1
                                     #/ End count color with col_d
-                                    if col_d >= 2 and col_d <= 85:
+                                    if col_d >= value1 and col_d <= value2:
                                         find_next_color = (col_d - 2) * 4 # Default Col 2 - 85 is 4 colors
                                         col_color = find_next_color + find_null_color + find_stt_color  # vi tri col cua item bang mau
-                                        #/ Add Data to Table count
-                                        self.dataCount.append({
-                                            "row": i,
-                                            "col": total_column,
-                                            "data": f'{col_a}/{stt_cot}/{col_c1}/{col_d}',
-                                            "color": isEqual,
-                                            "action":{
-                                                "name": "color",
-                                                "row": i,
-                                                "col": col_color
-                                            },
-                                            "notice": isNoticeCount,
-                                            "date": item_date,
-                                            "color_value": col_d
-                                        })
-                                        
-                                        #/ Add data to table color
-                                        self.dataColor.append({
-                                            "row": i,
-                                            "col": col_color,
-                                            "data": f'{t+1}/{col_t}/{stt_cot}/{col_d} - {col_a}/{col_e}',
-                                            "color": isEqual,
-                                            "action":{
-                                                "name": 'count',
-                                                "row": i,
-                                                "col": total_column
-                                            },
-                                            "notice": isNoticeColor,
-                                            "date": item_date,
-                                            "color_value": col_e,
-                                            "col_d": col_d,
-                                        })
-                                    
-                                    elif col_d >= 86 and col_d <= 110:
-                                        find_next_color = (col_d - 2) * 3 +  (83 * 4) # Default Col 86 - 110 is 3 colors
-                                        col_color = find_next_color + find_null_color + find_stt_color # vi tri col cua item bang mau
-                                        
                                         #/ Add Data to Table count
                                         self.dataCount.append({
                                             "row": i,
@@ -1763,6 +1712,10 @@ class TinhAndMauPage(QWidget):
         meta = self.ban_info['meta']['notice']
         notice_count = meta['count']
         notice_color = meta['color']
+
+        col_e = self.ban_info['meta']['setting']['col_e']
+        value1 = col_e[0]
+        value2 = col_e[1]
         # Determine the index of the new row
         new_row_index = len(self.ban_info['data']) - 1
 
@@ -1836,42 +1789,8 @@ class TinhAndMauPage(QWidget):
 
                                 find_null_color = (1 if col_d - 2 > 0 else 0) * (col_d - 2)
                                 find_stt_color = stt_count_with_d - 1
-                                if 2 <= col_d <= 85:
+                                if value1 <= col_d <= value2:
                                     find_next_color = (col_d - 2) * 4 # Default Col 2 - 85 is 4 colors
-                                    col_color = find_next_color + find_null_color + find_stt_color  # vi tri col cua item bang mau
-                                    self.dataCount.append({
-                                        "row": new_row_index,
-                                        "col": total_column,
-                                        "data": f'{col_a}/{stt_cot}/{col_c1}/{col_d}',
-                                        "color": isEqual,
-                                        "action": {
-                                            "name": "color",
-                                            "row": new_row_index,
-                                            "col": col_color
-                                        },
-                                        "notice": isNoticeCount,
-                                        "date": item_date,
-                                        "color_value": col_d
-                                    })
-
-                                    self.dataColor.append({
-                                        "row": new_row_index,
-                                        "col": col_color,
-                                        "data": f'{t + 1}/{col_t}/{stt_cot}/{col_d} - {col_a}/{col_e}',
-                                        "color": isEqual,
-                                        "action": {
-                                            "name": 'count',
-                                            "row": new_row_index,
-                                            "col": total_column
-                                        },
-                                        "notice": isNoticeColor,
-                                        "date": item_date,
-                                        "color_value": col_e,
-                                        "col_d": col_d
-                                    })
-
-                                elif 86 <= col_d <= 110:
-                                    find_next_color = (col_d - 2) * 3 +  (83 * 4) # Default Col 2 - 85 is 4 colors
                                     col_color = find_next_color + find_null_color + find_stt_color  # vi tri col cua item bang mau
                                     self.dataCount.append({
                                         "row": new_row_index,

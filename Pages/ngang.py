@@ -20,11 +20,12 @@ class NgangPage(QWidget):
         #/ Config Font
         self.font = Font()
 
-        #/ Config STT Ngang
+        #/ Config STT 
+        self.ngang_info = None
         self.stt_ngang = None
         with open(os.path.join(self.ngang_path, 'number.json'), 'r') as file:
-            self.stt_ngang = json.load(file)
-
+            self.ngang_info = json.load(file)
+        self.stt_ngang = self.ngang_info['stt']
         #/ Widget Main
         self.widget_main = QStackedWidget()
         self.layout_ngang.addWidget(self.widget_main)
@@ -269,14 +270,16 @@ class NgangPage(QWidget):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_main.setItem(i,j + 1,item)
         
-        SendMessage(f'Đã mở Bộ chuyển đổi {self.Change_number.currentIndex()}')
+        # SendMessage(f'Đã mở Bộ chuyển đổi {self.Change_number.currentIndex()}')
 
     def backUpNgang(self):
         data = {}
         data['number'] = self.Change_number.currentIndex()
         result = backUpNgang(data)
 
-        self.stt_ngang = result['stt']
+        self.ngang_info = result['stt']
+
+        self.stt_ngang =  self.ngang_info['stt']
         self.ngang_data = result['ngang_data']
 
         self.updateRows()
@@ -305,4 +308,5 @@ class NgangPage(QWidget):
             item = QTableWidgetItem(f'{stt[i]}')
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table_main.setItem(i,0, item)
+
 

@@ -1,1 +1,20 @@
-[{"name": "B1", "password": "0", "col": 10, "thong": {"name": "1", "value": 100, "id": "51e38671f59036dc"}, "change": 1, "meta": {"notice": {"count": [3, 4], "color": [3, 3]}, "features": {"N:2": false, "N=1": {"status": false, "value": 0}}, "setting": {"col_e": [0, 0]}}, "data": [{"date": "27/03/2024", "thong": 32, "ngang": 11}, {"date": "28/03/2024", "thong": 10, "ngang": 24}, {"date": "02/04/2024", "thong": 34, "ngang": 0}, {"date": "03/04/2024", "thong": 66, "ngang": 19}], "id": "fd1e32d9ee916a3a"}]
+{
+	"name": "B1",
+	"password": "0",
+	"col": 15,
+	"thong": { "name": "1", "value": 50, "id": "bf0f21ddffbbc48a" },
+	"meta": {
+		"notice": { "count": [4, 4], "color": [2, 2] },
+		"features": { "N:2": false, "N=1": { "status": false, "value": 0 } },
+		"setting": { "col_e": [2, 120] },
+		"number": { "thong": 0, "ngang": 0 },
+		"maxRow": 200
+	},
+	"data": [
+		{ "date": "27/03/2024", "thong": 34, "ngang": 15 },
+		{ "date": "28/03/2024", "thong": 38, "ngang": 19 },
+		{ "date": "29/03/2024", "thong": 32, "ngang": 0 },
+		{ "date": "30/03/2024", "thong": 4, "ngang": 15 }
+	],
+	"id": "6b806475e49538c9"
+}

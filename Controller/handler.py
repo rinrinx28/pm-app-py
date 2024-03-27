@@ -269,51 +269,29 @@ def updateBanInsert(data):
         data_db = json.load(file)
     insert = data['insert']
     update = data['update']
-    id = data['id']
-    find_info = [item for item in data_db if item['id'] == id]
-    if len(find_info) > 0:
-        #/ Insert
-        date_insert = insert['date']
-        find_datas = [item for item in find_info[0]['data'] if item['date'] != date_insert]
-        find_datas.append(insert)
-        #/ Save insert date
-        find_info[0]['data'] = find_datas
-        
-        #/ Update meta features
-        find_info[0]['meta']['features'] = update
+    #/ Insert
+    data_db['data'].append(insert)
+    
+    #/ Update meta features
+    data_db['meta']['features'] = update
 
-        #/ Save data find
-        find_save = [item for item in data_db if item['id'] != id]
-        find_save.append(find_info[0])
-
-        #/ Write File JSON
-        with open(path_db, 'w') as file:
-            json.dump(find_save, file)
-        
-        return {"status": True, "msg":'Đã nhập liệu thành công!', "data": find_info[0]}
-    else:
-        return {"status": False, "msg":'Đã xảy ra lỗi!'}
+    #/ Write File JSON
+    with open(path_db, 'w') as file:
+        json.dump(data_db, file)
+    
+    return {"status": True, "msg":'Đã nhập liệu thành công!', "data": data_db}
 
 def updateThongInsert(data):
     path_db = Path().path_db()
     with open(path_db, 'r') as file:
         data_db = json.load(file)
     update = data['thong']
-    id = data['id']
-    find_info = [item for item in data_db if item['id'] == id]
-    if len(find_info) > 0:
-        #/ Save insert date
-        find_info[0]['data'][-1] = update
-        #/ Save data find
-        find_save = [item for item in data_db if item['id'] != id]
-        find_save.append(find_info[0])
-        #/ Write File JSON
-        with open(path_db, 'w') as file:
-            json.dump(find_save, file)
-        
-        return {"status": True, "msg":'Đã nhập thông thành công!', "data": find_info[0]}
-    else:
-        return {"status": False, "msg":'Đã xảy ra lỗi!'}
+     #/ Save insert date
+    data_db['data'][-1] = update
+    #/ Write File JSON
+    with open(path_db, 'w') as file:
+        json.dump(data_db, file)
+    return {"status": True, "msg":'Đã nhập thông thành công!', "data": data_db}
 
 def updateColorInsert(data):
     path_db = Path().path_db()
@@ -321,76 +299,61 @@ def updateColorInsert(data):
         data_db = json.load(file)
     update = data['notice']
     col_e = data['col_e']
-    id = data['id']
-    find_info = [item for item in data_db if item['id'] == id]
-    if len(find_info) > 0:
-        #/ Save insert date
-        find_info[0]['meta']['notice'] = update
-        find_info[0]['meta']['setting']['col_e'] = col_e
-        #/ Save data find
-        find_save = [item for item in data_db if item['id'] != id]
-        find_save.append(find_info[0])
-        #/ Write File JSON
-        with open(path_db, 'w') as file:
-            json.dump(find_save, file)
-        
-        return {"status": True, "msg":'Đã nhập báo màu thành công!', "data": find_info[0]}
-    else:
-        return {"status": False, "msg":'Đã xảy ra lỗi!'}
+    number = data['number']
+    col = data['col']
+    thong = data['thong']
+    maxRow = data['maxRow']
+    #/ Save insert date
+    data_db['meta']['notice'] = update
+    data_db['meta']['setting']['col_e'] = col_e
+    data_db['meta']['number'] = number
+    data_db['col'] = col
+    data_db['thong'] = thong
+    data_db['meta']['maxRow'] = maxRow
+    #/ Write File JSON
+    with open(path_db, 'w') as file:
+        json.dump(data_db, file)
+    
+    return {"status": True, "msg":'Đã nhập báo màu thành công!', "data": data_db}
 
 def deleteRowBan(data):
     path_db = Path().path_db()
     with open(path_db, 'r') as file:
         data_db = json.load(file)
     update = data['update']
-    id = data['id']
-    find_info = [item for item in data_db if item['id'] == id]
-    if len(find_info) > 0:
-        #/ Save insert date
-        find_info[0]['data'] = update
-        #/ Save data find
-        find_save = [item for item in data_db if item['id'] != id]
-        find_save.append(find_info[0])
-        
-        with open(path_db, 'w') as file:
-            json.dump(find_save, file)
-        
-        return 'Đã nhập báo màu thành công!'
-    else:
-        return 'Đã xảy ra lỗi!'
+    #/ Save insert date
+    data_db['data'] = update
+    #/ Save data find
+    with open(path_db, 'w') as file:
+        json.dump(data_db, file)
+    
+    return 'Đã nhập báo màu thành công!'
 
 def deleteFromToBan(fromdate,todate, id):
     path_db = Path().path_db()
     with open(path_db, 'r') as file:
         data_db = json.load(file)
 
-    find_info = [item for item in data_db if item['id'] == id]
-    if len(find_info) > 0:
-        data = find_info[0]['data']
-        start_date = fromdate
-        end_date = todate
+    data = data_db['data']
+    start_date = fromdate
+    end_date = todate
 
-        # Convert dates to comparable format
-        start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime("%Y/%m/%d")
-        end_date = datetime.strptime(end_date, "%d/%m/%Y").strftime("%Y/%m/%d")
+    # Convert dates to comparable format
+    start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime("%Y/%m/%d")
+    end_date = datetime.strptime(end_date, "%d/%m/%Y").strftime("%Y/%m/%d")
 
-        # Filter out entries with dates falling within the specified range
-        filtered_data = [entry for entry in data if start_date <= datetime.strptime(entry["date"], "%d/%m/%Y").strftime("%Y/%m/%d") <= end_date]
+    # Filter out entries with dates falling within the specified range
+    filtered_data = [entry for entry in data if start_date <= datetime.strptime(entry["date"], "%d/%m/%Y").strftime("%Y/%m/%d") <= end_date]
 
-        # Remove the filtered entries from the original data list
-        data = [entry for entry in data if entry not in filtered_data]
-        find_info[0]['data'] = data
+    # Remove the filtered entries from the original data list
+    data = [entry for entry in data if entry not in filtered_data]
+    data_db['data'] = data
 
-        #/ Save data find
-        find_save = [item for item in data_db if item['id'] != id]
-        find_save.append(find_info[0])
-
-        with open(path_db, 'w') as file:
-            json.dump(find_save, file)
-        
-        return {'status': True, 'data':find_info[0], "msg": 'Đã xóa dữ liệu thành công!'}
-    else:
-        return {"status": False, 'msg':'Đã xảy ra lỗi!'}
+    #/ Save data find
+    with open(path_db, 'w') as file:
+        json.dump(data_db, file)
+    
+    return {'status': True, 'data':data_db, "msg": 'Đã xóa dữ liệu thành công!'}
 
 # TODO Handler Data Thong
 def CreateNumber():
@@ -510,12 +473,6 @@ def createThong(data):
                 ))
             with open(os.path.join(thong_path, f'thong_{id}_{i}.json'),'w') as file:
                 json.dump(number_change, file)
-
-    #/ Add Data thong into Thong DB
-    with open(os.path.join(thong_path, 'thongs.json'),'r') as file:
-        thong_db = json.load(file)
-    
-    filter_thong  = [item for item in thong_db if item['id'] != id and item['name'] != data.get('name')]
     
     #/ Make Data Custom for thong data
     data_custon = []
@@ -538,14 +495,9 @@ def createThong(data):
     data['data'] = data_custon
     data['stt'] = stt_data
     data['id'] = id
-    data['meta'] = {
-        "type": True,
-        "type_count": type_count
-    }
-    data['password'] = '0'
-    filter_thong.append(data)
+    data['number'] = 0
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
-        json.dump(filter_thong, file)
+        json.dump(data, file)
     return data
 
 def saveThong(data):
@@ -558,18 +510,13 @@ def saveThong(data):
     #/ Load File thong db
     with open(os.path.join(thong_path, 'thongs.json'), 'r') as file:
         thong_db = json.load(file)
-    
-    thong_find = [thong for thong in thong_db if thong['id'] == id]
-    thong_update = [thong for thong in thong_db if thong['id'] != id]
 
-    thong_find[0]['data'] = custom
-    thong_find[0]['stt'] = stt
-    thong_update.append(thong_find[0])
-    thong_sort = sorted(thong_update, key=lambda x: int(x['name']))
+    thong_db['data'] = custom
+    thong_db['stt'] = stt
 
     #/ Save Thong DB
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
-        json.dump(thong_sort, file)
+        json.dump(thong_db, file)
 
     #/ Save thong data
     with open(os.path.join(thong_path, f'thong_{id}_{number}.json'), 'w') as file:
@@ -584,21 +531,17 @@ def backupThong(data):
     #/ Load File thong db
     with open(os.path.join(thong_path, 'thongs.json'), 'r') as file:
         thong_db = json.load(file)
-    
-    thong_find = [thong for thong in thong_db if thong['id'] == id]
-    thong_update = [thong for thong in thong_db if thong['id'] != id]
-    stt_data_number = thong_find[0]['stt']
+
+    stt_data_number = thong_db['stt']
     for j in range(121):
         value = f'{j}' if j > 9 else f'0{j}'
         stt_data_number[number][j] = value
 
-    thong_find[0]['stt'] = stt_data_number
-    thong_update.append(thong_find[0])
-    thong_sort = sorted(thong_update, key=lambda x: int(x['name']))
+    thong_db['stt'] = stt_data_number
 
     #/ Save Thong DB
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
-        json.dump(thong_sort, file)
+        json.dump(thong_db, file)
 
     #/ Load Backup thong
     with open(os.path.join(thong_path, f'thong_{id}_backup.json'), 'r') as file:
@@ -613,7 +556,7 @@ def backupThong(data):
     with open(os.path.join(thong_path, f'thong_{id}_{number}.json'), 'w') as file:
         json.dump(number_change, file)
     
-    return {'thong_info': thong_find[0], "thong_data": number_change}
+    return {'thong_info': thong_db, "thong_data": number_change}
 
 # TODO Handler Data Ngang
 
@@ -624,9 +567,13 @@ def saveNgang(data):
     stt = data['stt']
 
     #/ Save STT
+    with open(os.path.join(ngang_path, 'number.json'), 'r') as file:
+        ngang_data = json.load(file)
+
+    ngang_data['stt'] = stt
     with open(os.path.join(ngang_path, 'number.json'), 'w') as file:
-        json.dump(stt, file)
-    
+        json.dump(ngang_data, file)
+
     #/ Save Data Ngang
     with open(os.path.join(ngang_path, f'number_{number}.json'), 'w') as file:
         json.dump(update, file)
@@ -647,7 +594,7 @@ def backUpNgang(data):
     with open(os.path.join(ngang_path, 'number.json'), 'r') as file:
         stt_ngang = json.load(file)
     
-    stt_ngang[number] = stt
+    stt_ngang['stt'][number] = stt
     
     with open(os.path.join(ngang_path, 'number.json'), 'w') as file:
         json.dump(stt_ngang, file)

@@ -20,15 +20,15 @@ class Navbar(QtWidgets.QWidget):
         b_ngang.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(b_ngang)
 
-        b_thong_so = QtWidgets.QPushButton('DS B Thông Số')
+        b_thong_so = QtWidgets.QPushButton('B Thông Số')
         b_thong_so.setStyleSheet(css+"QPushButton:hover {color: #1D4ED8;background-color: #F3F4F6;}")
         b_thong_so.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(b_thong_so)
 
-        bans = QtWidgets.QPushButton("Danh sách Bản")
-        bans.setStyleSheet(css+"QPushButton:hover {color: #1D4ED8;background-color: #F3F4F6;}")
-        bans.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(bans)
+        # bans = QtWidgets.QPushButton("Danh sách Bản")
+        # bans.setStyleSheet(css+"QPushButton:hover {color: #1D4ED8;background-color: #F3F4F6;}")
+        # bans.setCursor(QCursor(Qt.PointingHandCursor))
+        # layout.addWidget(bans)
 
         b_tinh_mau = QtWidgets.QPushButton('B Tính Và B Màu')
         b_tinh_mau.setStyleSheet(css+"QPushButton:hover {color: #1D4ED8;background-color: #F3F4F6;}")
@@ -46,7 +46,7 @@ class Navbar(QtWidgets.QWidget):
         home.clicked.connect(self.homepage)
         b_ngang.clicked.connect(self.ngangpage)
         b_thong_so.clicked.connect(self.thongpage)
-        bans.clicked.connect(self.listbanpage)
+        # bans.clicked.connect(self.listbanpage)
         b_tinh_mau.clicked.connect(self.tinhvamaupage)
 
     def exit_application(self):
@@ -61,8 +61,8 @@ class Navbar(QtWidgets.QWidget):
     def thongpage(self):
         self.controller.show_thong_page()
     
-    def listbanpage(self):
-        self.controller.show_list_ban_page()
+    # def listbanpage(self):
+    #     self.controller.show_list_ban_page()
     
     def tinhvamaupage(self):
         self.controller.show_tinh_mau_page()
