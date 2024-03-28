@@ -233,14 +233,15 @@ def createDB(thongId, name, path):
     data = {
             "name": name,
             "password": "0",
-            "col": 15,
-            "thong": { "name": "1", "value": 50, "id": thongId },
+            "col": 10,
+            "thong": { "name": "1", "value": 100, "id": thongId },
             "meta": {
                 "notice": { "count": [0, 0], "color": [0, 0] },
-                "features": { "N:2": False, "N=1": { "status": False, "value": 0 } },
+                "features": { "N:2": True, "N=1": { "status": False, "value": 0 } },
                 "setting": { "col_e": [2, 120] },
-                "number": { "thong": 0, "ngang": 0 },
-                "maxRow": 200
+                "number": 0,
+                "maxRow": 200,
+                "buttons": [2, 2, 2]
             },
             "data": [],
             "id": id

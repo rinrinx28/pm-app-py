@@ -269,7 +269,11 @@ def updateBanInsert(data):
         data_db = json.load(file)
     insert = data['insert']
     update = data['update']
+    maxRow  = data_db['meta']['maxRow']
     #/ Insert
+    #/ Check Max Row
+    if len(data_db['data']) + 1 >= maxRow:
+        data_db['data'] = data_db['data'][1:]
     data_db['data'].append(insert)
     
     #/ Update meta features
@@ -303,6 +307,7 @@ def updateColorInsert(data):
     col = data['col']
     thong = data['thong']
     maxRow = data['maxRow']
+    buttons = data['buttons']
     #/ Save insert date
     data_db['meta']['notice'] = update
     data_db['meta']['setting']['col_e'] = col_e
@@ -310,6 +315,7 @@ def updateColorInsert(data):
     data_db['col'] = col
     data_db['thong'] = thong
     data_db['meta']['maxRow'] = maxRow
+    data_db['meta']['buttons'] = buttons
     #/ Write File JSON
     with open(path_db, 'w') as file:
         json.dump(data_db, file)

@@ -5,6 +5,8 @@ from Router.navigate import Navbar
 from Controller.main import Controller
 from Pages.components.path import Path
 
+from datetime import datetime,timedelta
+
 basedir = os.path.dirname(__file__)
 
 APP_NAME = "Project Management"
@@ -52,6 +54,9 @@ class FullScreenApp(QMainWindow):
         self.showFullScreen()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    mainWindow = FullScreenApp()
-    sys.exit(app.exec())
+    now_day = datetime.now()
+    expired = datetime(2024,4,2)
+    if expired.date() != now_day.date():
+        app = QApplication(sys.argv)
+        mainWindow = FullScreenApp()
+        sys.exit(app.exec())

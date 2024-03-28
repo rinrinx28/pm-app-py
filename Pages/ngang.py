@@ -26,6 +26,12 @@ class NgangPage(QWidget):
         with open(os.path.join(self.ngang_path, 'number.json'), 'r') as file:
             self.ngang_info = json.load(file)
         self.stt_ngang = self.ngang_info['stt']
+
+        #/ Note
+        self.note = QLabel('')
+        self.note.setFont(self.font)
+        self.layout_ngang.addWidget(self.note)
+        
         #/ Widget Main
         self.widget_main = QStackedWidget()
         self.layout_ngang.addWidget(self.widget_main)
@@ -39,11 +45,6 @@ class NgangPage(QWidget):
         self.button_layout = QHBoxLayout(button_Wid_main)
         self.layout_ngang.addWidget(button_Wid_main)
 
-        #/ Note
-        self.note = QLabel('')
-        self.note.setFont(self.font)
-        self.layout_ngang.addWidget(self.note)
-
         #/ Render Component
         self.changeDataNgangWithNumber(0)
         self.renderButton()
@@ -53,22 +54,22 @@ class NgangPage(QWidget):
     # TODO Handler render component
     def renderButton(self):
         #/ SwapLine Button
-        SwapLine = QPushButton('Đổi Dòng Dữ Liệu')
+        SwapLine = QPushButton('Đổi Dòng DL')
         SwapLine.setStyleSheet(css_button_cancel)
         SwapLine.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(SwapLine)
 
+        #/ Create Delete
+        DeleteRow = QPushButton('Xóa DL dòng')
+        DeleteRow.setStyleSheet(css_button_cancel)
+        DeleteRow.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(DeleteRow)
+
         #/ Delete Button
-        Delete = QPushButton('Xóa Tất Cả Dữ Liệu')
+        Delete = QPushButton('Xóa Tất Cả DL')
         Delete.setStyleSheet(css_button_cancel)
         Delete.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(Delete)
-
-        #/ BackUp Button
-        BackUp = QPushButton('Khôi Phục dữ liệu Gốc')
-        BackUp.setStyleSheet(css_button_submit)
-        BackUp.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(BackUp)
 
         #/ Change_number Button
         # TODO Config Change Number
@@ -79,6 +80,12 @@ class NgangPage(QWidget):
         self.button_layout.addWidget(self.Change_number)
         for i in range(number):
             self.Change_number.addItem(f'Chuyển Đổi {i}')
+
+        #/ BackUp Button
+        BackUp = QPushButton('Khôi Phục DL Gốc')
+        BackUp.setStyleSheet(css_button_submit)
+        BackUp.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(BackUp)
 
         #/ Create HandlerData
         type_input = 'Bật Nhập Tay'
@@ -136,6 +143,7 @@ class NgangPage(QWidget):
         Save.clicked.connect(saveChange)
         BackUp.clicked.connect(backupNgang)
         Delete.clicked.connect(deleteRows)
+        DeleteRow.clicked.connect(self.DeleteThongRow)
 
         
     def renderTable(self):
@@ -168,6 +176,14 @@ class NgangPage(QWidget):
         self.table_main.setFont(self.font)
         self.table_main.horizontalHeader().setFont(self.font)
         self.table_main.verticalHeader().setFont(self.font)
+
+        self.table_main.setStyleSheet(
+            """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+        )
 
         # TODO Config table Width
         self.table_main.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
@@ -309,4 +325,23 @@ class NgangPage(QWidget):
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table_main.setItem(i,0, item)
 
+    def DeleteThongRow(self):
+        #/ Check isEditor
+        isEditor = self.table_main.editTriggers()
+        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
+            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            self.HandlerData.setText('Bật Nhập Tay')
+
+        #/ Find Select Row
+        data_select = list(self.selected_row_indices)
+        if len(data_select) != 1:
+            SendMessage('Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!')
+            return
+        for row in data_select:
+            for i in range(len(self.ngang_data[row])):
+                self.ngang_data[row][i] = ''
+                
+        SendMessage('Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại')
+        self.updateRows()
+        return
 

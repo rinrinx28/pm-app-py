@@ -2,8 +2,8 @@ import os
 class Path():
     def __init__(self):
         super().__init__()
-        # self.current_dir = fr'C:\data\1'
-        self.current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..','..','data')
+        self.current_dir = fr'C:\data\21'
+        # self.current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..','..','data')
     def path_logo(self):
         path = os.path.join(self.current_dir,'image','logo.ico')
         return path
