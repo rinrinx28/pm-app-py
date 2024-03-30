@@ -5,18 +5,20 @@ from PySide6.QtWidgets import (
                                )
 from PySide6.QtGui import Qt, QCursor
 from Pages.components.stylesheet import (
-    css_button_cancel, css_button_submit, css_input, Font, Note,SendMessage
+    css_button_cancel, css_button_submit, css_input, Font, Note,SendMessage, css_title
     )
 import json
 import os
 from Controller.handler import backUpNgang, saveNgang
 
 class NgangPage(QWidget):
+
     def __init__(self):
         super().__init__()
         self.path = Path()
         self.layout_ngang = QVBoxLayout(self)
         self.ngang_path = self.path.path_number()
+        self.layout_ngang.setSpacing(0)
         #/ Config Font
         self.font = Font()
 
@@ -26,6 +28,13 @@ class NgangPage(QWidget):
         with open(os.path.join(self.ngang_path, 'number.json'), 'r') as file:
             self.ngang_info = json.load(file)
         self.stt_ngang = self.ngang_info['stt']
+        self.selected_row_indices = -1
+
+        #/ Title
+        title = QLabel('Bảng Ngang')
+        title.setStyleSheet(css_title)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.layout_ngang.addWidget(title)
 
         #/ Note
         self.note = QLabel('')
@@ -49,7 +58,6 @@ class NgangPage(QWidget):
         self.changeDataNgangWithNumber(0)
         self.renderButton()
         self.renderTable()
-
 
     # TODO Handler render component
     def renderButton(self):
@@ -88,7 +96,7 @@ class NgangPage(QWidget):
         self.button_layout.addWidget(BackUp)
 
         #/ Create HandlerData
-        type_input = 'Bật Nhập Tay'
+        type_input = 'Tắt Tùy Chỉnh'
         self.HandlerData = QPushButton(type_input)
         self.HandlerData.setStyleSheet(css_button_submit)
         self.HandlerData.setCursor(QCursor(Qt.PointingHandCursor))
@@ -115,26 +123,26 @@ class NgangPage(QWidget):
 
         def changeTypeCount():
             types = self.HandlerData.text()
-            if types == 'Bật Nhập Tay':
+            if types == 'Tắt Tùy Chỉnh':
                 self.table_main.setEditTriggers(QTableWidget.EditTrigger.DoubleClicked)
-                self.HandlerData.setText('Tắt Nhập Tay')
+                self.HandlerData.setText('Bật Tùy Chỉnh')
             else:
                 self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-                self.HandlerData.setText('Bật Nhập Tay')
+                self.HandlerData.setText('Tắt Tùy Chỉnh')
             
         def saveChange():
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
             self.saveRowNgang()
 
         def backupNgang():
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
             self.backUpNgang()
 
         def deleteRows():
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
             self.deleteRowNgang()
 
         self.Change_number.currentIndexChanged.connect(change_number_selected)
@@ -145,7 +153,6 @@ class NgangPage(QWidget):
         Delete.clicked.connect(deleteRows)
         DeleteRow.clicked.connect(self.DeleteThongRow)
 
-        
     def renderTable(self):
         data = self.ngang_data
         #TODO Data configuration
@@ -198,9 +205,8 @@ class NgangPage(QWidget):
         def selectedRow():
             selected_items = self.table_main.selectedItems()
             if selected_items:
-                self.selected_row_indices = set()
                 for item in selected_items:
-                    self.selected_row_indices.add(item.row())
+                    self.selected_row_indices = item.row()
         
         def changeValue(row, column):
             isEdit = self.table_main.editTriggers()
@@ -213,7 +219,6 @@ class NgangPage(QWidget):
         
         self.table_main.itemSelectionChanged.connect(selectedRow)
         self.table_main.cellChanged.connect(changeValue)
-
 
     # TODO Handler Events
     def freeze_col_stt(self, value):
@@ -230,34 +235,36 @@ class NgangPage(QWidget):
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
         #/ Ngang Data and Ngang stt
         stt = self.stt_ngang[self.Change_number.currentIndex()]
         data = self.ngang_data
         #/ Find Select Row
-        data_select = list(self.selected_row_indices)
-        if len(data_select) != 2:
-            SendMessage('Xin vui lòng chọn 2 dòng để hoán đổi dữ liệu!')
+        data_select = self.selected_row_indices
+        if data_select == -1:
+            SendMessage('Xin vui lòng chọn 1 dòng để hoán đổi dữ liệu!')
             return
         
-        if all(0 <= idx <= len(data) for idx in data_select):
-            swapped_data_stt = stt.copy()
-            swapped_data = data.copy()
-            
-            for i in range(len(data_select) // 2):
-                idx1 = data_select[i]
-                idx2 = data_select[-(i + 1)]
+        # Make sure the index is within range
+        if data_select < 0 or data_select >= len(stt):
+            SendMessage('Xin vui lòng chọn 1 dòng để hoán đổi dữ liệu!')
+            return
+        # Tạo một danh sách mới để lưu trữ các phần tử sau khi dịch chuyển
+        shifted_stt = [None] * len(stt)
+        shifted_data = [None] * len(data)
 
-                swapped_data_stt[idx1], swapped_data_stt[idx2] = swapped_data_stt[idx2], swapped_data_stt[idx1]
-                swapped_data[idx1], swapped_data[idx2] = swapped_data[idx2], swapped_data[idx1]
-                        
-            stt = swapped_data_stt
-            data = swapped_data
+        # Dịch chuyển các phần tử xuống một vị trí và cập nhật vào danh sách mới
+        for i in range(len(stt)):
+            shifted_stt[(i + 1) % len(stt)] = stt[i]
 
-        self.stt_ngang[self.Change_number.currentIndex()] = stt
-        self.ngang_data = data
+        for i in range(len(data)):
+            shifted_data[(i + 1) % len(stt)] = data[i]
+
+        self.stt_ngang[self.Change_number.currentIndex()] = shifted_stt
+        self.ngang_data = shifted_data
         SendMessage('Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại')
         self.updateRows()
+        self.table_main.selectRow(data_select + 1)
         return
 
     def changeDataNgangWithNumber(self, number):
@@ -265,6 +272,7 @@ class NgangPage(QWidget):
         with open(os.path.join(self.ngang_path, f'number_{number}.json'), 'r') as file:
                 data = json.load(file)
                 self.ngang_data = data
+        SendMessage(f'Đã mở Bộ chuyển đổi {number}')
     
     def updateRows(self):
         data = self.ngang_data
@@ -286,8 +294,6 @@ class NgangPage(QWidget):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_main.setItem(i,j + 1,item)
         
-        # SendMessage(f'Đã mở Bộ chuyển đổi {self.Change_number.currentIndex()}')
-
     def backUpNgang(self):
         data = {}
         data['number'] = self.Change_number.currentIndex()
@@ -315,9 +321,10 @@ class NgangPage(QWidget):
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
         
-        self.table_main.clearContents()
+        self.table_main.setRowCount(0)
+        self.table_main.setRowCount(rowCount)
         
         #* Render Rows STT First
         for i in range(rowCount):
@@ -330,16 +337,16 @@ class NgangPage(QWidget):
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
 
         #/ Find Select Row
-        data_select = list(self.selected_row_indices)
-        if len(data_select) != 1:
+        data_select = self.selected_row_indices
+        if data_select == -1:
             SendMessage('Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!')
             return
-        for row in data_select:
-            for i in range(len(self.ngang_data[row])):
-                self.ngang_data[row][i] = ''
+        for i in range(len(self.ngang_data[data_select])):
+            self.ngang_data[data_select][i] = ''
+            
                 
         SendMessage('Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại')
         self.updateRows()

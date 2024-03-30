@@ -7,7 +7,7 @@ class Navbar(QtWidgets.QWidget):
         layout = QtWidgets.QHBoxLayout()
 
         self.setLayout(layout)  # Set the layout for the widget
-        css = "QPushButton {padding: 20px 20px 20px 20px; border-radius: 2px; border-width: 1px; border-color: #E5E7EB; font-size: 24px;line-height: 16px; color: #111827; background-color: #ffffff;}"
+        css = "QPushButton {padding: 5px;border-radius: 2px; border-width: 1px; border-color: #E5E7EB; font-size: 24px; color: #111827; background-color: #ffffff;}"
         # Add Button;
         home = QtWidgets.QPushButton("Trang chủ")
         home.setStyleSheet(css+"QPushButton:hover {color: #1D4ED8;background-color: #F3F4F6;}")

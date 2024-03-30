@@ -320,7 +320,7 @@ def updateColorInsert(data):
     with open(path_db, 'w') as file:
         json.dump(data_db, file)
     
-    return {"status": True, "msg":'Đã nhập báo màu thành công!', "data": data_db}
+    return {"status": True, "msg":'Đã cật nhập cài đặt thành công!', "data": data_db}
 
 def deleteRowBan(data):
     path_db = Path().path_db()
@@ -333,7 +333,7 @@ def deleteRowBan(data):
     with open(path_db, 'w') as file:
         json.dump(data_db, file)
     
-    return 'Đã nhập báo màu thành công!'
+    return 'Đã đã xóa dòng mới thành công!'
 
 def deleteFromToBan(fromdate,todate, id):
     path_db = Path().path_db()

@@ -75,7 +75,6 @@ css_lable = """
 """
 
 css_input = """
-    padding: 12px;
     border-radius: 8px; 
     border-width: 1px; 
     border-color: #E5E7EB;

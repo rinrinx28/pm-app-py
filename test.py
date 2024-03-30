@@ -94,7 +94,7 @@ def createThong(data, path):
     os.makedirs(path, exist_ok=True)
     thong_path = path
     row = 121
-    col_custom = 4
+    col_custom = 3
     value = data.get('value')
     col = value
     id = Generate_Id()
@@ -109,49 +109,55 @@ def createThong(data, path):
                 thong_data = []
                 for j in range(row):
                     line = f'{j}' if j > 9 else f'0{j}'
-                    if type_count == 1:
-                        if k == 0:
-                            thong_data.append(
-                                (int(line[0])) % 10
-                            )
-                        elif k == 1:
-                            thong_data.append(
-                                (int(line[1])) % 10
-                            )
-                        else:
-                            thong_data.append(0)
-                    elif type_count == 2:
-                        if k == 0:
-                            thong_data.append(f'{line}')
-                        else:
-                            thong_data.append(0)
+                    if j > 99:
+                        thong_data.append('')
                     else:
-                        thong_data.append(0)
+                        if type_count == 1:
+                            if k == 0:
+                                thong_data.append(
+                                    (int(line[0])) % 10
+                                )
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(line[1])) % 10
+                                )
+                            else:
+                                thong_data.append(0)
+                        elif type_count == 2:
+                            if k == 0:
+                                thong_data.append(f'{line}')
+                            else:
+                                thong_data.append(0)
+                        else:
+                            thong_data.append('')
                 thong_file.append(thong_data)
         else:
             for k in range(60):
                 thong_data = []
                 for j in range(row):
-                    if type_count == 1:
-                        if k == 0:
-                            thong_data.append(
-                                (int(thong_file[(step - 1) * 60][j]) + 1) % 10
-                            )
-                        elif k == 1:
-                            thong_data.append(
-                                (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
-                            )
-                        else:
-                            thong_data.append(0)
-                    elif type_count == 2:
-                        if k == 0:
-                            first = thong_file[(step - 1 ) * 60][j]
-                            second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
-                            thong_data.append(f'{second}')
-                        else:
-                            thong_data.append(0)
+                    if j > 99:
+                        thong_data.append('')
                     else:
-                        thong_data.append(0)
+                        if type_count == 1:
+                            if k == 0:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60][j]) + 1) % 10
+                                )
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
+                                )
+                            else:
+                                thong_data.append(0)
+                        elif type_count == 2:
+                            if k == 0:
+                                first = thong_file[(step - 1 ) * 60][j]
+                                second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                                thong_data.append(f'{second}')
+                            else:
+                                thong_data.append(0)
+                        else:
+                            thong_data.append('')
                 thong_file.append(thong_data)
         step+=1
         
@@ -228,20 +234,22 @@ def Generate_Id():
     id = random_bytes.hex()
     return id
 
-def createDB(thongId, name, path):
+def createDB(thong, name, path):
+    thongId = thong['id']
+    thongName = thong['name']
     id = Generate_Id()
     data = {
             "name": name,
             "password": "0",
             "col": 10,
-            "thong": { "name": "1", "value": 100, "id": thongId },
+            "thong": { "name": thongName, "value": 180, "id": thongId },
             "meta": {
-                "notice": { "count": [0, 0], "color": [0, 0] },
+                "notice": { "count": [0, 0], "color": [0, 0], "color2": [0, 0] },
                 "features": { "N:2": True, "N=1": { "status": False, "value": 0 } },
                 "setting": { "col_e": [2, 120] },
                 "number": 0,
                 "maxRow": 200,
-                "buttons": [2, 2, 2]
+                "buttons": [True, False]
             },
             "data": [],
             "id": id
@@ -285,23 +293,23 @@ def create():
             dataThong = createThong({
                 "value": 300,
                 "type_count": 1,
-                "name": f'Bang'
+                "name": f'Bảng 1 Số'
             }, thong_dir)
-            createDB(dataThong['id'], f'B{i}', db_dir)
+            createDB(dataThong, f'B{i}', db_dir)
         elif i > 10 and i < 21:
             dataThong = createThong({
                 "value": 300,
                 "type_count": 2,
-                "name": f'Bang'
+                "name": f'Bảng 2 Số'
             }, thong_dir)
-            createDB(dataThong['id'], f'B{i}', db_dir)
+            createDB(dataThong, f'B{i}', db_dir)
         else:
             dataThong = createThong({
                 "value": 300,
                 "type_count": 0,
-                "name": f'Bang'
+                "name": f'Bảng Trắng'
             }, thong_dir)
-            createDB(dataThong['id'], f'B{i}', db_dir)
+            createDB(dataThong, f'B{i}', db_dir)
 
 # Example usage
 create()
