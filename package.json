@@ -6,6 +6,7 @@
 	"scripts": {
 		"start": "python -B main.py",
 		"dev": "python -B test.py",
+		"dev2": "python -B test_2.py",
 		"build": "python -B build.py",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},

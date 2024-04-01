@@ -513,12 +513,14 @@ def saveThong(data):
     id = data['id']
     number = data['number']
     stt = data['stt']
+    change = data['change']
     #/ Load File thong db
     with open(os.path.join(thong_path, 'thongs.json'), 'r') as file:
         thong_db = json.load(file)
 
     thong_db['data'] = custom
     thong_db['stt'] = stt
+    thong_db['change'] = change
 
     #/ Save Thong DB
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
@@ -539,11 +541,13 @@ def backupThong(data):
         thong_db = json.load(file)
 
     stt_data_number = thong_db['stt']
-    for j in range(121):
-        value = f'{j}' if j > 9 else f'0{j}'
+    for j in range(131):
+        value = f'{j +1:02}'
         stt_data_number[number][j] = value
 
     thong_db['stt'] = stt_data_number
+    thong_db['change'] = [item for item in thong_db['change']
+                          if item['number'] !=number]
 
     #/ Save Thong DB
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
@@ -564,6 +568,77 @@ def backupThong(data):
     
     return {'thong_info': thong_db, "thong_data": number_change}
 
+def saveAllThong(data):
+    type_count = data['type_count']
+    update = data['update']
+    custom = data['custom']
+    number = data['number']
+    change = data['change']
+    stt = data['stt']
+
+    current_path = fr'C:\data'
+
+    if type_count == 1:
+        for i in range(10):
+            file_type = i + 1
+            thong_path = os.path.join(current_path, f'{file_type}','thong')
+            with open(os.path.join(thong_path, 'thongs.json'), 'r') as file:
+                thong_db = json.load(file)
+
+            thong_id = thong_db['id']
+            thong_db['stt'] = stt
+            thong_db['data'] = custom
+            thong_db['change'] = change
+
+            #/ Save Thong DB
+            with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
+                json.dump(thong_db, file)
+
+            #/ Save thong data
+            with open(os.path.join(thong_path, f'thong_{thong_id}_{number}.json'), 'w') as file:
+                json.dump(update, file)
+    elif type_count == 2:
+        for i in range(10,20):
+            file_type = i + 1
+            thong_path = os.path.join(current_path, f'{file_type}','thong')
+            with open(os.path.join(thong_path, 'thongs.json'), 'r') as file:
+                thong_db = json.load(file)
+
+            thong_id = thong_db['id']
+            thong_db['stt'] = stt
+            thong_db['data'] = custom
+            thong_db['change'] = change
+
+            #/ Save Thong DB
+            with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
+                json.dump(thong_db, file)
+
+            #/ Save thong data
+            with open(os.path.join(thong_path, f'thong_{thong_id}_{number}.json'), 'w') as file:
+                json.dump(update, file)
+    else:
+        for i in range(20,30):
+            file_type = i + 1
+            thong_path = os.path.join(current_path, f'{file_type}','thong')
+            with open(os.path.join(thong_path, 'thongs.json'), 'r') as file:
+                thong_db = json.load(file)
+
+            thong_id = thong_db['id']
+            thong_db['stt'] = stt
+            thong_db['data'] = custom
+            thong_db['change'] = change
+
+            #/ Save Thong DB
+            with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
+                json.dump(thong_db, file)
+
+            #/ Save thong data
+            with open(os.path.join(thong_path, f'thong_{thong_id}_{number}.json'), 'w') as file:
+                json.dump(update, file)
+
+    value_type = f'{type_count} số' if type_count >= 1 else f'Trắng'
+    return f'Đã đồng bộ dữ liệu bộ {value_type}'
+
 # TODO Handler Data Ngang
 
 def saveNgang(data):
@@ -571,12 +646,14 @@ def saveNgang(data):
     update = data['update']
     number = data['number']
     stt = data['stt']
+    change = data['change']
 
     #/ Save STT
     with open(os.path.join(ngang_path, 'number.json'), 'r') as file:
         ngang_data = json.load(file)
 
     ngang_data['stt'] = stt
+    ngang_data['change'] = change
     with open(os.path.join(ngang_path, 'number.json'), 'w') as file:
         json.dump(ngang_data, file)
 
@@ -592,8 +669,8 @@ def backUpNgang(data):
 
     #/ Render STT Ngang
     stt = []
-    for j in range(31):
-        value = f'{j + 1}' if j >= 9 else f'0{j + 1}'
+    for j in range(41):
+        value = f'{j + 1:02}'
         stt.append(value)
 
     #/ Load and Save STT Ngang
@@ -601,7 +678,9 @@ def backUpNgang(data):
         stt_ngang = json.load(file)
     
     stt_ngang['stt'][number] = stt
-    
+    stt_ngang['change'] = [item for item in stt_ngang['change']
+                           if item['number'] != number]
+ 
     with open(os.path.join(ngang_path, 'number.json'), 'w') as file:
         json.dump(stt_ngang, file)
 

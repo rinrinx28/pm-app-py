@@ -8,7 +8,7 @@ from Pages.components.stylesheet import (
     css_button_cancel, css_button_submit, css_input, Font, Note, css_lable, SendMessage, css_title
     )
 import json
-from Controller.handler import saveThong,backupThong
+from Controller.handler import saveThong,backupThong,saveAllThong
 import os
 
 class ThongPage(QWidget):
@@ -23,6 +23,12 @@ class ThongPage(QWidget):
 
         with open(os.path.join(self.thong_path, 'thongs.json'), 'r') as file:
             self.thong_db = json.load(file)
+
+        #/ Config Secleted item
+        self.current_select = []
+        self.prev_selected_row = None
+        self.cyan = QColor(178, 255, 255)
+        self.normal = QColor("#FFFFFF")
 
         #/ Config Font
         self.font = Font()
@@ -62,8 +68,9 @@ class ThongPage(QWidget):
         layout_table.setContentsMargins(0, 0, 0, 0)
 
         value_thong = self.thong_db['value']
+        name_thong = self.thong_db['name']
 
-        title = QLabel(f'Bảng Thông  - {value_thong} Thông')
+        title = QLabel(f'Bảng Thông - {name_thong} - {value_thong} Thông')
         title.setStyleSheet(css_title)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout_table.addWidget(title)
@@ -133,6 +140,8 @@ class ThongPage(QWidget):
         self.table_main.horizontalScrollBar().valueChanged.connect(self.freeze_col_stt)
 
         self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_main.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
+
         #/ Handler Events
         def changeValue(row, column):
             isEdit = self.table_main.editTriggers()
@@ -141,7 +150,32 @@ class ThongPage(QWidget):
             else:
                 if column > 4:
                     item = self.table_main.item(row, column)
+                    filter_db = [item for item in self.thong_db['change'] 
+                                 if item['row'] != row 
+                                 and item['column'] != column - 5
+                                 and item['number'] != self.ChangeNumber.currentIndex()]
+                    filter_data = [item for item in self.thong_db['change']
+                                   if item['row'] == row
+                                   and item['column'] == column - 5
+                                   and item['number'] == self.ChangeNumber.currentIndex()]
+                    if len(filter_data) > 0:
+                        filter_data[0]['new'] = item.text()
+                        self.thong_db['change'] = filter_db + filter_data
+                        if filter_data[0]['new'] != filter_data[0]['old']:
+                            item.setBackground(self.cyan)
+                        else:
+                            item.setBackground(self.normal)
+                    else:
+                        self.thong_db['change'].append({
+                            "row": row,
+                            "column": column - 5,
+                            "number": self.ChangeNumber.currentIndex(),
+                            "new": item.text(),
+                            "old": self.thong_data[column - 5][row]
+                        })
+                        item.setBackground(self.cyan)
                     self.thong_data[column - 5][row] = item.text()
+
                 if 1 < column < 5:
                     item = self.table_main.item(row, column)
                     self.thong_db['data'][column - 2][row] = item.text()
@@ -152,6 +186,20 @@ class ThongPage(QWidget):
                 self.selected_row_indices = set()
                 for item in selected_items:
                     self.selected_row_indices.add(item.row())
+            
+            selected_indexes = self.table_main.selectedIndexes()
+            if selected_indexes:
+                #/ Find is first selected item
+                current_selected_row = selected_indexes[0].row()
+                if self.prev_selected_row is None or current_selected_row != self.prev_selected_row:
+                    self.prev_selected_row = current_selected_row
+                
+                #/ get all selelected items
+                selected_rows = set()
+                for i in range(len(selected_indexes)):
+                    rows = selected_indexes[i].row()
+                    selected_rows.add(rows)
+                self.current_select = list(selected_rows)
 
         self.table_main.cellChanged.connect(changeValue)
         self.table_main.itemSelectionChanged.connect(selectedRow)
@@ -170,6 +218,12 @@ class ThongPage(QWidget):
         swapRow.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(swapRow)
 
+        #/ Copy Row Button
+        CopyRow = QPushButton('Chép Dòng DL')
+        CopyRow.setStyleSheet(css_button_cancel)
+        CopyRow.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(CopyRow)
+
         #/ Create Delete
         DeleteRow = QPushButton('Xóa DL dòng')
         DeleteRow.setStyleSheet(css_button_cancel)
@@ -182,13 +236,19 @@ class ThongPage(QWidget):
         Delete.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(Delete)
 
+        #/ Create Delete
+        DeleteColor = QPushButton('Xóa Màu')
+        DeleteColor.setStyleSheet(css_button_cancel)
+        DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(DeleteColor)
+
         #/ Create ChangeNumber
         self.ChangeNumber = QComboBox()
         self.ChangeNumber.setStyleSheet(css_input)
         self.ChangeNumber.setCursor(QCursor(Qt.PointingHandCursor))
-        self.ChangeNumber.addItem('Bộ Chuyển Đổi 0')
+        self.ChangeNumber.addItem('Chuyển Đổi 0')
         for i in range(5):
-            self.ChangeNumber.addItem(f'Bộ Chuyển Đổi {i+1}')
+            self.ChangeNumber.addItem(f'Chuyển Đổi {i+1}')
         self.button_layout.addWidget(self.ChangeNumber)
 
         #/ Create Backup
@@ -196,6 +256,12 @@ class ThongPage(QWidget):
         BackUp.setStyleSheet(css_button_submit)
         BackUp.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(BackUp)
+
+        #/ Create Backup
+        SaveFile = QPushButton('Đồng Bộ DL')
+        SaveFile.setStyleSheet(css_button_submit)
+        SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(SaveFile)
 
 
         #/ Create HandlerData
@@ -237,6 +303,30 @@ class ThongPage(QWidget):
                 self.note.setText('')
                 self.note.setScaledContents(False)
 
+        def copyRow_Click():
+            if len(self.current_select) <= 1 or len(self.current_select) > 2:
+                SendMessage('Xin vui lòng chọn dòng chép và nhận!')
+                return
+            print(self.current_select)
+            sender = self.prev_selected_row
+            receiver = [item for item in self.current_select if item != sender][0]
+            self.copyRowThong([sender, receiver])
+
+        def delete_color_click():
+            self.table_main.clearSelection()
+
+        def saveFile_click():
+            data = {}
+            data['update'] = self.thong_data
+            data['custom'] = self.thong_db['data']
+            data['number'] = self.ChangeNumber.currentIndex()
+            data['stt'] = self.thong_db['stt']
+            data['change'] = self.thong_db['change']
+            data['type_count'] = self.thong_db['type_count']
+            msg = saveAllThong(data)
+            SendMessage(msg)
+
+
         self.HandlerData.clicked.connect(changeTypeCount)
         SaveData.clicked.connect(saveChange)
         self.ChangeNumber.currentIndexChanged.connect(changeTableNumber)
@@ -244,6 +334,9 @@ class ThongPage(QWidget):
         Delete.clicked.connect(self.deleteAllRows)
         DeleteRow.clicked.connect(self.DeleteThongRow)
         swapRow.clicked.connect(self.swapThongRow)
+        CopyRow.clicked.connect(copyRow_Click)
+        DeleteColor.clicked.connect(delete_color_click)
+        SaveFile.clicked.connect(saveFile_click)
 
     # TODO Handler Widgets
     def freeze_col_stt(self, value):
@@ -303,6 +396,16 @@ class ThongPage(QWidget):
             for j in range(len(thong_row)):
                 item = QTableWidgetItem(f'{thong_row[j]}')
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                filter_changed = [item for item in self.thong_db['change']
+                                  if item['row'] == j
+                                  and item['column'] == i
+                                  and item['number'] == self.ChangeNumber.currentIndex()
+                                  ]
+                if len(filter_changed) > 0:
+                    item_new = filter_changed[0]['new']
+                    item_old = filter_changed[0]['old']
+                    if item_new != item_old:
+                        item.setBackground(self.cyan)
                 self.table_main.setItem(j, i + 5, item)
         
     def deleteAllRows(self):
@@ -356,6 +459,7 @@ class ThongPage(QWidget):
         data['id'] = self.thong_db['id']
         data['number'] = self.ChangeNumber.currentIndex()
         data['stt'] = self.thong_db['stt']
+        data['change'] = self.thong_db['change']
         msg = saveThong(data)
         SendMessage(msg)
 
@@ -431,3 +535,24 @@ class ThongPage(QWidget):
                 self.thong_data = data
         
         SendMessage(f'Đã mở Bộ chuyển đổi {number}')
+
+    def copyRowThong(self, selceted_rows):
+        row1 = selceted_rows[0]
+        row2 = selceted_rows[1]    
+        row1_h = f'{row1 + 1:02}'  # Ensure proper formatting for display
+        row2_h = f'{row2 + 1:02}'
+        #/ Check row2 selected, if it not null is return
+        for i in range(len(self.thong_data)):
+            item = self.thong_data[i][row2]
+            if len(str(item)) != 0:
+                SendMessage(f'Dòng nhận chưa được xóa dữ liệu! (Dòng {row2_h})')
+                return
+        for i in range(len(self.thong_data)):
+            sender = self.thong_data[i][row1]
+            self.thong_data[i][row2] = sender
+
+        self.updateRowAndColumns()
+        SendMessage(f'Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!')
+        return
+
+

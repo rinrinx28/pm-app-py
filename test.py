@@ -93,7 +93,7 @@ def TachVaGhep(number, value):
 def createThong(data, path):
     os.makedirs(path, exist_ok=True)
     thong_path = path
-    row = 121
+    row = 131
     col_custom = 3
     value = data.get('value')
     col = value
@@ -108,7 +108,7 @@ def createThong(data, path):
             for k in range(60):
                 thong_data = []
                 for j in range(row):
-                    line = f'{j}' if j > 9 else f'0{j}'
+                    line = f'{j + 1:02}'
                     if j > 99:
                         thong_data.append('')
                     else:
@@ -215,7 +215,7 @@ def createThong(data, path):
     for i in range(6):
         stt_col = []
         for j in range(row):
-            value = f'{j}' if j > 9 else f'0{j}'
+            value = f'{j:02}'
             stt_col.append(value)
         stt_data.append(stt_col)
         
@@ -224,6 +224,9 @@ def createThong(data, path):
     data['stt'] = stt_data
     data['id'] = id
     data['number'] = 0
+    data['change'] = []
+    data['type_thong'] = type_count
+    # data['index'] = 
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
         json.dump(data, file)
     return data

@@ -1,100 +1,73 @@
-import sys
-from PySide6.QtWidgets import QApplication, QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QHeaderView
+import os
+import json
+from Controller.handler import TachVaGhep
 
-
-class FrozenHeaderTable(QTableWidget):
-    def __init__(self):
-        super().__init__()
-
-        # Tạo bảng
-        self.setRowCount(100)
-        #/ Config Header col
-        current_column  = 0
-        # Tạo cột từ 0 đến 83
-        for i in range(0, 84):
-            current_column  += 5  # Số cột tạo cho mỗi lần là 4 cột + 1 cột phụ trợ
-
-        # Tạo cột từ 84 đến 98
-        for i in range(84, 99):
-            current_column  += 4  # Số cột tạo cho mỗi lần là 3 cột + 1 cột phụ trợ
-
-        # Thiết lập số lượng cột cho bảng
-        self.setColumnCount(current_column)
-        
-        # Khởi tạo biến để theo dõi tổng số cột
-        total_columns = 0
-        step_count = 0
-        # Tạo cột từ 0 đến 83
-        for i in range(0, 84):
-            # Xác định số lượng cột cho mỗi lần tạo
-            num_cols = 4  # Số lượng cột tối đa có thể thêm
-
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"Số Đếm {step_count + 2}")
-            # header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.setItem(0, total_columns, header_item)
-            self.setSpan(0, total_columns, 1, num_cols)
-
-            # Thêm tên cột cho hàng header
-            for j in range(num_cols):
-                col_name = QTableWidgetItem(f'{j + 1}')
-                # col_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.setItem(1, total_columns + j, col_name)
-
-            # Cập nhật tổng số cột
-            total_columns += num_cols + 1
-            step_count += 1
-
-        # Tạo cột từ 84 đến 98
-        for i in range(84, 99):
-            # Xác định số lượng cột cho mỗi lần tạo
-            num_cols = 3  # Số lượng cột tối đa có thể thêm
-
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"Số Đếm {step_count + 2}")
-            # header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.setItem(0, total_columns, header_item)
-            self.setSpan(0, total_columns, 1, num_cols)
-
-            # Thêm tên cột cho hàng header
-            for j in range(num_cols):
-                col_name = QTableWidgetItem(f'{j + 1}')
-                # col_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.setItem(1, total_columns + j, col_name)
-
-            # Cập nhật tổng số cột
-            total_columns += num_cols + 1
-            step_count += 1
-        #/ config header Row   
-        for i in range(2):
-            item = QTableWidgetItem(f'')
-            self.setVerticalHeaderItem(i, item)
-
-        self.ranges = [
-            {'start': 0, "end": current_column, "value": 0},
-            # {'start': 1, "end": current_column - 1, "value": 1},
-        ]
-
-        # Cài đặt sự kiện cuộn bảng
-        def scroll_headers(value):
-            for i, col_range in enumerate(self.ranges):
-                if col_range['start'] <= value:
-                    # Di chuyển cả hai hàng tiêu đề
-                    self.verticalHeader().moveSection(col_range['value'], value)
-                    col_range['value'] = value
-                elif value < col_range['start']:
-                    value = col_range['start']
-                    # Di chuyển cả hai hàng tiêu đề
-                    self.verticalHeader().moveSection(col_range['value'], value)
-                    col_range['value'] = value
-
-        self.horizontalHeader().hide()
-        self.verticalScrollBar().valueChanged.connect(scroll_headers)
+current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data') #/ File Data for Dev
 
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = FrozenHeaderTable()
-    window.show()
-    sys.exit(app.exec_())
+def path_number():
+    path = os.path.join(current_dir,'number')
+    return path
+def path_thong():
+    path = os.path.join(current_dir, 'thong')
+    return path
+
+def createNewNumber():
+    path = path_number()
+    number_bk = os.path.join(path, 'number_backup.json')
+    with open(number_bk, 'r') as file:
+        number_data = json.load(file)
+    #/ Add new 10 row and 600 col into by one
+    row_add = 10
+    col_add = 600
+    for i in range(row_add):
+        new_number_data = []
+        for j in range(col_add):
+            new_number_data.append('')
+        number_data.append(new_number_data)
+    #/ Save data backup!
+    with open(number_bk, 'w') as file:
+        json.dump(number_data, file)
+    
+    change = 6
+    for i in range(change):
+        #/ Convert Data change with Func
+        number_change = list(map(
+            lambda item: list(map(
+                lambda x: TachVaGhep(i, x), item
+            )), number_data
+        ))
+        #/ get path Number change
+        number_path = os.path.join(path, f'number_{i}.json')
+        #/ Save data change
+        with open(number_path, 'w') as file:
+            json.dump(number_change, file)
+
+def createNewSttNumber():
+    path = path_number()
+    number_path = os.path.join(path, 'number.json')
+    with open(number_path, 'r') as file:
+        number_data = json.load(file)
+    
+    new_number_data = []
+    for i in range(6):
+        data = []
+        for j in range(41):
+            value = f'{j + 1:02}'
+            data.append(value)
+        new_number_data.append(data)
+    
+    # #/ Save new data stt
+    number_data = {
+        "stt": new_number_data,
+        "number": 0,
+        "change": []
+    }
+    print(number_data)
+    #/ Save data
+    with open(number_path, 'w') as file:
+        json.dump(number_data, file)
+
+createNewSttNumber()
+createNewNumber()

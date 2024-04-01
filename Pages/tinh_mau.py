@@ -242,13 +242,13 @@ class TinhAndMauPage(QWidget):
             """
         )
 
-        self.frozen_table_count.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        # self.frozen_table_count.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.frozen_table_count.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
         self.frozen_table_count.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.frozen_table_count.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
 
-        self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
+        # self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
 
         self.table_scroll_count.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_scroll_count.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
@@ -257,10 +257,6 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_count.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
 
         # height_of_row = self.table_scroll_count.verticalHeader().sectionSize(0)
-        width_of_row = self.table_scroll_count.horizontalHeader().sectionSize(0)
-
-        self.frozen_table_count.setMaximumWidth(width_of_row + 120)
-        self.frozen_table_count.setMaximumWidth(width_of_row + 120)
 
         self.table_scroll_count.verticalHeader().hide()
         
@@ -1621,6 +1617,19 @@ class TinhAndMauPage(QWidget):
                         self.table_scroll_count.setItem(i, jump_col, item_table)
                         jump_col += 1
                     jump_col += value_col
+
+        # width_of_row = self.frozen_table_count.horizontalHeader().sectionPosition(0)
+        
+        # Resize columns to fit content
+        self.frozen_table_count.resizeColumnsToContents()
+        cell_width = 0
+        for i in range(rowCount):
+            cell_width = max(cell_width, self.frozen_table_count.visualItemRect(self.frozen_table_count.item(i, 0)).width())
+        # Lấy kích thước của header dọc
+        vertical_header_width = self.frozen_table_count.verticalHeader().width()
+
+        # Đặt kích thước cố định cho QTableWidget
+        self.frozen_table_count.setFixedWidth(cell_width + vertical_header_width)
 
         self.table_scroll_count.scrollToBottom()
         self.frozen_table_count.scrollToBottom()

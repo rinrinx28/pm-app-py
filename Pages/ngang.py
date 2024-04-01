@@ -3,13 +3,15 @@ from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QStackedWidget,QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView, QComboBox,QLabel
                                )
-from PySide6.QtGui import Qt, QCursor
+from PySide6.QtGui import Qt, QCursor, QColor
 from Pages.components.stylesheet import (
     css_button_cancel, css_button_submit, css_input, Font, Note,SendMessage, css_title
     )
 import json
 import os
 from Controller.handler import backUpNgang, saveNgang
+
+prev_selected_rows = set()
 
 class NgangPage(QWidget):
 
@@ -18,6 +20,7 @@ class NgangPage(QWidget):
         self.path = Path()
         self.layout_ngang = QVBoxLayout(self)
         self.ngang_path = self.path.path_number()
+        self.thong_path = self.path.path_thong()
         self.layout_ngang.setSpacing(0)
         #/ Config Font
         self.font = Font()
@@ -28,10 +31,19 @@ class NgangPage(QWidget):
         with open(os.path.join(self.ngang_path, 'number.json'), 'r') as file:
             self.ngang_info = json.load(file)
         self.stt_ngang = self.ngang_info['stt']
+
         self.selected_row_indices = -1
+        self.current_select = []
+        self.prev_selected_row = None
+        self.cyan = QColor(178, 255, 255)
+        self.normal = QColor("#FFFFFF")
+
+        with open(os.path.join(self.thong_path, 'thongs.json'), 'r') as file:
+            self.thong_db = json.load(file)
 
         #/ Title
-        title = QLabel('Bảng Ngang')
+        name_thong = self.thong_db['name']
+        title = QLabel(f'Bảng Ngang - 600 Cột - {name_thong}')
         title.setStyleSheet(css_title)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout_ngang.addWidget(title)
@@ -67,6 +79,12 @@ class NgangPage(QWidget):
         SwapLine.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(SwapLine)
 
+        #/ Copy Row Button
+        CopyRow = QPushButton('Chép Dòng DL')
+        CopyRow.setStyleSheet(css_button_cancel)
+        CopyRow.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(CopyRow)
+
         #/ Create Delete
         DeleteRow = QPushButton('Xóa DL dòng')
         DeleteRow.setStyleSheet(css_button_cancel)
@@ -78,6 +96,12 @@ class NgangPage(QWidget):
         Delete.setStyleSheet(css_button_cancel)
         Delete.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(Delete)
+
+        #/ Delete Button
+        DeleteColor = QPushButton('Xóa Màu')
+        DeleteColor.setStyleSheet(css_button_cancel)
+        DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(DeleteColor)
 
         #/ Change_number Button
         # TODO Config Change Number
@@ -145,6 +169,17 @@ class NgangPage(QWidget):
             self.HandlerData.setText('Tắt Tùy Chỉnh')
             self.deleteRowNgang()
 
+        def copyRow_Click():
+            if len(self.current_select) > 2:
+                SendMessage('Xin vui lòng chọn dòng chép và nhận!')
+                return
+            sender = self.prev_selected_row
+            receiver = [item for item in self.current_select if item != sender][0]
+            self.copyRowNgang([sender, receiver])
+            
+        def delete_color_click():
+            self.table_main.clearSelection()
+
         self.Change_number.currentIndexChanged.connect(change_number_selected)
         SwapLine.clicked.connect(self.swapNgangRow)
         self.HandlerData.clicked.connect(changeTypeCount)
@@ -152,6 +187,8 @@ class NgangPage(QWidget):
         BackUp.clicked.connect(backupNgang)
         Delete.clicked.connect(deleteRows)
         DeleteRow.clicked.connect(self.DeleteThongRow)
+        CopyRow.clicked.connect(copyRow_Click)
+        DeleteColor.clicked.connect(delete_color_click)
 
     def renderTable(self):
         data = self.ngang_data
@@ -202,11 +239,27 @@ class NgangPage(QWidget):
         
         self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
+        self.table_main.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
+
         def selectedRow():
             selected_items = self.table_main.selectedItems()
             if selected_items:
                 for item in selected_items:
                     self.selected_row_indices = item.row()
+            
+            selected_indexes = self.table_main.selectedIndexes()
+            if selected_indexes:
+                #/ Find is first selected item
+                current_selected_row = selected_indexes[0].row()
+                if self.prev_selected_row is None or current_selected_row != self.prev_selected_row:
+                    self.prev_selected_row = current_selected_row
+                
+                #/ get all selelected items
+                selected_rows = set()
+                for i in range(len(selected_indexes)):
+                    rows = selected_indexes[i].row()
+                    selected_rows.add(rows)
+                self.current_select = list(selected_rows)
         
         def changeValue(row, column):
             isEdit = self.table_main.editTriggers()
@@ -215,8 +268,32 @@ class NgangPage(QWidget):
             else:
                 if column > 0:
                     item = self.table_main.item(row, column)
+                    filter_db = [item for item in self.ngang_info['change'] 
+                                 if item['row'] != row 
+                                 and item['column'] != column - 1 
+                                 and item['number'] != self.Change_number.currentIndex()]
+                    filter_data = [item for item in self.ngang_info['change'] 
+                                   if item['row'] == row 
+                                   and item['column'] == column - 1 
+                                   and item['number'] == self.Change_number.currentIndex()]
+                    if len(filter_data) > 0:
+                        filter_data[0]['new'] = item.text()
+                        self.ngang_info['change'] = filter_db + filter_data
+                        if filter_data[0]['new'] != filter_data[0]['old']:
+                            item.setBackground(self.cyan)
+                        else:
+                            item.setBackground(self.normal)
+                    else:
+                        self.ngang_info['change'].append({
+                            "row": row, 
+                            "column": column - 1, 
+                            "number": self.Change_number.currentIndex(), 
+                            "new": item.text(), 
+                            "old": self.ngang_data[row][column - 1]
+                        })
+                        item.setBackground(self.cyan)
                     self.ngang_data[row][column - 1] = item.text()
-        
+
         self.table_main.itemSelectionChanged.connect(selectedRow)
         self.table_main.cellChanged.connect(changeValue)
 
@@ -292,6 +369,15 @@ class NgangPage(QWidget):
                 value = data[i][j]
                 item = QTableWidgetItem(f'{value}')
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                filter_changed = [item for item in self.ngang_info['change'] 
+                                  if item['row'] == i 
+                                  and item['column'] == j 
+                                  and item['number'] == self.Change_number.currentIndex()]
+                if len(filter_changed) > 0:
+                    item_new = filter_changed[0]['new']
+                    item_old = filter_changed[0]['old']
+                    if item_new != item_old:
+                        item.setBackground(self.cyan)
                 self.table_main.setItem(i,j + 1,item)
         
     def backUpNgang(self):
@@ -312,6 +398,7 @@ class NgangPage(QWidget):
         data['update'] = self.ngang_data
         data['number'] = self.Change_number.currentIndex()
         data['stt'] = self.stt_ngang
+        data['change'] = self.ngang_info['change']
         saveNgang(data)
         SendMessage('Đã lưu dữ liệu thành công!')
 
@@ -352,3 +439,21 @@ class NgangPage(QWidget):
         self.updateRows()
         return
 
+    def copyRowNgang(self, selceted_rows):
+        row1 = selceted_rows[0]
+        row2 = selceted_rows[1]    
+        row1_h = f'{row1 + 1:02}'  # Ensure proper formatting for display
+        row2_h = f'{row2 + 1:02}'
+        #/ Check row2 selected, if it not null is return
+        data_row2 = self.ngang_data[row2]
+        for i, item in enumerate(data_row2):
+            if len(str(item)) != 0:
+                SendMessage(f'Dòng nhận chưa được xóa dữ liệu! (Dòng {row2_h})')
+                return
+        sender = self.ngang_data[row1][:]
+        self.ngang_data[row2] = sender #/ Copy from sender to receiver
+        self.updateRows()
+        SendMessage(f'Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!')
+        return
+        
+        
