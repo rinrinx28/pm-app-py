@@ -5,3 +5,5 @@ test*.*
 *.spec
 /dist
 /build
+test.py
+test_2.py
