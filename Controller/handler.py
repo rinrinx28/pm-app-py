@@ -514,6 +514,7 @@ def saveThong(data):
     number = data['number']
     stt = data['stt']
     change = data['change']
+    setting = data['setting']
     #/ Load File thong db
     with open(os.path.join(thong_path, 'thongs.json'), 'r') as file:
         thong_db = json.load(file)
@@ -521,6 +522,7 @@ def saveThong(data):
     thong_db['data'] = custom
     thong_db['stt'] = stt
     thong_db['change'] = change
+    thong_db['setting'] = setting
 
     #/ Save Thong DB
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
@@ -638,6 +640,73 @@ def saveAllThong(data):
 
     value_type = f'{type_count} số' if type_count >= 1 else f'Trắng'
     return f'Đã đồng bộ dữ liệu bộ {value_type}'
+
+def typeWithRecipe(data):
+    row = data['row']
+    number = data['number']
+    setting = data['setting']
+    stt = data['stt']
+    update = data['update']
+    col = len(update[0])
+    line = stt[number][row]
+    #/ Create new Row
+    step = 0
+    for i in range(0,col,60):
+        if i == 0:
+            for k in range(60):
+                if setting == 1:
+                    if k == 0:
+                        update[k + i][row] = int(line[0]) % 10
+                    elif k == 1:
+                        update[k + i][row] = int(line[1]) % 10
+                    else:
+                        update[k + i][row] = 0
+                elif setting == 2:
+                    if k == 0:
+                        update[k + i][row] = line
+                    else:
+                        update[k + i][row] = 0
+                else:
+                    update[k + i][row] = ''
+        else:
+            for k in range(60):
+                if setting == 1:
+                    if k == 0:
+                        update[k + i][row] = (int(update[(step - 1) * 60][row]) + 1) % 10
+                    elif k == 1:
+                        update[k + i][row] = (int(update[(step - 1) * 60 + 1][row]) + 1) % 10
+                    else:
+                        update[k + i][row] = 0
+                elif setting == 2:
+                    if k == 0:
+                        first = update[(step - 1 ) * 60][row]
+                        second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                        update[k + i][row] = second
+                    else:
+                        update[k + i][row] = 0
+                else:
+                    update[k + i][row] = ''
+        step+=1
+
+    if setting == 1:
+        for i in range(0,col,60):
+            for k in range(60):
+                if k > 1:
+                    first = update[i + k - 2][row]
+                    second = update[i + k - 1][row]
+                    sum = (first + second) % 10
+                    update[i + k][row] = sum
+    
+    if setting == 2:
+        for i in range(0,col,60):
+            for k in range(60):
+                if k > 0:
+                    first = update[i + k - 1][row]
+                    c = (int(first[0]) + int(first[1])) % 10
+                    d = (int(first[1]) + c) % 10
+                    update[i + k][row] = f'{c}{d}'
+
+    return data
 
 # TODO Handler Data Ngang
 

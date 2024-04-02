@@ -8,7 +8,7 @@ from Pages.components.stylesheet import (
     css_button_cancel, css_button_submit, css_input, Font, Note, css_lable, SendMessage, css_title
     )
 import json
-from Controller.handler import saveThong,backupThong,saveAllThong
+from Controller.handler import saveThong,backupThong,saveAllThong,typeWithRecipe
 import os
 
 class ThongPage(QWidget):
@@ -25,6 +25,7 @@ class ThongPage(QWidget):
             self.thong_db = json.load(file)
 
         #/ Config Secleted item
+        self.selected_row_indices = None
         self.current_select = []
         self.prev_selected_row = None
         self.cyan = QColor(178, 255, 255)
@@ -211,36 +212,41 @@ class ThongPage(QWidget):
         self.showButtonThong()
 
     def showButtonThong(self):
+        layout_w = QWidget()
+        layout = QGridLayout(layout_w)
+        layout.setSpacing(6)
+        self.button_layout.addWidget(layout_w)
 
+        #TODO Line 1
         #/ Create MathCount
         swapRow = QPushButton('Đổi Dòng DL')
         swapRow.setStyleSheet(css_button_cancel)
         swapRow.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(swapRow)
+        layout.addWidget(swapRow,0, 0)
 
         #/ Copy Row Button
         CopyRow = QPushButton('Chép Dòng DL')
         CopyRow.setStyleSheet(css_button_cancel)
         CopyRow.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(CopyRow)
+        layout.addWidget(CopyRow, 0, 1)
 
         #/ Create Delete
         DeleteRow = QPushButton('Xóa DL dòng')
         DeleteRow.setStyleSheet(css_button_cancel)
         DeleteRow.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(DeleteRow)
+        layout.addWidget(DeleteRow, 0, 2)
 
         #/ Create Delete
         Delete = QPushButton('Xóa tất cả DL')
         Delete.setStyleSheet(css_button_cancel)
         Delete.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(Delete)
+        layout.addWidget(Delete, 0, 3)
 
         #/ Create Delete
         DeleteColor = QPushButton('Xóa Màu')
         DeleteColor.setStyleSheet(css_button_cancel)
         DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(DeleteColor)
+        layout.addWidget(DeleteColor, 0, 4)
 
         #/ Create ChangeNumber
         self.ChangeNumber = QComboBox()
@@ -249,33 +255,46 @@ class ThongPage(QWidget):
         self.ChangeNumber.addItem('Chuyển Đổi 0')
         for i in range(5):
             self.ChangeNumber.addItem(f'Chuyển Đổi {i+1}')
-        self.button_layout.addWidget(self.ChangeNumber)
+        layout.addWidget(self.ChangeNumber, 0, 5)
+
+        #TODO Line 2
 
         #/ Create Backup
         BackUp = QPushButton('Khôi phục DL gốc')
         BackUp.setStyleSheet(css_button_submit)
         BackUp.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(BackUp)
+        layout.addWidget(BackUp, 1, 0)
 
-        #/ Create Backup
+        #/ Create AutoSaveFiles
         SaveFile = QPushButton('Đồng Bộ DL')
         SaveFile.setStyleSheet(css_button_submit)
         SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(SaveFile)
+        layout.addWidget(SaveFile, 1, 1)
 
+        #/ Create Backup
+        ButtonType = QPushButton('Nhập Công Thức')
+        ButtonType.setStyleSheet(css_button_submit)
+        ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(ButtonType, 1, 2)
 
         #/ Create HandlerData
         type_input = 'Tắt Tùy Chỉnh'
         self.HandlerData = QPushButton(type_input)
         self.HandlerData.setStyleSheet(css_button_submit)
         self.HandlerData.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.HandlerData)
+        layout.addWidget(self.HandlerData,1,3)
 
         #/ Create SaveData
         SaveData = QPushButton('Lưu')
         SaveData.setStyleSheet(css_button_submit)
         SaveData.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(SaveData)
+        layout.addWidget(SaveData,1,4)
+
+        #/ Create SaveData
+        SettingType = QPushButton('Cài Đặt')
+        SettingType.setStyleSheet(css_button_submit)
+        SettingType.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(SettingType,1,5)
 
         def changeTypeCount():
             types = self.HandlerData.text()
@@ -307,7 +326,6 @@ class ThongPage(QWidget):
             if len(self.current_select) <= 1 or len(self.current_select) > 2:
                 SendMessage('Xin vui lòng chọn dòng chép và nhận!')
                 return
-            print(self.current_select)
             sender = self.prev_selected_row
             receiver = [item for item in self.current_select if item != sender][0]
             self.copyRowThong([sender, receiver])
@@ -326,6 +344,27 @@ class ThongPage(QWidget):
             msg = saveAllThong(data)
             SendMessage(msg)
 
+        def type_with_button():
+            if self.thong_db['setting'] == 0:
+                SendMessage('Loại Nhập hiện tại là 0 (Trắng), xin vui lòng chọn loại khác để tiến hành nhập công thức')
+                return
+            if self.selected_row_indices:
+                #/ Find Select Row
+                data_select = list(self.selected_row_indices)
+                if len(data_select) != 1:
+                    SendMessage('Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!')
+                    return
+                for row in data_select:
+                    data = {}
+                    data['row'] = row
+                    data['number'] = self.ChangeNumber.currentIndex()
+                    data['setting'] = self.thong_db['setting']
+                    data['stt'] = self.thong_db['stt']
+                    data['update'] = self.thong_data
+                    result = typeWithRecipe(data)
+                    self.thong_data = result['update']
+                    self.updateRowAndColumns()
+                self.selected_row_indices = None
 
         self.HandlerData.clicked.connect(changeTypeCount)
         SaveData.clicked.connect(saveChange)
@@ -337,6 +376,8 @@ class ThongPage(QWidget):
         CopyRow.clicked.connect(copyRow_Click)
         DeleteColor.clicked.connect(delete_color_click)
         SaveFile.clicked.connect(saveFile_click)
+        SettingType.clicked.connect(self.setting_type_click)
+        ButtonType.clicked.connect(type_with_button)
 
     # TODO Handler Widgets
     def freeze_col_stt(self, value):
@@ -460,6 +501,7 @@ class ThongPage(QWidget):
         data['number'] = self.ChangeNumber.currentIndex()
         data['stt'] = self.thong_db['stt']
         data['change'] = self.thong_db['change']
+        data['setting'] = self.thong_db['setting']
         msg = saveThong(data)
         SendMessage(msg)
 
@@ -505,6 +547,7 @@ class ThongPage(QWidget):
         SendMessage('Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại')
         # self.updateHeaderRow()
         self.updateRowAndColumns()
+        self.selected_row_indices = None
         return
     
     def DeleteThongRow(self):
@@ -517,7 +560,7 @@ class ThongPage(QWidget):
         #/ Find Select Row
         data_select = list(self.selected_row_indices)
         if len(data_select) != 1:
-            SendMessage('Xin vui lòng chọn 2 dòng để tiến hành xóa dữ liệu!')
+            SendMessage('Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!')
             return
         for row in data_select:
             for i in range(5, self.table_main.columnCount()):
@@ -525,6 +568,7 @@ class ThongPage(QWidget):
         SendMessage('Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại')
         # self.updateHeaderRow()
         self.updateRowAndColumns()
+        self.selected_row_indices = None
         return
 
     def changeDataThongWithNumber(self, number):
@@ -553,6 +597,62 @@ class ThongPage(QWidget):
 
         self.updateRowAndColumns()
         SendMessage(f'Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!')
+        self.current_select = []
+        self.prev_selected_row = None
         return
 
+    def setting_type_click(self):
+        setting = self.thong_db['setting']
+        #/ Config Icon Windows
+        icon = self.path.path_logo()
+
+        # / Create Dialog Windows
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Cài Đặt Bảng Thông')
+        dialog.setWindowIcon(QIcon(icon))
+        dialog.show()
+
+        #/ Dialog Main Layout
+        dialog_layout = QVBoxLayout()
+        dialog.setLayout(dialog_layout)
+
+        #/ Dialog setting Layout
+        setting_dialog_w = QWidget()
+        setting_dialog_l = QGridLayout(setting_dialog_w)
+        dialog_layout.addWidget(setting_dialog_w)
+
+        type_label = QLabel('Loại Công Thức (0: Trắng; 1: 1 Số; 2: 2 Số)')
+        type_label.setStyleSheet(css_lable)
+        setting_dialog_l.addWidget(type_label, 0,0)
+
+        type_input = QSpinBox()
+        type_input.setFixedWidth(100)
+        type_input.setStyleSheet(css_input)
+        type_input.setMinimum(0)
+        type_input.setMaximum(2)
+        type_input.setValue(setting)
+        setting_dialog_l.addWidget(type_input, 1,0)
+
+        #/ Dialog Button layout
+        button_dialog_w = QWidget()
+        button_dialog_l = QHBoxLayout(button_dialog_w)
+        dialog_layout.addWidget(button_dialog_w)
+
+        submit = QPushButton('Lưu')
+        submit.setStyleSheet(css_button_submit)
+        button_dialog_l.addWidget(submit)
+
+        cancel = QPushButton('Thoát')
+        cancel.setStyleSheet(css_button_cancel)
+        button_dialog_l.addWidget(cancel)
+
+        #TODO Handler Button
+        def submit_click():
+            self.thong_db['setting'] = type_input.value()
+            dialog.reject()
+        def cancel_click():
+            dialog.reject()
+        
+        submit.clicked.connect(submit_click)
+        cancel.clicked.connect(cancel_click)
 

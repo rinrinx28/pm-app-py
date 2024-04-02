@@ -172,6 +172,7 @@ def createThong(data, path):
                         second = thong_file[i + k - 1][j]
                         sum = (first + second) % 10
                         thong_file[i + k][j] = sum
+                        
     if type_count == 2:
         for j in range(row):
             if j > 99:
@@ -226,7 +227,7 @@ def createThong(data, path):
     data['number'] = 0
     data['change'] = []
     data['type_thong'] = type_count
-    # data['index'] = 
+    data['setting'] = 0 
     with open(os.path.join(thong_path, 'thongs.json'), 'w') as file:
         json.dump(data, file)
     return data
