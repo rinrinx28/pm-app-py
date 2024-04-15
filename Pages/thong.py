@@ -3,12 +3,12 @@ from PySide6.QtWidgets import (
     QWidget, QHBoxLayout,QVBoxLayout,QStackedWidget,QPushButton, QDialog, QGridLayout,
     QLabel, QLineEdit, QTableWidget, QTableWidgetItem,QHeaderView,QComboBox,QSpinBox
     )
-from PySide6.QtGui import Qt, QCursor, QIcon
+from PySide6.QtGui import Qt, QCursor, QIcon, QColor
 from Pages.components.stylesheet import (
     css_button_cancel, css_button_submit, css_input, Font, Note, css_lable, SendMessage, css_title
     )
 import json
-from Controller.handler import createThong, saveThong,backupThong
+from Controller.handler import saveThong,backupThong,saveAllThong,typeWithRecipe
 import os
 
 class ThongPage(QWidget):
@@ -24,9 +24,16 @@ class ThongPage(QWidget):
         with open(os.path.join(self.thong_path, 'thongs.json'), 'r') as file:
             self.thong_db = json.load(file)
 
+        #/ Config Secleted item
+        self.selected_row_indices = None
+        self.current_select = []
+        self.prev_selected_row = None
+        self.cyan = QColor(178, 255, 255)
+        self.normal = QColor("#FFFFFF")
+
         #/ Config Font
         self.font = Font()
-
+        self.layout_thong.setSpacing(0)
         #/ Widget Main
         self.widget_main = QStackedWidget()
         self.layout_thong.addWidget(self.widget_main)
@@ -43,101 +50,43 @@ class ThongPage(QWidget):
         self.button_layout.setSpacing(100)
         self.layout_thong.addWidget(self.button_wid_main)
 
-        #/ Note
-        self.note = QLabel('')
-        self.note.setFont(self.font)
-        self.layout_thong.addWidget(self.note)
-
         #/ Render Component
-        self.renderButton()
-        self.renderTable()
+        self.changeDataThongWithNumber(0)
+        self.renderThongButton()
+        self.renderThongTable()
 
     # TODO Handler Render Component
-    def renderTable(self):
-        #/ Create Widget table
-        self.table_main = QTableWidget()
-        self.widget_main.addWidget(self.table_main)
-        
-        #/ Config table
-        rowCount = len(self.thong_db)
-        colCount = 2
-
-        self.table_main.setColumnCount(colCount)
-        self.table_main.setRowCount(rowCount)
-
-        #/ Config Header
-        for i in range(colCount):
-            name = 'Tên Bảng' if i == 0 else 'Số Thông'
-            item = QTableWidgetItem(f'{name}')
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setHorizontalHeaderItem(i, item)
-        
-        #/ Render Rows Table
-        for i in range(rowCount):
-            data = self.thong_db[i]
-            name = data.get('name')
-            value = data.get('value')
-            item_name = QTableWidgetItem(f'{name}')
-            item_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i, 0, item_name)
-            item_value = QTableWidgetItem(f'{value}')
-            item_value.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i, 1, item_value)
-
-        #/ Config Font
-        self.table_main.setFont(self.font)
-        self.table_main.horizontalHeader().setFont(self.font)
-        self.table_main.verticalHeader().setFont(self.font)
-
-        self.table_main.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table_main.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table_main.horizontalHeader().setStretchLastSection(True)
-        
-    def renderButton(self):
-        #/ Create new Thong
-        OpenThong = QPushButton('Mở Bảng Thông')
-        OpenThong.setStyleSheet(css_button_submit)
-        OpenThong.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(OpenThong)
-
-        #/ Create new Thong
-        # CreateNew = QPushButton('Tạo Bảng Thông Mới')
-        # CreateNew.setStyleSheet(css_button_submit)
-        # CreateNew.setCursor(QCursor(Qt.PointingHandCursor))
-        # self.button_layout.addWidget(CreateNew)
-        
-        #/ Delete Thong
-        # Delete = QPushButton('Xóa Bảng Thông')
-        # Delete.setStyleSheet(css_button_cancel)
-        # Delete.setCursor(QCursor(Qt.PointingHandCursor))
-        # self.button_layout.addWidget(Delete)
-
-        # CreateNew.clicked.connect(self.create_thong)
-        OpenThong.clicked.connect(self.open_thong)
-
     def renderThongTable(self):
-        colCount = self.thong_info['value']
+        self.start_col = 1
+        self.value_col = 1
+        colCount = self.thong_db['value']
         #/ Title and table
         widget_table = QWidget()
         layout_table = QVBoxLayout(widget_table)
         self.widget_main.addWidget(widget_table)
-        rowCount = len(self.thong_info['stt'][0])
 
         layout_table.setSpacing(0)
         layout_table.setContentsMargins(0, 0, 0, 0)
 
-        name_thong = self.thong_info['name']
-        value_thong = self.thong_info['value']
+        value_thong = self.thong_db['value']
+        name_thong = self.thong_db['name']
 
-        title = QLabel(f'Bảng Thông {name_thong} - Sô Thông {value_thong}')
+        title = QLabel(f'Bảng Thông - {name_thong} - {value_thong} Thông')
         title.setStyleSheet(css_title)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout_table.addWidget(title)
+
+        #/ Note
+        self.note = QLabel('')
+        self.note.setFont(self.font)
+        layout_table.addWidget(self.note)
 
         self.table_main = QTableWidget()
         layout_table.addWidget(self.table_main)
         self.table_main.setColumnCount(colCount + 5)
+
+        # self.updateHeaderRow()
         
-        #/ Add Header Table
 
         for i in range(colCount):
             if i == 0:
@@ -145,21 +94,21 @@ class ThongPage(QWidget):
                 item_stt.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_main.setHorizontalHeaderItem(0, item_stt)
 
+                item_zero = QTableWidgetItem(f'Cột 0')
+                item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main.setHorizontalHeaderItem(1, item_zero)
+
                 item_a = QTableWidgetItem(f'A')
                 item_a.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(1, item_a)
+                self.table_main.setHorizontalHeaderItem(2, item_a)
                 
                 item_b = QTableWidgetItem(f'B')
                 item_b.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(2, item_b)
+                self.table_main.setHorizontalHeaderItem(3, item_b)
                 
                 item_c = QTableWidgetItem(f'C')
                 item_c.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(3, item_c)
-                
-                item_d = QTableWidgetItem(f'D')
-                item_d.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(4, item_d)
+                self.table_main.setHorizontalHeaderItem(4, item_c)
 
                 item = QTableWidgetItem(f'T.{i+1}')
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -168,16 +117,32 @@ class ThongPage(QWidget):
                 item = QTableWidgetItem(f'T.{i+1}')
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_main.setHorizontalHeaderItem(i + 5, item)
+
+        
+        self.updateRowAndColumns()
         
         #/ Config Font
         self.table_main.setFont(self.font)
         self.table_main.horizontalHeader().setFont(self.font)
         self.table_main.verticalHeader().setFont(self.font)
 
+        self.table_main.setStyleSheet(
+            """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+        )
+
         self.table_main.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table_main.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         
+
+        self.table_main.horizontalScrollBar().valueChanged.connect(self.freeze_col_stt)
+
         self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_main.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
+
         #/ Handler Events
         def changeValue(row, column):
             isEdit = self.table_main.editTriggers()
@@ -186,10 +151,35 @@ class ThongPage(QWidget):
             else:
                 if column > 4:
                     item = self.table_main.item(row, column)
-                    self.thong_data[column - 4][row] = item.text()
-                if 0 < column < 5:
+                    filter_db = [item for item in self.thong_db['change'] 
+                                 if item['row'] != row 
+                                 and item['column'] != column - 5
+                                 and item['number'] != self.ChangeNumber.currentIndex()]
+                    filter_data = [item for item in self.thong_db['change']
+                                   if item['row'] == row
+                                   and item['column'] == column - 5
+                                   and item['number'] == self.ChangeNumber.currentIndex()]
+                    if len(filter_data) > 0:
+                        filter_data[0]['new'] = item.text()
+                        self.thong_db['change'] = filter_db + filter_data
+                        if filter_data[0]['new'] != filter_data[0]['old']:
+                            item.setBackground(self.cyan)
+                        else:
+                            item.setBackground(self.normal)
+                    else:
+                        self.thong_db['change'].append({
+                            "row": row,
+                            "column": column - 5,
+                            "number": self.ChangeNumber.currentIndex(),
+                            "new": item.text(),
+                            "old": self.thong_data[column - 5][row]
+                        })
+                        item.setBackground(self.cyan)
+                    self.thong_data[column - 5][row] = item.text()
+
+                if 1 < column < 5:
                     item = self.table_main.item(row, column)
-                    self.thong_info['data'][column - 1][row] = item.text()
+                    self.thong_db['data'][column - 2][row] = item.text()
 
         def selectedRow():
             selected_items = self.table_main.selectedItems()
@@ -197,10 +187,23 @@ class ThongPage(QWidget):
                 self.selected_row_indices = set()
                 for item in selected_items:
                     self.selected_row_indices.add(item.row())
+            
+            selected_indexes = self.table_main.selectedIndexes()
+            if selected_indexes:
+                #/ Find is first selected item
+                current_selected_row = selected_indexes[0].row()
+                if self.prev_selected_row is None or current_selected_row != self.prev_selected_row:
+                    self.prev_selected_row = current_selected_row
+                
+                #/ get all selelected items
+                selected_rows = set()
+                for i in range(len(selected_indexes)):
+                    rows = selected_indexes[i].row()
+                    selected_rows.add(rows)
+                self.current_select = list(selected_rows)
 
         self.table_main.cellChanged.connect(changeValue)
         self.table_main.itemSelectionChanged.connect(selectedRow)
-        self.updateRowAndColumns()
 
     def renderThongButton(self):
         self.button_wid_main = QWidget()
@@ -209,58 +212,102 @@ class ThongPage(QWidget):
         self.showButtonThong()
 
     def showButtonThong(self):
+        layout_w = QWidget()
+        layout = QGridLayout(layout_w)
+        layout.setSpacing(6)
+        self.button_layout.addWidget(layout_w)
+
+        #TODO Line 1
+        #/ Create MathCount
+        swapRow = QPushButton('Đổi Dòng DL')
+        swapRow.setStyleSheet(css_button_cancel)
+        swapRow.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(swapRow,0, 0)
+
+        #/ Copy Row Button
+        CopyRow = QPushButton('Chép Dòng DL')
+        CopyRow.setStyleSheet(css_button_cancel)
+        CopyRow.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(CopyRow, 0, 1)
+
         #/ Create Delete
-        Delete = QPushButton('Xóa tất cả dữ liệu')
+        DeleteRow = QPushButton('Xóa DL dòng')
+        DeleteRow.setStyleSheet(css_button_cancel)
+        DeleteRow.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(DeleteRow, 0, 2)
+
+        #/ Create Delete
+        Delete = QPushButton('Xóa tất cả DL')
         Delete.setStyleSheet(css_button_cancel)
         Delete.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(Delete)
+        layout.addWidget(Delete, 0, 3)
 
-        #/ Create Backup
-        BackUp = QPushButton('Khôi phục dữ liệu gốc')
-        BackUp.setStyleSheet(css_button_submit)
-        BackUp.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(BackUp)
+        #/ Create Delete
+        DeleteColor = QPushButton('Xóa Màu')
+        DeleteColor.setStyleSheet(css_button_cancel)
+        DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(DeleteColor, 0, 4)
 
         #/ Create ChangeNumber
         self.ChangeNumber = QComboBox()
         self.ChangeNumber.setStyleSheet(css_input)
         self.ChangeNumber.setCursor(QCursor(Qt.PointingHandCursor))
-        self.ChangeNumber.addItem('Bộ Chuyển Đổi 0')
+        self.ChangeNumber.addItem('Chuyển Đổi 0')
         for i in range(5):
-            self.ChangeNumber.addItem(f'Bộ Chuyển Đổi {i+1}')
-        self.button_layout.addWidget(self.ChangeNumber)
+            self.ChangeNumber.addItem(f'Chuyển Đổi {i+1}')
+        layout.addWidget(self.ChangeNumber, 0, 5)
+
+        #TODO Line 2
+
+        #/ Create Backup
+        BackUp = QPushButton('Khôi phục DL gốc')
+        BackUp.setStyleSheet(css_button_submit)
+        BackUp.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(BackUp, 1, 0)
+
+        #/ Create AutoSaveFiles
+        SaveFile = QPushButton('Đồng Bộ DL')
+        SaveFile.setStyleSheet(css_button_submit)
+        SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(SaveFile, 1, 1)
+
+        #/ Create Backup
+        ButtonType = QPushButton('Nhập Công Thức')
+        ButtonType.setStyleSheet(css_button_submit)
+        ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(ButtonType, 1, 2)
 
         #/ Create HandlerData
-        type_input = 'Bật Nhập Tay'
+        type_input = 'Tắt Tùy Chỉnh'
         self.HandlerData = QPushButton(type_input)
         self.HandlerData.setStyleSheet(css_button_submit)
         self.HandlerData.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.HandlerData)
-
-        #/ Create MathCount
-        swapRow = QPushButton('Đổi Dòng Dữ Liệu')
-        swapRow.setStyleSheet(css_button_cancel)
-        swapRow.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(swapRow)
+        layout.addWidget(self.HandlerData,1,3)
 
         #/ Create SaveData
         SaveData = QPushButton('Lưu')
         SaveData.setStyleSheet(css_button_submit)
         SaveData.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(SaveData)
+        layout.addWidget(SaveData,1,4)
+
+        #/ Create SaveData
+        SettingType = QPushButton('Cài Đặt')
+        SettingType.setStyleSheet(css_button_submit)
+        SettingType.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(SettingType,1,5)
 
         def changeTypeCount():
             types = self.HandlerData.text()
-            if types == 'Bật Nhập Tay':
+            if types == 'Tắt Tùy Chỉnh':
                 self.table_main.setEditTriggers(QTableWidget.EditTrigger.DoubleClicked)
-                self.HandlerData.setText('Tắt Nhập Tay')
+                self.HandlerData.setText('Bật Tùy Chỉnh')
             else:
                 self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-                self.HandlerData.setText('Bật Nhập Tay')
+                self.HandlerData.setText('Tắt Tùy Chỉnh')
         
         def saveChange():
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
             self.saveThongRow()
 
         def changeTableNumber():
@@ -275,330 +322,73 @@ class ThongPage(QWidget):
                 self.note.setText('')
                 self.note.setScaledContents(False)
 
+        def copyRow_Click():
+            if len(self.current_select) <= 1 or len(self.current_select) > 2:
+                SendMessage('Xin vui lòng chọn dòng chép và nhận!')
+                return
+            sender = self.prev_selected_row
+            receiver = [item for item in self.current_select if item != sender][0]
+            self.copyRowThong([sender, receiver])
+
+        def delete_color_click():
+            self.table_main.clearSelection()
+
+        def saveFile_click():
+            data = {}
+            data['update'] = self.thong_data
+            data['custom'] = self.thong_db['data']
+            data['number'] = self.ChangeNumber.currentIndex()
+            data['stt'] = self.thong_db['stt']
+            data['change'] = self.thong_db['change']
+            data['type_count'] = self.thong_db['type_count']
+            msg = saveAllThong(data)
+            SendMessage(msg)
+
+        def type_with_button():
+            if self.thong_db['setting'] == 0:
+                SendMessage('Loại Nhập hiện tại là 0 (Trắng), xin vui lòng chọn loại khác để tiến hành nhập công thức')
+                return
+            if self.selected_row_indices:
+                #/ Find Select Row
+                data_select = list(self.selected_row_indices)
+                if len(data_select) != 1:
+                    SendMessage('Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!')
+                    return
+                for row in data_select:
+                    data = {}
+                    data['row'] = row
+                    data['number'] = self.ChangeNumber.currentIndex()
+                    data['setting'] = self.thong_db['setting']
+                    data['stt'] = self.thong_db['stt']
+                    data['update'] = self.thong_data
+                    result = typeWithRecipe(data)
+                    self.thong_data = result['update']
+                    self.updateRowAndColumns()
+                self.selected_row_indices = None
+
         self.HandlerData.clicked.connect(changeTypeCount)
         SaveData.clicked.connect(saveChange)
         self.ChangeNumber.currentIndexChanged.connect(changeTableNumber)
         BackUp.clicked.connect(self.backUpRows)
         Delete.clicked.connect(self.deleteAllRows)
+        DeleteRow.clicked.connect(self.DeleteThongRow)
         swapRow.clicked.connect(self.swapThongRow)
-
-    # TODO Handler Button
-    def create_thong(self):
-        #/ Config Icon Windows
-        icon = self.path.path_logo()
-
-        # / Create Dialog Windows
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Tạo Bảng Thông Mới')
-        dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(600, 700)
-        dialog.show()
-
-        #/ Create Layout
-        layout = QGridLayout()
-        dialog.setLayout(layout)
-
-        #/ Create From
-        from_w = QWidget()
-        from_l = QVBoxLayout(from_w)
-        layout.addWidget(from_w, 0,0)
-
-        #/ Create Input Value
-        #? Name
-        name_w = QWidget()
-        name_l = QVBoxLayout(name_w)
-        from_l.addWidget(name_w)
-
-        label_name = QLabel('Nhập Tên Thông')
-        label_name.setStyleSheet(css_lable)
-        name_l.addWidget(label_name)
-
-        input_name = QLineEdit()
-        input_name.setStyleSheet(css_input)
-        name_l.addWidget(input_name)
-
-        #? password
-        password_w = QWidget()
-        password_l = QVBoxLayout(password_w)
-        from_l.addWidget(password_w)
-
-        label_password = QLabel('Nhập Mật Khẩu')
-        label_password.setStyleSheet(css_lable)
-        password_l.addWidget(label_password)
-
-        input_password = QLineEdit()
-        input_password.setStyleSheet(css_input)
-        password_l.addWidget(input_password)
-
-        #? Số Thông
-        value_thong_w = QWidget()
-        value_thong_l = QVBoxLayout(value_thong_w)
-        from_l.addWidget(value_thong_w)
-
-        label_value_thong = QLabel('Nhập Số Thông')
-        label_value_thong.setStyleSheet(css_lable)
-        value_thong_l.addWidget(label_value_thong)
-
-        input_value_thong = QSpinBox()
-        input_value_thong.setStyleSheet(css_input)
-        input_value_thong.setMinimum(1)
-        input_value_thong.setMaximum(420)
-        value_thong_l.addWidget(input_value_thong)
-
-        #/ Create Button
-        button_w = QWidget()
-        button_l = QHBoxLayout(button_w)
-        button_l.setSpacing(100)
-        layout.addWidget(button_w)
-
-        #? Submit Button
-        submit = QPushButton('Khởi Tạo')
-        submit.setStyleSheet(css_button_submit)
-        submit.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(submit)
-
-        #? Exit Button
-        Exit = QPushButton('Tắt')
-        Exit.setStyleSheet(css_button_cancel)
-        Exit.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(Exit)
-
-        # TODO Handler Button
-        def  exit():
-            dialog.reject()
-        submit.clicked.connect(lambda: self.submit_button_from(input_name.text(), input_value_thong.value(), input_password.text(),dialog))
-        Exit.clicked.connect(exit)
-
-    def submit_button_from(self,name,value, password,dialog):
-        if len(name) == 0 and value == 0 and len(password) == 0:
-            SendMessage('Xin vui lòng nhập tên bảng, mật khẩu và điền thông số !')
-            return
-        elif len(name) > 0 and value == 0:
-            SendMessage('Xin vui lòng điền thông số!')
-            return
-        elif len(name) == 0 and value > 0:
-            SendMessage('Xin vui lòng nhập tên bảng!')
-            return
-        
-        data = {}
-        data['name'] = name
-        data['value'] = value
-        data['password'] = password
-        data_create = createThong(data)
-        filter_db = [item for item in self.thong_db if item['id'] != data_create.get('id') and item['name'] != data_create.get('name')]
-        filter_db.append(data)
-        self.thong_db = filter_db
-        # / Close Dialogs From
-        dialog.reject()
-        #/ Render Table Thong DB
-        if self.table_main:
-            self.table_main.deleteLater()
-            self.widget_main.layout().removeWidget(self.table_main)
-            self.table_main = None
-        self.renderTable()
-
-        #/ Send Message for client
-        SendMessage('Bạn đã tạo bảng thông mới thành công!')
-        return
-
-    def open_thong(self):
-         #/ Config Icon Windows
-        icon = self.path.path_logo()
-
-        # / Create Dialog Windows
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Mở Bảng Thông')
-        dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(600, 600)
-        dialog.show()
-
-        #/ Create Layout
-        layout = QGridLayout()
-        dialog.setLayout(layout)
-
-        #/ Select Thong
-        select_w = QWidget()
-        select_l = QVBoxLayout(select_w)
-        layout.addWidget(select_w)
-
-        select_label = QLabel('Chọn Bảng Thông Để Mở')
-        select_label.setStyleSheet(css_lable)
-        select_l.addWidget(select_label)
-
-        select_input = QComboBox()
-        select_input.setStyleSheet(css_input)
-        select_input.setCursor(QCursor(Qt.PointingHandCursor))
-        select_input.addItem('Chưa Chọn Bảng Thông')
-
-        for i in range(len(self.thong_db)):
-            name = self.thong_db[i]['name']
-            select_input.addItem(f'Bảng Thông {name}')
-        
-        select_l.addWidget(select_input)
-
-        
-
-        #/ Đăng Nhập Thong
-        password_w = QWidget()
-        password_l = QVBoxLayout(password_w)
-        layout.addWidget(password_w)
-
-        password_label = QLabel('Nhập Mật Khẩu Bảng Thông')
-        password_label.setStyleSheet(css_lable)
-        password_l.addWidget(password_label)
-
-        password_input = QLineEdit()
-        password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        password_input.setStyleSheet(css_input)
-        password_input.setCursor(QCursor(Qt.PointingHandCursor))
-        password_l.addWidget(password_input)
-
-
-        #/ Create Button
-        button_w = QWidget()
-        button_l = QHBoxLayout(button_w)
-        button_l.setSpacing(100)
-        layout.addWidget(button_w)
-
-        Submit = QPushButton('Đăng Nhập')
-        Submit.setStyleSheet(css_button_submit)
-        Submit.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(Submit)
-
-        Exit = QPushButton('Thoát')
-        Exit.setStyleSheet(css_button_cancel)
-        Exit.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(Exit)
-
-        #TODO Handler Button Events
-        def exit_click():
-            dialog.reject()
-        
-        def submit_click():
-            password = password_input.text()
-            thong_index = select_input.currentIndex()
-            if thong_index > 0:
-                thong_data = self.thong_db[thong_index - 1]
-                password_thong  = thong_data.get('password')
-                if password_thong == password:
-                    self.login_thong({"id": thong_data.get('id')}, dialog)
-                    return
-                else:
-                    SendMessage('Mật khẩu không đúng, xin vui lòng thử lại!')
-                    return
-            else:
-                SendMessage('Xin vui lòng chọn thông để mở bảng thông!')
-                return
-            
-        Exit.clicked.connect(exit_click)
-        Submit.clicked.connect(submit_click)
-
-    def login_thong(self, data, dialog):
-        #/ Delete Dialog
-        dialog.reject()
-        
-        #/ Delete old widgets thongs data and buttons
-        self.deleteOldWidgetThongs()
-
-        id = data.get('id')
-        self.thong_info = [thong for thong in self.thong_db if thong['id'] == id][0]
-        self.changeDataThongWithNumber(0)
-        self.renderThongButton()
-        self.renderThongTable()
-
-    def setting_thong(self):
-        type_count = self.thong_info['meta']['type_count']
-        types = self.thong_info['meta']['type']
-        #/ Config Icon Windows
-        icon = self.path.path_logo()
-
-        # / Create Dialog Windows
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Cài đặt bảng thông')
-        dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1000,400)
-        dialog.show()
-
-        #/ Create Layout
-        layout = QGridLayout()
-        layout.setSpacing(1)
-        dialog.setLayout(layout)
-
-        #/ Setting Type Count (Loai Nhap)
-        setting_type_count_w = QWidget()
-        setting_type_count_l = QGridLayout(setting_type_count_w)
-
-        setting_type_count_label = QLabel('Loại Công Thức')
-        setting_type_count_label.setStyleSheet(css_lable)
-        
-        setting_type_count_edit_fisrt = QSpinBox()
-        setting_type_count_edit_fisrt.setMinimum(1)
-        setting_type_count_edit_fisrt.setMaximum(2)
-        setting_type_count_edit_fisrt.setStyleSheet(css_input)
-        setting_type_count_edit_fisrt.setValue(type_count)
-
-        setting_type_count_l.addWidget(setting_type_count_edit_fisrt, 0,0)
-
-        layout.addWidget(setting_type_count_label, 0,0)
-        layout.addWidget(setting_type_count_w, 1, 0)
-
-        #/ Setting Tuy chon nhập tay or nhập công thức
-        setting_type_w = QWidget()
-        setting_type_l = QGridLayout(setting_type_w)
-
-        setting_type_label = QLabel('Tùy Chọn (1 = Tay || 2 = Công Thức)')
-        setting_type_label.setStyleSheet(css_lable)
-        
-        types_convert = 2 if types else 1
-        setting_type_edit_fisrt = QSpinBox()
-        setting_type_edit_fisrt.setMinimum(1)
-        setting_type_edit_fisrt.setMaximum(2)
-        setting_type_edit_fisrt.setStyleSheet(css_input)
-        setting_type_edit_fisrt.setValue(types_convert)
-
-        setting_type_l.addWidget(setting_type_edit_fisrt, 0,0)
-
-        layout.addWidget(setting_type_label, 0,1)
-        layout.addWidget(setting_type_w, 1, 1)
-
-        #/ Buttons for
-        Submit = QPushButton('Lưu')
-        Submit.setStyleSheet(css_button_submit)
-        Submit.setCursor(QCursor(Qt.PointingHandCursor))
-
-        cancel = QPushButton('Thoát')
-        cancel.setStyleSheet(css_button_cancel)
-        cancel.setCursor(QCursor(Qt.PointingHandCursor))
-
-        layout.addWidget(Submit, 2,0)
-        layout.addWidget(cancel, 2, 1)
-
-        def cancel_click():
-            dialog.reject()
-        
-        def submit_click():
-            types_converted = True if setting_type_edit_fisrt.value() == 2 else False
-            self.thong_info['meta']['type'] = types_converted
-
-            self.thong_info['meta']['type_count'] = setting_type_count_edit_fisrt.value()
-
-            if types_converted:
-                self.HandlerData.setText('Nhập Công Thức')
-                self.HandlerData.setStyleSheet(css_button_submit)
-                # self.MathCount.setDisabled(False)
-                # self.MathCount.setStyleSheet(css_button_submit)
-            else:
-                self.HandlerData.setText('Nhập Tay')
-                self.HandlerData.setStyleSheet(css_button_cancel)
-                # self.MathCount.setDisabled(True)
-                # self.MathCount.setStyleSheet(css_button_cancel)
-            
-            dialog.reject()
-
-        Submit.clicked.connect(submit_click)
-        cancel.clicked.connect(cancel_click)
+        CopyRow.clicked.connect(copyRow_Click)
+        DeleteColor.clicked.connect(delete_color_click)
+        SaveFile.clicked.connect(saveFile_click)
+        SettingType.clicked.connect(self.setting_type_click)
+        ButtonType.clicked.connect(type_with_button)
 
     # TODO Handler Widgets
+    def freeze_col_stt(self, value):
+        if value >= self.start_col:
+            self.table_main.horizontalHeader().moveSection(self.value_col, value)
+            self.value_col = value
+        elif value < self.start_col:
+            value = self.start_col
+            self.table_main.horizontalHeader().moveSection(self.value_col, value)
+            self.value_col = value
+
     def deleteOldWidgetThongs(self):
         #/ Delete old table main and buttons
         if self.table_main:
@@ -611,26 +401,27 @@ class ThongPage(QWidget):
             self.button_wid_main = None
 
     def updateRowAndColumns(self):
-        stt = self.thong_info['stt'][self.ChangeNumber.currentIndex()]
-        data_value = self.thong_info['data']
+        stt = self.thong_db['stt'][self.ChangeNumber.currentIndex()]
+        data_value = self.thong_db['data']
         thong_data = self.thong_data
         #/ Table Config
+        self.table_main.clearContents()
         self.table_main.setRowCount(0)
         rowCount = len(self.thong_data[0])
+        #/ Add Header Table
         self.table_main.setRowCount(rowCount)
-        
-        #/ Render Rows table
-        for i in range(rowCount):
-            value = i if i > 9 else f'0{i}'
-            item = QTableWidgetItem(f'{value}')
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setVerticalHeaderItem(i, item)
+
         #* Render Rows STT First
         for i in range(rowCount):
+            zero_value = f'{i}' if i > 9 else f'0{i}'
+            item_zero = QTableWidgetItem(f'{zero_value}')
+            item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_main.setItem(i,0, item_zero)
+
             stt_value = stt[i]
             item = QTableWidgetItem(f'{stt_value}')
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i,0, item)
+            self.table_main.setItem(i,1, item)
         
         #* Render Rows Custom First
         for i in range(len(data_value)):
@@ -638,7 +429,7 @@ class ThongPage(QWidget):
             for j in range(len(value_col)):
                 item = QTableWidgetItem(f'{value_col[j]}')
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setItem(j,i + 1, item)
+                self.table_main.setItem(j,i + 2, item)
         
         #* Render Rows
         for i in range(len(thong_data)):
@@ -646,41 +437,58 @@ class ThongPage(QWidget):
             for j in range(len(thong_row)):
                 item = QTableWidgetItem(f'{thong_row[j]}')
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                filter_changed = [item for item in self.thong_db['change']
+                                  if item['row'] == j
+                                  and item['column'] == i
+                                  and item['number'] == self.ChangeNumber.currentIndex()
+                                  ]
+                if len(filter_changed) > 0:
+                    item_new = filter_changed[0]['new']
+                    item_old = filter_changed[0]['old']
+                    if item_new != item_old:
+                        item.setBackground(self.cyan)
                 self.table_main.setItem(j, i + 5, item)
         
-        SendMessage(f'Đã mở Bộ chuyển đổi {self.ChangeNumber.currentIndex()}')
-
     def deleteAllRows(self):
         rowCount = len(self.thong_data[0])
-        stt = self.thong_info['stt'][self.ChangeNumber.currentIndex()]
+        stt = self.thong_db['stt'][self.ChangeNumber.currentIndex()]
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
-        
-        self.table_main.clearContents()
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
+        self.table_main.setRowCount(0)
+        self.table_main.setRowCount(rowCount)
+
+        for i in range(len(self.thong_data)):
+            for j in range(len(self.thong_data[i])):
+                self.thong_data[i][j] = ''
         
         #* Render Rows STT First
         for i in range(rowCount):
+            zero_value = f'{i}' if i > 9 else f'0{i}'
+            item_zero = QTableWidgetItem(f'{zero_value}')
+            item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_main.setItem(i,0, item_zero)
+
             item = QTableWidgetItem(f'{stt[i]}')
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i,0, item)
+            self.table_main.setItem(i,1, item)
 
     def backUpRows(self):
         #/ Load BackUp File with ID
-        id = self.thong_info['id']
+        id = self.thong_db['id']
         data = backupThong({
             "number": self.ChangeNumber.currentIndex(),
             "id": id
         })
-        self.thong_info = data['thong_info']
+        self.thong_db = data['thong_info']
         self.thong_data = data['thong_data']
         
         #/ Check isEditor
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
 
         #/ Render Rows table
         self.updateRowAndColumns()
@@ -688,10 +496,12 @@ class ThongPage(QWidget):
     def saveThongRow(self):
         data = {}
         data['update'] = self.thong_data
-        data['custom'] = self.thong_info['data']
-        data['id'] = self.thong_info['id']
+        data['custom'] = self.thong_db['data']
+        data['id'] = self.thong_db['id']
         data['number'] = self.ChangeNumber.currentIndex()
-        data['stt'] = self.thong_info['stt']
+        data['stt'] = self.thong_db['stt']
+        data['change'] = self.thong_db['change']
+        data['setting'] = self.thong_db['setting']
         msg = saveThong(data)
         SendMessage(msg)
 
@@ -700,45 +510,149 @@ class ThongPage(QWidget):
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText('Bật Nhập Tay')
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
         #/ Thong Data and Thong info
-        stt = self.thong_info['stt'][self.ChangeNumber.currentIndex()]
+        stt = self.thong_db['stt'][self.ChangeNumber.currentIndex()]
         data = self.thong_data
         #/ Find Select Row
         data_select = list(self.selected_row_indices)
-        if len(data_select) != 2:
-            SendMessage('Xin vui lòng chọn 2 dòng để hoán đổi dữ liệu!')
+        if len(data_select) == -1:
+            SendMessage('Xin vui lòng chọn 1 dòng để hoán đổi dữ liệu!')
             return
         # Swap items in the 'data' list based on the row indices
         # Ensure indices are within bounds
-        if all(0 <= idx <= len(data) for idx in data_select):
-            # Create a copy of the data list
-            swapped_data_stt = stt.copy()
-            swapped_data = data.copy()
+        part1_stt = stt[:100]
+        part2_stt = stt[100:]
+        shifted_stt_part1 = [None] * len(part1_stt)
+        for i in range(len(part1_stt)):
+            shifted_stt_part1[(i + 1) % len(part1_stt)] = part1_stt[i]
+        
+        shifted_stt = shifted_stt_part1 + part2_stt 
+        
+        shifted_data = [None] * len(data)
+
+        for i in range(len(data)):
+            part1_data = data[i][:100]
+            part2_data = data[i][100:]
+            shifted_data_part1 = [None] * len(part1_data)
+
+            for j in range(len(part1_data)):
+                shifted_data_part1[(j + 1) % len(part1_data)] = part1_data[j]
             
-            # Swap items in the 'swapped_data_stt' list based on the row indices
-            for i in range(len(data_select) // 2):
-                # Calculate the indices in the 'swapped_data_stt' list
-                idx1 = data_select[i]
-                idx2 = data_select[-(i + 1)]
-                # Swap items using tuple unpacking
-                swapped_data_stt[idx1], swapped_data_stt[idx2] = swapped_data_stt[idx2], swapped_data_stt[idx1]
-                for j in range(len(swapped_data)):
-                    for k in range(len(swapped_data[j])):
-                        swapped_data[j][idx1], swapped_data[j][idx2] = swapped_data[j][idx2], swapped_data[j][idx1]
+            shifted_data[i] = shifted_data_part1 + part2_data
+        
 
-            stt = swapped_data_stt
-            data = swapped_data
-
-        self.thong_info['stt'][self.ChangeNumber.currentIndex()] = stt
-        self.thong_data = data
+        self.thong_db['stt'][self.ChangeNumber.currentIndex()] = shifted_stt
+        self.thong_data = shifted_data
         SendMessage('Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại')
+        # self.updateHeaderRow()
         self.updateRowAndColumns()
+        self.selected_row_indices = None
+        return
+    
+    def DeleteThongRow(self):
+        #/ Check isEditor
+        isEditor = self.table_main.editTriggers()
+        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
+            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            self.HandlerData.setText('Tắt Tùy Chỉnh')
+
+        #/ Find Select Row
+        data_select = list(self.selected_row_indices)
+        if len(data_select) != 1:
+            SendMessage('Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!')
+            return
+        for row in data_select:
+            for i in range(5, self.table_main.columnCount()):
+                self.thong_data[i - 5][row] = ''
+        SendMessage('Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại')
+        # self.updateHeaderRow()
+        self.updateRowAndColumns()
+        self.selected_row_indices = None
         return
 
     def changeDataThongWithNumber(self, number):
         self.thong_data = None
-        id = self.thong_info['id']
+        id = self.thong_db['id']
         with open(os.path.join(self.thong_path, f'thong_{id}_{number}.json'), 'r') as file:
                 data = json.load(file)
                 self.thong_data = data
+        
+        SendMessage(f'Đã mở Bộ chuyển đổi {number}')
+
+    def copyRowThong(self, selceted_rows):
+        row1 = selceted_rows[0]
+        row2 = selceted_rows[1]    
+        row1_h = f'{row1 + 1:02}'  # Ensure proper formatting for display
+        row2_h = f'{row2 + 1:02}'
+        #/ Check row2 selected, if it not null is return
+        for i in range(len(self.thong_data)):
+            item = self.thong_data[i][row2]
+            if len(str(item)) != 0:
+                SendMessage(f'Dòng nhận chưa được xóa dữ liệu! (Dòng {row2_h})')
+                return
+        for i in range(len(self.thong_data)):
+            sender = self.thong_data[i][row1]
+            self.thong_data[i][row2] = sender
+
+        self.updateRowAndColumns()
+        SendMessage(f'Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!')
+        self.current_select = []
+        self.prev_selected_row = None
+        return
+
+    def setting_type_click(self):
+        setting = self.thong_db['setting']
+        #/ Config Icon Windows
+        icon = self.path.path_logo()
+
+        # / Create Dialog Windows
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Cài Đặt Bảng Thông')
+        dialog.setWindowIcon(QIcon(icon))
+        dialog.show()
+
+        #/ Dialog Main Layout
+        dialog_layout = QVBoxLayout()
+        dialog.setLayout(dialog_layout)
+
+        #/ Dialog setting Layout
+        setting_dialog_w = QWidget()
+        setting_dialog_l = QGridLayout(setting_dialog_w)
+        dialog_layout.addWidget(setting_dialog_w)
+
+        type_label = QLabel('Loại Công Thức (0: Trắng; 1: 1 Số; 2: 2 Số)')
+        type_label.setStyleSheet(css_lable)
+        setting_dialog_l.addWidget(type_label, 0,0)
+
+        type_input = QSpinBox()
+        type_input.setFixedWidth(100)
+        type_input.setStyleSheet(css_input)
+        type_input.setMinimum(0)
+        type_input.setMaximum(2)
+        type_input.setValue(setting)
+        setting_dialog_l.addWidget(type_input, 1,0)
+
+        #/ Dialog Button layout
+        button_dialog_w = QWidget()
+        button_dialog_l = QHBoxLayout(button_dialog_w)
+        dialog_layout.addWidget(button_dialog_w)
+
+        submit = QPushButton('Lưu')
+        submit.setStyleSheet(css_button_submit)
+        button_dialog_l.addWidget(submit)
+
+        cancel = QPushButton('Thoát')
+        cancel.setStyleSheet(css_button_cancel)
+        button_dialog_l.addWidget(cancel)
+
+        #TODO Handler Button
+        def submit_click():
+            self.thong_db['setting'] = type_input.value()
+            dialog.reject()
+        def cancel_click():
+            dialog.reject()
+        
+        submit.clicked.connect(submit_click)
+        cancel.clicked.connect(cancel_click)
+

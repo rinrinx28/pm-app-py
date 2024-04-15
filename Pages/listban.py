@@ -267,8 +267,7 @@ class ListBanPage(QWidget):
                     len(password_value) == 0 or 
                     thong_index == -1 or 
                     thong_value == 0 or 
-                    ngang_value == 0 or
-                    change_value == 0):
+                    ngang_value == 0):
                 SendMessage('Xin vui lòng nhập đầy đủ dữ kiện!')
                 return
             data_create = {}
