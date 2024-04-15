@@ -55,7 +55,11 @@ class FullScreenApp(QMainWindow):
 
 if __name__ == "__main__":
     now_day = datetime.now()
+<<<<<<< HEAD
     expired = datetime(2024,4,14)
+=======
+    expired = datetime(2024,4,12)
+>>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
     if expired.date() != now_day.date():
         app = QApplication(sys.argv)
         mainWindow = FullScreenApp()

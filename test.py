@@ -103,6 +103,7 @@ def createThong(data, path):
     thong_file = []
     step = 0
     #/ Create Thong
+<<<<<<< HEAD
     if type_count == 1:
         
         for i in range(0,col,60):
@@ -271,6 +272,116 @@ def createThong(data, path):
             data_item.append('')
         data_custon.append(data_item)
 
+=======
+    for i in range(0,col,60):
+        if i == 0:
+            for k in range(60):
+                thong_data = []
+                for j in range(row):
+                    line = f'{j + 1:02}'
+                    if j > 99:
+                        thong_data.append('')
+                    else:
+                        if type_count == 1:
+                            if k == 0:
+                                thong_data.append(
+                                    (int(line[0])) % 10
+                                )
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(line[1])) % 10
+                                )
+                            else:
+                                thong_data.append(0)
+                        elif type_count == 2:
+                            if k == 0:
+                                thong_data.append(f'{line}')
+                            else:
+                                thong_data.append(0)
+                        else:
+                            thong_data.append('')
+                thong_file.append(thong_data)
+        else:
+            for k in range(60):
+                thong_data = []
+                for j in range(row):
+                    if j > 99:
+                        thong_data.append('')
+                    else:
+                        if type_count == 1:
+                            if k == 0:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60][j]) + 1) % 10
+                                )
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
+                                )
+                            else:
+                                thong_data.append(0)
+                        elif type_count == 2:
+                            if k == 0:
+                                first = thong_file[(step - 1 ) * 60][j]
+                                second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                                thong_data.append(f'{second}')
+                            else:
+                                thong_data.append(0)
+                        else:
+                            thong_data.append('')
+                thong_file.append(thong_data)
+        step+=1
+        
+    if type_count == 1:
+        for j in range(row):
+            if j > 99:
+                break
+            for i in range(0,col,60):
+                for k in range(60):
+                    if k > 1:
+                        first = thong_file[i + k - 2][j]
+                        second = thong_file[i + k - 1][j]
+                        sum = (first + second) % 10
+                        thong_file[i + k][j] = sum
+                        
+    if type_count == 2:
+        for j in range(row):
+            if j > 99:
+                break
+            for i in range(0,col,60):
+                for k in range(60):
+                    if k > 0:
+                        first = thong_file[i + k - 1][j]
+                        c = (int(first[0]) + int(first[1])) % 10
+                        d = (int(first[1]) + c) % 10
+                        thong_file[i + k][j] = f'{c}{d}'
+
+    #/ Make fisrt file Thong
+    with open(os.path.join(thong_path, f'thong_{id}_backup.json'),'w') as file:
+        json.dump(thong_file, file)
+
+    #/ Make Chuyen Doi
+    for i in range(6):
+        if i == 0:
+            with open(os.path.join(thong_path, f'thong_{id}_{i}.json'),'w') as file:
+                json.dump(thong_file, file)
+        else:
+            number_change = list(map(
+                    lambda item: list(map(
+                        lambda x: TachVaGhep(i, x), item
+                    )), thong_file 
+                ))
+            with open(os.path.join(thong_path, f'thong_{id}_{i}.json'),'w') as file:
+                json.dump(number_change, file)
+    
+    #/ Make Data Custom for thong data
+    data_custon = []
+    for i in range(col_custom):
+        data_item = []
+        for j in range(row):
+            data_item.append('')
+        data_custon.append(data_item)
+
+>>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
     #/ Make Data STT for thong data
     stt_data = []
     for i in range(6):
@@ -344,13 +455,21 @@ def create():
     default_dir = r'C:\data\1'
     arr_folder = ['image', 'number']
 
+<<<<<<< HEAD
     for i in range(11, 21):
+=======
+    for i in range(1, 31):
+>>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         for folder in arr_folder:
             prev_dir = os.path.join(current_dir, str(i), folder)
             next_dir = os.path.join(default_dir, folder)
             copy_files_into_folders(next_dir, prev_dir)
 
+<<<<<<< HEAD
     for i in range(11, 21):
+=======
+    for i in range(1, 31):
+>>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         thong_dir = os.path.join(current_dir, str(i), 'thong')
         db_dir = os.path.join(current_dir, str(i), 'db')
         if i < 11:
@@ -362,7 +481,11 @@ def create():
             createDB(dataThong, f'B{i}', db_dir)
         elif i > 10 and i < 21:
             dataThong = createThong({
+<<<<<<< HEAD
                 "value": 200,
+=======
+                "value": 300,
+>>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
                 "type_count": 2,
                 "name": f'Bảng 2 Số'
             }, thong_dir)
