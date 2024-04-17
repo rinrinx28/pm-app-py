@@ -124,6 +124,7 @@ def Font():
     font = QFont()
     font.setWeight(QFont.DemiBold)
     font.setPointSize(20)
+    font.setPointSize(20)
     return font
 
 # TODO Config Note
