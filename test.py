@@ -103,65 +103,66 @@ def createThong(data, path):
     thong_file = []
     step = 0
     #/ Create Thong
-    for i in range(0,col,60):
-        if i == 0:
-            for k in range(60):
-                thong_data = []
-                for j in range(row):
-                    line = f'{j + 1:02}'
-                    if j > 99:
-                        thong_data.append('')
-                    else:
-                        if type_count == 1:
-                            if k == 0:
-                                thong_data.append(
-                                    (int(line[0])) % 10
-                                )
-                            elif k == 1:
-                                thong_data.append(
-                                    (int(line[1])) % 10
-                                )
-                            else:
-                                thong_data.append(0)
-                        elif type_count == 2:
-                            if k == 0:
-                                thong_data.append(f'{line}')
-                            else:
-                                thong_data.append(0)
-                        else:
-                            thong_data.append('')
-                thong_file.append(thong_data)
-        else:
-            for k in range(60):
-                thong_data = []
-                for j in range(row):
-                    if j > 99:
-                        thong_data.append('')
-                    else:
-                        if type_count == 1:
-                            if k == 0:
-                                thong_data.append(
-                                    (int(thong_file[(step - 1) * 60][j]) + 1) % 10
-                                )
-                            elif k == 1:
-                                thong_data.append(
-                                    (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
-                                )
-                            else:
-                                thong_data.append(0)
-                        elif type_count == 2:
-                            if k == 0:
-                                first = thong_file[(step - 1 ) * 60][j]
-                                second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
-                                thong_data.append(f'{second}')
-                            else:
-                                thong_data.append(0)
-                        else:
-                            thong_data.append('')
-                thong_file.append(thong_data)
-        step+=1
-        
     if type_count == 1:
+        
+        for i in range(0,col,60):
+            if i == 0:
+                for k in range(60):
+                    thong_data = []
+                    for j in range(row):
+                        line = f'{j:02}'
+                        if j > 99:
+                            thong_data.append('')
+                        else:
+                            if type_count == 1:
+                                if k == 0:
+                                    thong_data.append(
+                                        (int(line[0])) % 10
+                                    )
+                                elif k == 1:
+                                    thong_data.append(
+                                        (int(line[1])) % 10
+                                    )
+                                else:
+                                    thong_data.append(0)
+                            # elif type_count == 2:
+                            #     if k == 0:
+                            #         thong_data.append(f'{line}')
+                            #     else:
+                            #         thong_data.append(0)
+                            # else:
+                            #     thong_data.append('')
+                    thong_file.append(thong_data)
+            else:
+                for k in range(60):
+                    thong_data = []
+                    for j in range(row):
+                        if j > 99:
+                            thong_data.append('')
+                        else:
+                            if type_count == 1:
+                                if k == 0:
+                                    thong_data.append(
+                                        (int(thong_file[(step - 1) * 60][j]) + 1) % 10
+                                    )
+                                elif k == 1:
+                                    thong_data.append(
+                                        (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
+                                    )
+                                else:
+                                    thong_data.append(0)
+                            # elif type_count == 2:
+                            #     if k == 0:
+                            #         first = thong_file[(step - 1 ) * 60][j]
+                            #         second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                            #         thong_data.append(f'{second}')
+                            #     else:
+                            #         thong_data.append(0)
+                            # else:
+                            #     thong_data.append('')
+                    thong_file.append(thong_data)
+            step+=1
+    
         for j in range(row):
             if j > 99:
                 break
@@ -174,17 +175,76 @@ def createThong(data, path):
                         thong_file[i + k][j] = sum
                         
     if type_count == 2:
+        for i in range(0, col, 100):
+            if i == 0:
+                for k in range(i, i + 100, 10):
+                    for l in range(10):
+                        thong_data = []
+                        for j in range(row):
+                            line = f'{j:02}'
+                            if j > 99:
+                                thong_data.append('')
+                            else:
+                                if l == 0:
+                                    thong_data.append(f'{line}')
+                                else:
+                                    thong_data.append(0)
+                        thong_file.append(thong_data)
+            else:
+                for k in range(i, i + 100, 10):
+                    for l in range(10):
+                        thong_data = []
+                        for j in range(row):
+                            thong_data.append(0)
+                        thong_file.append(thong_data)
+
         for j in range(row):
             if j > 99:
                 break
-            for i in range(0,col,60):
-                for k in range(60):
-                    if k > 0:
-                        first = thong_file[i + k - 1][j]
-                        c = (int(first[0]) + int(first[1])) % 10
-                        d = (int(first[1]) + c) % 10
-                        thong_file[i + k][j] = f'{c}{d}'
+            for i in range(0,col,100):
+                for k in range(i, i + 100, 10):
+                    for l in range(10):
+                        if i == 0:
+                            if k == 0:
+                                if l > 0:
+                                    first = thong_file[k + l - 1][j]
+                                    c = (int(first[0]) + int(first[1])) % 10
+                                    d = (int(first[1]) + c) % 10
+                                    thong_file[k + l][j] = f'{c}{d}'
+                            else:
+                                if l == 0:
+                                    first = thong_file[k + l - 10][j]
+                                    c = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                                    thong_file[k + l][j] = f'{c}'
+                                else:
+                                    first = thong_file[k + l - 1][j]
+                                    c = (int(first[0]) + int(first[1])) % 10
+                                    d = (int(first[1]) + c) % 10
+                                    thong_file[k + l][j] = f'{c}{d}'
 
+                        else:
+                            if k == 100:
+                                if l == 0:
+                                    first = thong_file[98][j]
+                                    second = thong_file[99][j]
+                                    thong_file[100][j] = f'{first[1]}{second[0]}'
+                                else:
+                                    first = thong_file[k + l - 1][j]
+                                    c = (int(first[0]) + int(first[1])) % 10
+                                    d = (int(first[1]) + c) % 10
+                                    thong_file[k + l][j] = f'{c}{d}'
+
+                            else:
+                                if l == 0:
+                                    first = thong_file[k + l - 10][j]
+                                    c = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                                    thong_file[k + l][j] = f'{c}'
+                                else:
+                                    first = thong_file[k + l - 1][j]
+                                    c = (int(first[0]) + int(first[1])) % 10
+                                    d = (int(first[1]) + c) % 10
+                                    thong_file[k + l][j] = f'{c}{d}'
+        
     #/ Make fisrt file Thong
     with open(os.path.join(thong_path, f'thong_{id}_backup.json'),'w') as file:
         json.dump(thong_file, file)
@@ -284,13 +344,13 @@ def create():
     default_dir = r'C:\data\1'
     arr_folder = ['image', 'number']
 
-    for i in range(1, 31):
+    for i in range(11, 21):
         for folder in arr_folder:
             prev_dir = os.path.join(current_dir, str(i), folder)
             next_dir = os.path.join(default_dir, folder)
             copy_files_into_folders(next_dir, prev_dir)
 
-    for i in range(1, 31):
+    for i in range(11, 21):
         thong_dir = os.path.join(current_dir, str(i), 'thong')
         db_dir = os.path.join(current_dir, str(i), 'db')
         if i < 11:
@@ -302,7 +362,7 @@ def create():
             createDB(dataThong, f'B{i}', db_dir)
         elif i > 10 and i < 21:
             dataThong = createThong({
-                "value": 300,
+                "value": 200,
                 "type_count": 2,
                 "name": f'Bảng 2 Số'
             }, thong_dir)
