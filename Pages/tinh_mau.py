@@ -5,11 +5,7 @@ from PySide6.QtWidgets import (
     QDateEdit, QCheckBox,QMessageBox,QMenu,
     )
 from PySide6.QtGui import Qt, QCursor, QIcon, QColor, QAction, QFont
-<<<<<<< HEAD
 from PySide6.QtCore import QDate
-=======
-from PySide6.QtCore import QDate,QTimer
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
 from Pages.components.stylesheet import (
     css_button_cancel, css_button_submit, css_input, Font, css_lable, SendMessage,
     css_button_view, css_button_normal, css_button_notice,css_title,css_customs_table,
@@ -477,7 +473,6 @@ class TinhAndMauPage(QWidget):
         self.TableChange.setStyleSheet(css_button_submit)
         self.TableChange.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableChange)
-<<<<<<< HEAD
 
         def insertData_Click():
             data = self.ban_info['data']
@@ -492,10 +487,6 @@ class TinhAndMauPage(QWidget):
                 self.insertData()
                 
         InsertData.clicked.connect(insertData_Click)
-=======
-                
-        InsertData.clicked.connect(self.insertData)
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         self.TableChange.clicked.connect(self.changeTable)
         SettingTable.clicked.connect(self.changeSettingColor)
         DeleteNewRow.clicked.connect(self.deleteNewRow)
@@ -510,11 +501,7 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog(self)
         dialog.setWindowTitle('Bảng Nhập Liệu')
         dialog.setWindowIcon(QIcon(icon))
-<<<<<<< HEAD
         dialog.setFixedSize(1110,710)
-=======
-        dialog.setFixedSize(1270,900)
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         dialog.show()
 
         #/ Create Layout
@@ -536,11 +523,7 @@ class TinhAndMauPage(QWidget):
 
         #/ Table Insert
         insert_thong_table = QTableWidget()
-<<<<<<< HEAD
         insert_thong_table.setFixedSize(610, 710)
-=======
-        insert_thong_table.setFixedSize(720, 800)
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         insert_thong_table.setStyleSheet(css_table_header)
         layout.addWidget(insert_thong_table, 0,0,Qt.AlignmentFlag.AlignLeft)
         #/ Config Table
@@ -821,11 +804,7 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog(self)
         dialog.setWindowTitle('Bảng Nhập Thông')
         dialog.setWindowIcon(QIcon(icon))
-<<<<<<< HEAD
         dialog.setFixedSize(1110,710)
-=======
-        dialog.setFixedSize(1270,900)
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         dialog.show()
 
         #/ Create Layout
@@ -847,11 +826,7 @@ class TinhAndMauPage(QWidget):
 
         #/ Table Insert
         insert_thong_table = QTableWidget()
-<<<<<<< HEAD
         insert_thong_table.setFixedSize(610, 710)
-=======
-        insert_thong_table.setFixedSize(720, 800)
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         insert_thong_table.setStyleSheet(css_table_header)
         layout.addWidget(insert_thong_table, 0,0,Qt.AlignmentFlag.AlignLeft)
         #/ Config Table
@@ -978,10 +953,7 @@ class TinhAndMauPage(QWidget):
 
         def cancel_clicked():
             dialog.reject()
-<<<<<<< HEAD
             self.insertData()
-=======
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
         
 
         cancel.clicked.connect(cancel_clicked)
@@ -2297,9 +2269,5 @@ class TinhAndMauPage(QWidget):
             self.table_scroll_count.scrollToItem(item, hint=QTableWidget.ScrollHint.PositionAtCenter)
             self.setHighlight(item, data['isColor'])
             self.TableChange.setText('Bảng Màu')
-<<<<<<< HEAD
-
-=======
->>>>>>> 3d4ce6ffe067217fa0f75ff5ab9a912a2bd791b8
             self.note_color_label.setText('')
 
