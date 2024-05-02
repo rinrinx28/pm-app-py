@@ -3,7 +3,7 @@ class Path():
     
     def __init__(self):
         super().__init__()
-        self.current_dir = fr'C:\data\22' #/ File Data for Windows
+        self.current_dir = fr'C:\data\1' #/ File Data for Windows
         # self.current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..','..','data') #/ File Data for Dev
     def path_logo(self):
         path = os.path.join(self.current_dir,'image','logo.ico')

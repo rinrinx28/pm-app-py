@@ -244,7 +244,14 @@ def createThong(data, path):
                                     c = (int(first[0]) + int(first[1])) % 10
                                     d = (int(first[1]) + c) % 10
                                     thong_file[k + l][j] = f'{c}{d}'
-        
+
+    if type_count == 0:
+        for i in range(col):
+            thong_data = []
+            for j in range(row):
+                thong_data.append('')
+            thong_file.append(thong_data)
+
     #/ Make fisrt file Thong
     with open(os.path.join(thong_path, f'thong_{id}_backup.json'),'w') as file:
         json.dump(thong_file, file)
@@ -344,13 +351,13 @@ def create():
     default_dir = r'C:\data\1'
     arr_folder = ['image', 'number']
 
-    for i in range(11, 21):
+    for i in range(21, 31):
         for folder in arr_folder:
             prev_dir = os.path.join(current_dir, str(i), folder)
             next_dir = os.path.join(default_dir, folder)
             copy_files_into_folders(next_dir, prev_dir)
 
-    for i in range(11, 21):
+    for i in range(21, 31):
         thong_dir = os.path.join(current_dir, str(i), 'thong')
         db_dir = os.path.join(current_dir, str(i), 'db')
         if i < 11:

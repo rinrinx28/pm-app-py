@@ -544,7 +544,7 @@ def backupThong(data):
 
     stt_data_number = thong_db['stt']
     for j in range(131):
-        value = f'{j +1:02}'
+        value = f'{j:02}'
         stt_data_number[number][j] = value
 
     thong_db['stt'] = stt_data_number
@@ -643,52 +643,34 @@ def saveAllThong(data):
 
 def typeWithRecipe(data):
     row = data['row']
-    number = data['number']
+    # number = data['number']
     setting = data['setting']
-    stt = data['stt']
+    # stt = data['stt']
     update = data['update']
     col = len(update[0])
-    line = stt[number][row]
-    #/ Create new Row
+    line = f'{row:02}'
+    #/ Create new Rowstep = 0
     step = 0
-    for i in range(0,col,60):
-        if i == 0:
-            for k in range(60):
-                if setting == 1:
+    if setting == 1:
+        for i in range(0,col,60):
+            if i == 0:
+                for k in range(60):
                     if k == 0:
                         update[k + i][row] = int(line[0]) % 10
                     elif k == 1:
                         update[k + i][row] = int(line[1]) % 10
                     else:
                         update[k + i][row] = 0
-                elif setting == 2:
-                    if k == 0:
-                        update[k + i][row] = line
-                    else:
-                        update[k + i][row] = 0
-                else:
-                    update[k + i][row] = ''
-        else:
-            for k in range(60):
-                if setting == 1:
+            else:
+                for k in range(60):
                     if k == 0:
                         update[k + i][row] = (int(update[(step - 1) * 60][row]) + 1) % 10
                     elif k == 1:
                         update[k + i][row] = (int(update[(step - 1) * 60 + 1][row]) + 1) % 10
                     else:
                         update[k + i][row] = 0
-                elif setting == 2:
-                    if k == 0:
-                        first = update[(step - 1 ) * 60][row]
-                        second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
-                        update[k + i][row] = second
-                    else:
-                        update[k + i][row] = 0
-                else:
-                    update[k + i][row] = ''
-        step+=1
-
-    if setting == 1:
+            step+=1
+    
         for i in range(0,col,60):
             for k in range(60):
                 if k > 1:
@@ -696,15 +678,119 @@ def typeWithRecipe(data):
                     second = update[i + k - 1][row]
                     sum = (first + second) % 10
                     update[i + k][row] = sum
-    
+                        
     if setting == 2:
-        for i in range(0,col,60):
-            for k in range(60):
-                if k > 0:
-                    first = update[i + k - 1][row]
-                    c = (int(first[0]) + int(first[1])) % 10
-                    d = (int(first[1]) + c) % 10
-                    update[i + k][row] = f'{c}{d}'
+        for i in range(0, col, 100):
+            if i == 0:
+                for k in range(i, i + 100, 10):
+                    for l in range(10):
+                        if k == 0:
+                            update[k + l][row] = f'{row:02}'
+                        else:
+                            update[k + l][row] = 0
+            else:
+                for k in range(i, i + 100, 10):
+                    for l in range(10):
+                        update[k + l][row] = 0
+                        
+        for i in range(0,col,100):
+            for k in range(i, i + 100, 10):
+                for l in range(10):
+                    if i == 0:
+                        if k == 0:
+                            if l > 0:
+                                first = update[k + l - 1][row]
+                                c = (int(first[0]) + int(first[1])) % 10
+                                d = (int(first[1]) + c) % 10
+                                update[k + l][row] = f'{c}{d}'
+                        else:
+                            if l == 0:
+                                first = update[k + l - 10][row]
+                                c = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                                update[k + l][row] = f'{c}'
+                            else:
+                                first = update[k + l - 1][row]
+                                c = (int(first[0]) + int(first[1])) % 10
+                                d = (int(first[1]) + c) % 10
+                                update[k + l][row] = f'{c}{d}'
+
+                    else:
+                        if k == 100:
+                            if l == 0:
+                                first = update[98][row]
+                                second = update[99][row]
+                                update[100][row] = f'{first[1]}{second[0]}'
+                            else:
+                                first = update[k + l - 1][row]
+                                c = (int(first[0]) + int(first[1])) % 10
+                                d = (int(first[1]) + c) % 10
+                                update[k + l][row] = f'{c}{d}'
+
+                        else:
+                            if l == 0:
+                                first = update[k + l - 10][row]
+                                c = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+                                update[k + l][row] = f'{c}'
+                            else:
+                                first = update[k + l - 1][row]
+                                c = (int(first[0]) + int(first[1])) % 10
+                                d = (int(first[1]) + c) % 10
+                                update[k + l][row] = f'{c}{d}'
+
+    # for i in range(0,col,60):
+    #     if i == 0:
+    #         for k in range(60):
+    #             if setting == 1:
+    #                 if k == 0:
+    #                     update[k + i][row] = int(line[0]) % 10
+    #                 elif k == 1:
+    #                     update[k + i][row] = int(line[1]) % 10
+    #                 else:
+    #                     update[k + i][row] = 0
+    #             elif setting == 2:
+    #                 if k == 0:
+    #                     update[k + i][row] = line
+    #                 else:
+    #                     update[k + i][row] = 0
+    #             else:
+    #                 update[k + i][row] = ''
+    #     else:
+    #         for k in range(60):
+    #             if setting == 1:
+    #                 if k == 0:
+    #                     update[k + i][row] = (int(update[(step - 1) * 60][row]) + 1) % 10
+    #                 elif k == 1:
+    #                     update[k + i][row] = (int(update[(step - 1) * 60 + 1][row]) + 1) % 10
+    #                 else:
+    #                     update[k + i][row] = 0
+    #             elif setting == 2:
+    #                 if k == 0:
+    #                     first = update[(step - 1 ) * 60][row]
+    #                     second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
+    #                     update[k + i][row] = second
+    #                 else:
+    #                     update[k + i][row] = 0
+    #             else:
+    #                 update[k + i][row] = ''
+    #     step+=1
+
+    # if setting == 1:
+    #     for i in range(0,col,60):
+    #         for k in range(60):
+    #             if k > 1:
+    #                 first = update[i + k - 2][row]
+    #                 second = update[i + k - 1][row]
+    #                 sum = (first + second) % 10
+    #                 update[i + k][row] = sum
+    
+    # if setting == 2:
+    #     for i in range(0,col,60):
+    #         for k in range(60):
+    #             if k > 0:
+    #                 first = update[i + k - 1][row]
+    #                 c = (int(first[0]) + int(first[1])) % 10
+    #                 d = (int(first[1]) + c) % 10
+    #                 update[i + k][row] = f'{c}{d}'
 
     return data
 

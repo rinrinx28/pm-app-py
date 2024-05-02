@@ -30,6 +30,7 @@ class ThongPage(QWidget):
         self.prev_selected_row = None
         self.cyan = QColor(178, 255, 255)
         self.normal = QColor("#FFFFFF")
+        self.stt_highlight = QColor("#EDEADE")
 
         #/ Config Font
         self.font = Font()
@@ -413,14 +414,16 @@ class ThongPage(QWidget):
 
         #* Render Rows STT First
         for i in range(rowCount):
-            zero_value = f'{i}' if i > 9 else f'0{i}'
+            zero_value = f'{i:02}.'
             item_zero = QTableWidgetItem(f'{zero_value}')
             item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            # item_zero.setBackground(self.stt_highlight)
             self.table_main.setItem(i,0, item_zero)
 
             stt_value = stt[i]
             item = QTableWidgetItem(f'{stt_value}')
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            item.setBackground(self.stt_highlight)
             self.table_main.setItem(i,1, item)
         
         #* Render Rows Custom First
@@ -430,6 +433,8 @@ class ThongPage(QWidget):
                 item = QTableWidgetItem(f'{value_col[j]}')
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_main.setItem(j,i + 2, item)
+                if i + 2 == 2 or i + 2 == 4:
+                    item.setBackground(self.stt_highlight)
         
         #* Render Rows
         for i in range(len(thong_data)):
@@ -515,10 +520,10 @@ class ThongPage(QWidget):
         stt = self.thong_db['stt'][self.ChangeNumber.currentIndex()]
         data = self.thong_data
         #/ Find Select Row
-        data_select = list(self.selected_row_indices)
-        if len(data_select) == -1:
-            SendMessage('Xin vui lòng chọn 1 dòng để hoán đổi dữ liệu!')
-            return
+        # data_select = list(self.selected_row_indices)
+        # if len(data_select) == -1:
+        #     SendMessage('Xin vui lòng chọn 1 dòng để hoán đổi dữ liệu!')
+        #     return
         # Swap items in the 'data' list based on the row indices
         # Ensure indices are within bounds
         part1_stt = stt[:100]
