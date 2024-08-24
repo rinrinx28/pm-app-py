@@ -1,19 +1,59 @@
 from Pages.components.path import Path
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout,QVBoxLayout,QStackedWidget,QPushButton, QDialog, QGridLayout,
-    QLabel, QLineEdit, QTableWidget, QTableWidgetItem,QHeaderView, QSpinBox, QSplitter,
-    QDateEdit, QCheckBox,QMessageBox,QMenu
-    )
+    QWidget,
+    QHBoxLayout,
+    QVBoxLayout,
+    QStackedWidget,
+    QPushButton,
+    QDialog,
+    QGridLayout,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QSpinBox,
+    QSplitter,
+    QDateEdit,
+    QCheckBox,
+    QMessageBox,
+    QMenu,
+    QScrollArea,
+    QFrame,
+)
 from PySide6.QtGui import Qt, QCursor, QIcon, QColor, QAction, QFont
 from PySide6.QtCore import QDate
 from Pages.components.stylesheet import (
-    css_button_cancel, css_button_submit, css_input, Font, css_lable, SendMessage,
-    css_button_view, css_button_normal, css_button_notice,css_title,css_customs_table,
-    css_button_checkbox,css_table_header, Note
-    )
+    css_button_cancel,
+    css_button_submit,
+    css_input,
+    Font,
+    css_lable,
+    SendMessage,
+    css_button_view,
+    css_button_normal,
+    css_button_notice,
+    css_title,
+    css_customs_table,
+    css_button_checkbox,
+    css_table_header,
+    Note,
+)
 import json
-from Controller.handler import updateBanInsert, updateThongInsert,updateColorInsert,deleteRowBan,deleteFromToBan
+from Controller.handler import (
+    updateBanInsert,
+    updateThongInsert,
+    updateColorInsert,
+    deleteRowBan,
+    deleteFromToBan,
+    TachVaGhep,
+)
 import bisect
+from functools import partial
+import os
+from Pages.common.loading import LoadingScreen
+from Pages.common.thread import Thread
+
+
 class TinhAndMauPage(QWidget):
 
     def __init__(self):
@@ -21,116 +61,138 @@ class TinhAndMauPage(QWidget):
         self.path = Path()
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0,0,0,0)
-        
+        self.layout.setContentsMargins(0, 0, 0, 0)
+
+        # / Load Title and Icon Page
+        self.setWindowTitle(
+            "Bảng Tính và Màu - Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam"
+        )
+        logo_path = self.path.path_logo()
+        icon = QIcon(logo_path)
+        self.setWindowIcon(icon)
+
         font_ac = QFont()
         font_ac.setPointSize(24)
         font_ac.setBold(True)
         self.font_action = font_ac
 
-        #/ Load Data Bans
+        # / Load Data Bans
         self.bans_path = self.path.path_db()
-        with open(self.bans_path, 'r') as file:
+        with open(self.bans_path, "r") as file:
             self.bans_db = json.load(file)
-        
+
         self.ban_info = self.bans_db
 
-        #/ Load data Thong and Number
+        # / Load data Thong and Number
         self.thong_info = None
         self.number_info = None
 
-        #/ Notice
-        self.jumpAction = []
+        # / Notice
+        self.jumpAction = {}
+        self.noticeView = []
+        self.analysis_data = ""
 
-        #/ Config Font
+        # / Config LoadingScreen
+        self.loadingScreen = LoadingScreen(self.path.path_loading())
+
+        # / Config Font
         self.font = Font()
 
-        #/ Config Color
-        self.red = QColor(239, 1, 7)
+        # / Config Color
+        self.red = QColor(255, 0, 0)
         self.yellow = QColor(255, 215, 0)
         self.cyan = QColor(178, 255, 255)
-        
-        #/ Navigation Main
-        self.navbar_wid_main =QWidget()
-        self.navbar_layout = QHBoxLayout(self.navbar_wid_main)
+        self.normal = QColor("#FFFFFF")
+        self.stt_highlight = QColor("#EDEADE")
+
+        # / Navigation Main
+        self.navbar_wid_main = QWidget()
+        self.navbar_layout = QVBoxLayout(self.navbar_wid_main)
         self.navbar_layout.setSpacing(6)
-        self.navbar_layout.setContentsMargins(0,0,0,0)
-        # self.navbar_wid_main.setFixedWidth(500)
+        self.navbar_layout.setContentsMargins(0, 0, 0, 0)
+        self.navbar_wid_main.setMaximumHeight(180)
         self.layout.addWidget(self.navbar_wid_main)
-        
 
         self.note_w = QWidget()
         self.note_w.setFont(self.font)
         self.note_l = QHBoxLayout(self.note_w)
-        self.note_l.setContentsMargins(0,0,0,0)
+        self.note_l.setContentsMargins(0, 0, 0, 0)
 
-
-
-        change_number = self.ban_info['meta']['number']
-        self.note = QLabel('')
+        change_number = self.ban_info["meta"]["number"]
+        self.note = QLabel("")
         self.note.setFont(self.font)
-        self.note.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.note_l.addWidget(self.note)
+        self.note.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.layout.addWidget(self.note)
 
         if change_number != 0:
             note = Note[change_number - 1]
             self.note.setText(note)
         else:
-            self.note.setText('')
+            self.note.setText("")
 
-        self.note_color = f'a = sbáo; b = th; c = cột; d = sđếm; ; s = số trong thông; m = sd bmàu'
-        self.note_color_label = QLabel()
-        self.note_color_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.note_color = f"a = sbáo; b = th; c = cột; d = sđếm; s = số trong thông; m1 = sd bmàu; m2 = sd bmàu; m3 = sd bmàu"
+        self.note_color_label = QLabel(self.note_color)
+        self.note_color_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.note_l.addWidget(self.note_color_label)
 
         self.layout.addWidget(self.note_w)
 
-        #/ Widget Main
+        # / Widget Main
         self.widget_main = QStackedWidget()
         self.layout.addWidget(self.widget_main)
 
-        #/ Table main
+        # / Table main
         self.table_main_count = None
         self.table_main_color = None
+        self.table_main_colorM2 = None
         self.ranges = []
+        self.ranges_current = None
 
-        #/ List Table
-        #* Count
+        # / List Table
+        # * Count
         self.frozen_table_count = None
         self.table_scroll_count = None
         # * Color
         self.table_scroll_color = None
         self.frozen_table_color = None
+        # * Color M2
+        self.table_scroll_colorM2 = None
+        self.frozen_table_colorM2 = None
 
-        #/ Button Main
-        self.button_wid_main =QWidget()
+        # / Button Main
+        self.button_wid_main = QWidget()
         self.button_layout = QHBoxLayout(self.button_wid_main)
         self.button_layout.setSpacing(50)
         self.layout.addWidget(self.button_wid_main)
 
-        #/ Show Select Bang and Login into Bang
-        self.showSelectBan()   
-   
+        # / Show Select Bang and Login into Bang
+        self.showSelectBan()
+
     # TODO handler Render Components
     def loadData(self):
-        #/ Load Info thong and Number
-        number_change = self.ban_info['meta']['number']
-        col_value = self.ban_info['col']
-        id_thong = self.ban_info['thong']['id']
-        # thong_range = self.ban_info['thong']['value']
-        # thong_range_1 = thong_range[0]
-        # thong_range_2 = thong_range[1]
-        # print(thong_range, thong_range_1,thong_range_2)
+        # / Load Info thong and Number
+        number_change = self.ban_info["meta"]["number"]
+        col_value = self.ban_info["col"]
+        id_thong = self.ban_info["thong"]["id"]
         path_thong = self.path.path_thong_with_id_value(id_thong, number_change)
         path_number = self.path.path_number_with_value(number_change)
 
-        with open(path_thong, 'r') as file:
+        with open(path_thong, "r") as file:
             thong_info = json.load(file)
             self.thong_info = thong_info
 
-        with open(path_number, 'r') as file:
+        with open(path_number, "r") as file:
             number_info = json.load(file)
-            self.number_info = [number_rang[:col_value] for number_rang in number_info]
+            self.number_info = [
+                number_rang[col_value[0] - 1 : col_value[1]]
+                for number_rang in number_info
+            ]
+
+        # / Load data thong
+        thong_path = self.path.path_thong()
+
+        with open(os.path.join(thong_path, "thongs.json"), "r") as file:
+            self.thong_db = json.load(file)
 
     def showSelectBan(self):
         self.loadData()
@@ -138,193 +200,355 @@ class TinhAndMauPage(QWidget):
         self.renderNavigation()
         self.renderTableCount()
         self.renderTableColor()
+        self.renderTableColorM2()
+        self.renderTableColorM3()
         self.renderButton()
-        self.showNoticeColorButton()
+        self.render_table_thong()
         self.widget_main.setCurrentWidget(self.table_main_count)
         return
 
     def renderNavigation(self):
-        #/ Create Button Notice Color
-        button_w = QWidget()
-        button_l = QHBoxLayout(button_w)
-        button_l.setSpacing(50)
-        button_l.setAlignment(Qt.AlignmentFlag.AlignRight)
-        button_w.setFixedWidth(350)
-        self.navbar_layout.addWidget(button_w)
+        # Clear previous widgets in the layout
+        self.clearLayout(self.navbar_layout)
 
-        #/ Note
-        # note_w = QWidget()
-        # note_l = QHBoxLayout(note_w)
-        # note_l.setSpacing(0)
-        # self.layout.addWidget(note_w)
-
-        self.buttonColor = QPushButton('M1')
-        self.buttonColor.setFixedWidth(60)
-        self.buttonColor.setStyleSheet(css_button_normal)
-        self.buttonColor.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(self.buttonColor)
-
-        self.buttonOne = QPushButton('1')
-        self.buttonOne.setFixedWidth(60)
-        self.buttonOne.setStyleSheet(css_button_normal)
-        self.buttonOne.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(self.buttonOne)
-
-        self.buttonTwo = QPushButton('2')
-        self.buttonTwo.setFixedWidth(60)
-        self.buttonTwo.setStyleSheet(css_button_normal)
-        self.buttonTwo.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(self.buttonTwo)
-
-        self.buttonThree = QPushButton('3')
-        self.buttonThree.setFixedWidth(60)
-        self.buttonThree.setStyleSheet(css_button_normal)
-        self.buttonThree.setCursor(QCursor(Qt.PointingHandCursor))
-        button_l.addWidget(self.buttonThree)
-
-        # self.buttonFor = QPushButton('4')
-        # self.buttonFor.setFixedWidth(50)
-        # self.buttonFor.setStyleSheet(css_button_normal)
-        # self.buttonFor.setCursor(QCursor(Qt.PointingHandCursor))
-        # self.navbar_layout.addWidget(self.buttonFor)
-
-        change_number = self.ban_info['meta']['number']
+        # / Config Ban info
         ban_info = self.ban_info
-        ban_col = ban_info['col']
-        ban_thong_value = ban_info['thong']['value']
-        ban_thong_name = ban_info['thong']['name']
-        change_number = ban_info['meta']['number']
-        title = QLabel(f'Bảng Tính: {ban_col}C - {ban_thong_value[0]}T đến {ban_thong_value[1]}T - {ban_thong_name} - Bộ Chuyển Đổi {change_number}:')
-        title.setStyleSheet(css_title)
-        title.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        title.setFixedWidth(900)
-        self.navbar_layout.addWidget(title)
+        lastDate = ban_info["data"][-1]["date"] if ban_info["data"] else None
+        filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
+        row_count = len(filter_data)
+        max_row = ban_info["meta"]["maxRow"]
+        notice = ban_info["meta"]["notice"]
+        btn_color = ban_info["meta"]["buttons"]
+        count = notice["count"]
+        colorM2 = notice["colorM2"]
+        colorM3 = notice["colorM3"]
+        color = notice["color"] if btn_color[0] else notice["color2"]
+        text_color = "BM" if btn_color[0] else "BM2"
+        change_number = ban_info["meta"]["number"]
+        ban_col = ban_info["col"]
+        ban_thong_value = ban_info["thong"]["value"]
+        ban_thong_name = ban_info["thong"]["name"]
+        col_e = ban_info["meta"]["setting"]["col_e"]
+        col_e2 = ban_info["meta"]["setting"]["col_e2"]
+        col_e3 = ban_info["meta"]["setting"]["col_e3"]
+
+        title_text = (
+            f"{ban_thong_name} / Bảng Tính / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
+            + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
+            + f"Số dòng: {row_count}/{max_row} / "
+            + f"MBT: {count[0]} đến {count[1]}"
+        )
+
+        title_text_2 = (
+            f"Thống Kê M1 d: {col_e[0]} đến {col_e[1]} / "
+            + f"M{text_color}1: {color[0]} đến {color[1]} / "
+            + f"Thống Kê M2 d: {col_e2[0]} đến {col_e2[1]} / "
+            + f"MBM2: {colorM2[0]} đến {colorM2[1]}"
+            + f"Thống Kê M3 d: {col_e3[0]} đến {col_e3[1]} / "
+            + f"MBM3: {colorM3[0]} đến {colorM3[1]}"
+        )
+
+        self.status_w = QWidget()
+        self.status_l = QVBoxLayout(self.status_w)
+
+        self.title = QLabel(title_text)
+        self.title.setStyleSheet(css_title)
+        self.status_l.addWidget(self.title)
+
+        self.title_2 = QLabel(title_text_2)
+        self.title_2.setStyleSheet(css_title)
+        self.status_l.addWidget(self.title_2)
+
+        self.navbar_layout.addWidget(self.status_w)
+
+        # # / Create a widget to contain the buttons
+        # buttons_container = QWidget()
+        # buttons_container.setMaximumHeight(90)
+        # buttons_layout = QHBoxLayout(buttons_container)
+        # buttons_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # # / Create a scroll area and set its widget to the buttons container
+        # self.scroll_area = QScrollArea()
+        # self.scroll_area.setFrameStyle(QFrame.NoFrame)
+        # self.scroll_area.setWidgetResizable(True)
+        # self.scroll_area.setWidget(buttons_container)
+
+        # self.navbar_layout.addWidget(self.scroll_area)
+
+        # / Create a widget to contain the buttons 2
+        buttons_container_2 = QWidget()
+        buttons_container_2.setMaximumHeight(90)
+        buttons_layout_2 = QHBoxLayout(buttons_container_2)
+        buttons_layout_2.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # / Create a scroll area and set its widget to the buttons container 2
+        self.scroll_area_2 = QScrollArea()
+        self.scroll_area_2.setFrameStyle(QFrame.NoFrame)
+        self.scroll_area_2.setWidgetResizable(True)
+        self.scroll_area_2.setWidget(buttons_container_2)
+
+        self.navbar_layout.addWidget(self.scroll_area_2)
+
+        # color_find_with_dCount = [
+        #     item
+        #     for item in self.dataColor2
+        #     if item["date"] == lastDate and item["notice"]
+        # ]
+        color_find_with_dCount_3 = [
+            item
+            for item in self.dataColor3
+            if item["date"] == lastDate and item["notice"]
+        ]
+
+        # color_sorted = sorted(color_find_with_dCount, key=lambda x: x["col_d"])
+        # self.color_list = color_sorted
+
+        color_sorted_3 = sorted(color_find_with_dCount_3, key=lambda x: x["col_d"])
+        self.color_list_3 = color_sorted_3
+
+        # for label in range(10):
+        #     button = QPushButton(str(label + 1))
+        #     button.setFixedWidth(60)
+        #     if label < len(self.color_list):
+        #         isColor = self.color_list[label]
+        #     else:
+        #         isColor = None  # Or any default value
+        #     if isColor:
+        #         # / Add button to list of buttons
+        #         btn_label = isColor["data"]
+        #         btn = QPushButton(btn_label)
+        #         btn.setStyleSheet(css_button_notice)
+        #         btn.setCursor(Qt.PointingHandCursor)
+        #         buttons_layout.addWidget(btn)
+        #         self.addNoticeView(btn, f"{btn_label}_m2", isColor)
+        #         btn.clicked.connect(partial(self.handleButtonClick, f"{btn_label}_m2"))
+        #         # / Set the maximum width for all buttons
+        #         btn.setFixedWidth(240)
+        #         button.setFixedWidth(240)
+        #         # TODO set color text if isEqual
+        #         if isColor["color"]:
+        #             btn.setStyleSheet(
+        #                 f"{css_button_notice}"
+        #                 + """
+        #                 QPushButton {
+        #                     color: red;
+        #                 }
+
+        #                 """
+        #             )
+
+        #     else:
+        #         button.setStyleSheet(css_button_normal)
+
+        #         # / Add button to list of buttons
+        #         btn_label = str(label + 1)
+        #         btn = QPushButton(btn_label)
+        #         btn.setFixedWidth(60)
+        #         btn.setStyleSheet(css_button_normal)
+        #         btn.setCursor(Qt.PointingHandCursor)
+        #         buttons_layout.addWidget(btn)
+
+        for label in range(10):
+            button = QPushButton(str(label + 1))
+            button.setFixedWidth(60)
+            if label < len(self.color_list_3):
+                isColor = self.color_list_3[label]
+            else:
+                isColor = None  # Or any default value
+            if isColor:
+                # / Add button to list of buttons
+                btn_label = isColor["data"]
+                btn = QPushButton(btn_label)
+                btn.setStyleSheet(css_button_notice)
+                btn.setCursor(Qt.PointingHandCursor)
+                buttons_layout_2.addWidget(btn)
+                self.addNoticeView(btn, f"{btn_label}_m3", isColor)
+                btn.clicked.connect(partial(self.handleButtonClick, f"{btn_label}_m3"))
+                # / Set the maximum width for all buttons
+                btn.setFixedWidth(240)
+                button.setFixedWidth(240)
+                # TODO set color text if isEqual
+                if isColor["color"]:
+                    btn.setStyleSheet(
+                        f"{css_button_notice}"
+                        + """
+                        QPushButton {
+                            color: red;
+                        }
+                    
+                        """
+                    )
+
+            else:
+                button.setStyleSheet(css_button_normal)
+
+                # / Add button to list of buttons
+                btn_label = str(label + 1)
+                btn = QPushButton(btn_label)
+                btn.setFixedWidth(60)
+                btn.setStyleSheet(css_button_normal)
+                btn.setCursor(Qt.PointingHandCursor)
+                buttons_layout_2.addWidget(btn)
+
+            # buttons_layout.addWidget(button)
+        # / reRender Data Analysis Color D
+        value_input = self.analysis_data
+        if len(value_input) > 0:
+            if "," in value_input:
+                value_input = value_input.split(",")
+            else:
+                value_input = [value_input]
+            self.handler_data_analysis(value_input)
 
     def renderTableCount(self):
-        thong_range_1 = self.ban_info['thong']['value'][0]
-        #/ Create Widget table
+        thong_range_1 = self.ban_info["thong"]["value"][0]
+
+        # Create Widget table
         self.table_main_count = QSplitter(Qt.Horizontal)
-        self.table_main_count.setContentsMargins(0,0,0,0)
+        self.table_main_count.setContentsMargins(0, 0, 0, 0)
         self.frozen_table_count = QTableWidget()
         self.table_scroll_count = QTableWidget()
         self.table_main_count.addWidget(self.frozen_table_count)
         self.table_main_count.addWidget(self.table_scroll_count)
         self.widget_main.addWidget(self.table_main_count)
 
-        #/ Config Header
+        # Config Header
         self.updateHeaderCount()
 
-        self.frozen_table_count.setColumnCount(1)
-        for i in range(1):
-            item = QTableWidgetItem(f'T.{thong_range_1}')
+        # Set column count and header items for frozen_table_count
+        self.frozen_table_count.setColumnCount(2)
+        headers = ["Ngày", f"T.{thong_range_1}"]
+        for i, header_text in enumerate(headers):
+            item = QTableWidgetItem(header_text)
+            item.setForeground(self.red) if i == 1 else None
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            item.setForeground(self.red)
             self.frozen_table_count.setHorizontalHeaderItem(i, item)
-        
-        #/ Config Font
-        self.frozen_table_count.setFont(self.font)
-        self.frozen_table_count.horizontalHeader().setFont(self.font)
-        self.frozen_table_count.verticalHeader().setFont(self.font)
 
-        self.table_scroll_count.setFont(self.font)
-        self.table_scroll_count.horizontalHeader().setFont(self.font)
-        self.table_scroll_count.verticalHeader().setFont(self.font)
-
-        self.frozen_table_count.setStyleSheet(
-            """
+        # Set font and style for tables
+        tables = [self.frozen_table_count, self.table_scroll_count]
+        for table in tables:
+            table.setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
                 QTableView {
                     gridline-color: black;
                 }
             """
+            )
+
+        # Set properties for frozen_table_count
+        self.frozen_table_count.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
         )
-
-        self.table_scroll_count.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-
-        # self.frozen_table_count.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.frozen_table_count.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
         self.frozen_table_count.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.frozen_table_count.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
+        self.frozen_table_count.setSelectionBehavior(
+            QTableWidget.SelectionBehavior.SelectItems
+        )
+        self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
+        self.frozen_table_count.verticalHeader().hide()
+        self.frozen_table_count.setMaximumWidth(110 * 2)
+        self.frozen_table_count.setMinimumWidth(110 * 2)
+        self.frozen_table_count.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+        self.frozen_table_count.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
 
-        # self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
-
-        self.table_scroll_count.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table_scroll_count.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
+        # Set properties for table_scroll_count
+        self.table_scroll_count.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.table_scroll_count.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
         self.table_scroll_count.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_scroll_count.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
-
-        # height_of_row = self.table_scroll_count.verticalHeader().sectionSize(0)
-
+        self.table_scroll_count.setSelectionBehavior(
+            QTableWidget.SelectionBehavior.SelectItems
+        )
         self.table_scroll_count.verticalHeader().hide()
-        
-        self.frozen_table_count.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.frozen_table_count.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        def update(value):
-            # Create a sorted list of range starts and their corresponding indices
-            filter_near = [item['start'] for item in self.ranges]
-            index_near = bisect.bisect_left(filter_near, value)
-            
-            if index_near > 0:
-                index = index_near - 1
-            else:
-                index = index_near
+        # Connect signal handlers
+        self.table_scroll_count.horizontalScrollBar().valueChanged.connect(
+            self.update_count
+        )
+        for scroll_bar in [
+            self.table_scroll_count.verticalScrollBar(),
+            self.frozen_table_count.verticalScrollBar(),
+        ]:
+            scroll_bar.valueChanged.connect(self.sync_vertical_scroll_count)
+        self.table_scroll_count.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_count.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
 
-            if self.ranges[index]['start'] <= value < self.ranges[index]['end']:
-                new_value = value
-            elif value < self.ranges[index]['start']:
-                new_value = self.ranges[index]['start']
-            else:
-                # This shouldn't happen, but handle it just in case
-                return
-            thong_header = self.ranges[index]['thong']
-            self.frozen_table_count.horizontalHeaderItem(0).setText(f'T.{thong_header + 1}')
-            for i, item in enumerate(self.ban_info['data']):
-                item_thong = item['thong']
-                if item_thong > -1:
-                    thong_value = self.thong_info[thong_header][item_thong]
-                    item_table = QTableWidgetItem(f'{thong_value}')
-                    item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    item_table.setForeground(self.red)
-                    self.frozen_table_count.setItem(i,0,item_table)
-            self.ranges[index]['value'] = new_value
-           
-        def sync_vertical_scroll(vale):
-            self.frozen_table_count.verticalScrollBar().setValue(vale)
-            self.table_scroll_count.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_count.horizontalScrollBar().valueChanged.connect(update)
-
-        self.table_scroll_count.verticalScrollBar().valueChanged.connect(sync_vertical_scroll)
-        self.frozen_table_count.verticalScrollBar().valueChanged.connect(sync_vertical_scroll)
-
-        self.table_scroll_count.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.table_scroll_count.customContextMenuRequested.connect(self.jumpTableWithRow)
-        
-        #/ render row
+        # Render row
         self.updateTableCount()
-        
+
+        # info_last_item = self.dataCount[len(self.dataCount) - 1]
+        # last_item_scroll = self.table_scroll_count.item(info_last_item["row"], 1)
+        # last_item_frozen = self.frozen_table_count.item(info_last_item["row"], 1)
+        # print(last_item_frozen, last_item_scroll, info_last_item)
+
+        # if last_item_scroll:
+        #     sleep(1)
+        #     self.table_scroll_count.scrollToItem(
+        #         last_item_scroll, hint=QTableWidget.ScrollHint.PositionAtCenter
+        #     )
+        #     self.frozen_table_count.scrollToItem(
+        #         last_item_frozen, hint=QTableWidget.ScrollHint.PositionAtCenter
+        #     )
+
+    # / Update function for horizontal scrollbar value change
+
+    def update_count(self, value):
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        index_near = bisect.bisect_left([item["start"] for item in self.ranges], value)
+        index = max(0, index_near - 1)
+        if self.ranges[index]["start"] <= value < self.ranges[index]["end"]:
+            new_value = value
+        elif value < self.ranges[index]["start"]:
+            new_value = self.ranges[index]["start"]
+        else:
+            return
+        if self.ranges_current == index:
+            return
+        thong_header = self.ranges[index]["thong"]
+        self.frozen_table_count.horizontalHeaderItem(1).setText(f"T.{thong_header + 1}")
+        for i, item in enumerate(filter_data):
+            item_thong = item["thong"]
+            if item_thong > -1:
+                thong_value = self.thong_info[thong_header][item_thong]
+                self.frozen_table_count.item(i, 1).setText(f"{thong_value}")
+        self.ranges[index]["value"] = new_value
+        self.ranges_current = index
+
+    # TODO Function to sync vertical scrollbar
+    def sync_vertical_scroll_count(self, value):
+        self.frozen_table_count.verticalScrollBar().setValue(value)
+        self.table_scroll_count.verticalScrollBar().setValue(value)
+
+    # TODO Handle Table M1
+
     def renderTableColor(self):
-        # setting_col_e = self.ban_info['meta']['setting']['col_e']
-        #/ Create Widget table
+        # / Create Widget table
         self.table_main_color = QSplitter(Qt.Horizontal)
         self.widget_main.addWidget(self.table_main_color)
 
-        #/ Table Create
+        # / Table Create
         # Create a vertical splitter
         self.splitter_left = QSplitter(Qt.Vertical)
         self.frozen_table_left = QTableWidget()
         self.table_scroll_left = QTableWidget()
         self.splitter_left.addWidget(self.frozen_table_left)
         self.splitter_left.addWidget(self.table_scroll_left)
-        
+
         self.table_main_color.addWidget(self.splitter_left)
 
         # Create a vertical splitter
@@ -335,8 +559,8 @@ class TinhAndMauPage(QWidget):
         self.splitter_right.addWidget(self.table_scroll_color)
 
         self.table_main_color.addWidget(self.splitter_right)
-        
-        #/ Config table
+
+        # / Config table
         self.frozen_table_color.setRowCount(1)
 
         self.frozen_table_left.setRowCount(1)
@@ -344,67 +568,16 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_left.setColumnCount(1)
         self.table_scroll_left.setColumnCount(1)
 
-        #/ Config Header col
+        # / Config Header col
         self.updateHeaderColor()
-        #/ config header Row
+        # / config header Row
         for i in range(self.frozen_table_left.rowCount()):
-            item = QTableWidgetItem(f'Ngày')
+            item = QTableWidgetItem(f"Ngày")
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_left.setItem(i,0, item)
+            self.frozen_table_left.setItem(i, 0, item)
 
-        #/ Config Font
-        self.frozen_table_color.setFont(self.font)
-        self.frozen_table_color.verticalHeader().setFont(self.font)
-        self.frozen_table_color.horizontalHeader().setFont(self.font)
-
-        self.table_scroll_color.setFont(self.font)
-        self.table_scroll_color.verticalHeader().setFont(self.font)
-        self.table_scroll_color.horizontalHeader().setFont(self.font)
-        
-        self.frozen_table_left.setFont(self.font)
-        self.frozen_table_left.verticalHeader().setFont(self.font)
-        self.frozen_table_left.horizontalHeader().setFont(self.font)
-
-        self.table_scroll_left.setFont(self.font)
-        self.table_scroll_left.verticalHeader().setFont(self.font)
-        self.table_scroll_left.horizontalHeader().setFont(self.font)
-
-        self.frozen_table_color.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-
-        self.table_scroll_color.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-
-
-        #/ Config header
-        self.frozen_table_color.horizontalHeader().hide()
-        self.frozen_table_color.verticalHeader().hide()
-        self.table_scroll_color.verticalHeader().hide()
-        
-        self.frozen_table_left.horizontalHeader().hide()
-        self.frozen_table_left.verticalHeader().hide()
-        # self.table_scroll_left.horizontalHeader().hide()
-        self.table_scroll_left.verticalHeader().hide()
-
-        self.frozen_table_color.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        # self.frozen_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table_scroll_color.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table_scroll_color.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
-        self.frozen_table_left.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        # self.frozen_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table_scroll_left.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table_scroll_left.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        # / Config Header
+        self.configheader_table_color()
 
         height_of_row = self.frozen_table_color.verticalHeader().sectionSize(0)
         width_of_row = self.frozen_table_color.horizontalHeader().sectionSize(0)
@@ -417,105 +590,616 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_left.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_left.horizontalHeader().setStretchLastSection(True)
 
-        self.frozen_table_color.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.frozen_table_left.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.table_scroll_color.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.table_scroll_left.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.table_scroll_left.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-
-        self.frozen_table_color.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.frozen_table_left.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_scroll_color.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_scroll_left.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.frozen_table_color.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.frozen_table_left.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        # self.table_scroll_color.setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        # )
+        self.table_scroll_left.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.table_scroll_left.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
 
         def sync_horizontal_scroll(vale):
             self.frozen_table_color.horizontalScrollBar().setValue(vale)
             self.table_scroll_color.horizontalScrollBar().setValue(vale)
 
-        
         def sync_vertical_scroll(vale):
             self.table_scroll_left.verticalScrollBar().setValue(vale)
             self.table_scroll_color.verticalScrollBar().setValue(vale)
 
-        self.table_scroll_color.horizontalScrollBar().valueChanged.connect(sync_horizontal_scroll)
-        self.frozen_table_color.horizontalScrollBar().valueChanged.connect(sync_horizontal_scroll)
-        self.table_scroll_color.verticalScrollBar().valueChanged.connect(sync_vertical_scroll)
-        self.table_scroll_left.verticalScrollBar().valueChanged.connect(sync_vertical_scroll)
-        
-        self.table_scroll_color.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.table_scroll_color.customContextMenuRequested.connect(self.jumpTableWithRow)
+        self.table_scroll_color.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scroll
+        )
+        self.frozen_table_color.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scroll
+        )
+        self.table_scroll_color.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scroll
+        )
+        self.table_scroll_left.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scroll
+        )
+
+        self.table_scroll_color.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_color.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
 
         self.updateTableColor()
 
+    def configheader_table_color(self):
+        for table in [
+            self.frozen_table_color,
+            self.frozen_table_left,
+            self.table_scroll_color,
+            self.table_scroll_left,
+        ]:
+
+            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            # / Font
+            table.setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+            )
+            # / Header
+            table.horizontalHeader().hide()
+            table.verticalHeader().hide()
+            if table not in [self.frozen_table_color, self.frozen_table_left]:
+                table.verticalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+                table.horizontalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+            else:
+                if table == self.frozen_table_color:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.ResizeToContents
+                    )
+                else:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.Stretch
+                    )
+
     def renderButton(self):
-        #/ Delete new row
-        DeleteNewRow = QPushButton('Xóa Dòng Mới')
+        # / Jump fisrt Column
+        # JumpFisrtColumn = QPushButton("Trở Về")
+        # JumpFisrtColumn.setStyleSheet(css_button_submit)
+        # JumpFisrtColumn.setCursor(QCursor(Qt.PointingHandCursor))
+        # self.button_layout.addWidget(JumpFisrtColumn)
+        # / Delete new row
+        DeleteNewRow = QPushButton("Xóa Dòng Mới")
         DeleteNewRow.setStyleSheet(css_button_cancel)
         DeleteNewRow.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(DeleteNewRow)
-        
-        #/ Delete from to
-        DeleteFromTo = QPushButton('Xóa Từ Ngày')
+
+        # / Delete from to
+        DeleteFromTo = QPushButton("Xóa Từ Ngày")
         DeleteFromTo.setStyleSheet(css_button_cancel)
         DeleteFromTo.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(DeleteFromTo)
 
-        #/ Insert Data row
-        InsertData = QPushButton('Nhập Liệu')
+        # / Insert Data row
+        InsertData = QPushButton("Nhập Liệu")
         InsertData.setStyleSheet(css_button_submit)
         InsertData.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(InsertData)
-        
-        #/ Setting Table
-        SettingTable = QPushButton('Cài Đặt Bảng')
+
+        # / Setting Table
+        SettingTable = QPushButton("Cài Đặt Bảng")
         SettingTable.setStyleSheet(css_button_cancel)
         SettingTable.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(SettingTable)
 
-        #/ Bảng Màu
-        self.TableChange = QPushButton('Bảng Màu')
+        # / Bảng Màu
+        self.TableChange = QPushButton("Bảng Tính")
         self.TableChange.setStyleSheet(css_button_submit)
         self.TableChange.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableChange)
 
+        # / Bảng Màu 1
+        self.TableM1 = QPushButton("Bảng Màu M1")
+        self.TableM1.setStyleSheet(css_button_submit)
+        self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(self.TableM1)
+
+        # / Bảng Màu 2
+        self.TableM2 = QPushButton("Bảng Màu M2")
+        self.TableM2.setStyleSheet(css_button_submit)
+        self.TableM2.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(self.TableM2)
+
+        # / Bảng Màu 3
+        self.TableM3 = QPushButton("Bảng Màu M3")
+        self.TableM3.setStyleSheet(css_button_submit)
+        self.TableM3.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(self.TableM3)
+
         def insertData_Click():
-            data = self.ban_info['data']
+            data = self.ban_info["data"]
             if len(data) == 0:
                 self.insertData()
                 return
-            
-            if data[-1]['thong'] == -1:
+
+            if data[-1]["thong"] == -1:
                 self.insertThong()
                 return
             else:
                 self.insertData()
-                
+
+        def changeTable():
+            old_title = self.title.text()
+            new_title = old_title
+            self.widget_main.setCurrentWidget(self.table_main_count)
+            for text in ["Bảng Tính", "Bảng Màu 1", "Bảng Màu 2", "Bảng Màu 3"]:
+                if text in old_title:
+                    new_title = new_title.replace(text, "Bảng Tính")
+                    self.title.setText(new_title)
+                    return
+
+        def changeTableM1():
+            old_title = self.title.text()
+            new_title = old_title
+            self.widget_main.setCurrentWidget(self.table_main_color)
+            for text in ["Bảng Tính", "Bảng Màu 1", "Bảng Màu 2", "Bảng Màu 3"]:
+                if text in old_title:
+                    new_title = new_title.replace(text, "Bảng Màu 1")
+                    self.title.setText(new_title)
+                    return
+
+        def changeTableM2():
+            old_title = self.title.text()
+            new_title = old_title
+            self.widget_main.setCurrentWidget(self.table_main_colorM2)
+            for text in ["Bảng Tính", "Bảng Màu 1", "Bảng Màu 2", "Bảng Màu 3"]:
+                if text in new_title:
+                    new_title = new_title.replace(text, "Bảng Màu 2")
+                    self.title.setText(new_title)
+
+        def changeTableM3():
+            old_title = self.title.text()
+            new_title = old_title
+            self.widget_main.setCurrentWidget(self.table_main_colorM3)
+            for text in ["Bảng Tính", "Bảng Màu 1", "Bảng Màu 2", "Bảng Màu 3"]:
+                if text in new_title:
+                    new_title = new_title.replace(text, "Bảng Màu 3")
+                    self.title.setText(new_title)
+
         InsertData.clicked.connect(insertData_Click)
-        self.TableChange.clicked.connect(self.changeTable)
+        self.TableChange.clicked.connect(changeTable)
+        self.TableM1.clicked.connect(changeTableM1)
+        self.TableM2.clicked.connect(changeTableM2)
+        self.TableM3.clicked.connect(changeTableM3)
         SettingTable.clicked.connect(self.changeSettingColor)
         DeleteNewRow.clicked.connect(self.deleteNewRow)
         DeleteFromTo.clicked.connect(self.deleteFromToRow)
+        # JumpFisrtColumn.clicked.connect(self.jump_fisrt_column)
+
+    # TODO Handle Table M2
+
+    def renderTableColorM2(self):
+        # / Create Widget table
+        self.table_main_colorM2 = QSplitter(Qt.Horizontal)
+        self.widget_main.addWidget(self.table_main_colorM2)
+
+        # / Table Create
+        # Create a vertical splitter
+        self.splitter_leftM2 = QSplitter(Qt.Vertical)
+        self.frozen_table_leftM2 = QTableWidget()
+        self.table_scroll_leftM2 = QTableWidget()
+        self.splitter_leftM2.addWidget(self.frozen_table_leftM2)
+        self.splitter_leftM2.addWidget(self.table_scroll_leftM2)
+
+        self.table_main_colorM2.addWidget(self.splitter_leftM2)
+
+        # Create a vertical splitter
+        self.splitter_rightM2 = QSplitter(Qt.Vertical)
+        self.frozen_table_colorM2 = QTableWidget()
+        self.table_scroll_colorM2 = QTableWidget()
+        self.splitter_rightM2.addWidget(self.frozen_table_colorM2)
+        self.splitter_rightM2.addWidget(self.table_scroll_colorM2)
+
+        self.table_main_colorM2.addWidget(self.splitter_rightM2)
+
+        # / Config table
+        self.frozen_table_colorM2.setRowCount(1)
+
+        self.frozen_table_leftM2.setRowCount(1)
+
+        self.frozen_table_leftM2.setColumnCount(1)
+        self.table_scroll_leftM2.setColumnCount(1)
+
+        # / Config Header col
+        self.updateHeaderColorM2()
+        # / config header Row
+        for i in range(self.frozen_table_leftM2.rowCount()):
+            item = QTableWidgetItem(f"Ngày")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_leftM2.setItem(i, 0, item)
+
+        # / Config Header
+        self.configheader_table_colorM2()
+
+        height_of_row = self.frozen_table_colorM2.verticalHeader().sectionSize(0)
+        width_of_row = self.frozen_table_colorM2.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM2.setMaximumHeight(height_of_row)
+        self.frozen_table_colorM2.setMinimumHeight(height_of_row)
+
+        self.frozen_table_leftM2.setMaximumSize(width_of_row + 30, height_of_row)
+        self.frozen_table_leftM2.setMinimumSize(width_of_row + 30, height_of_row)
+
+        self.frozen_table_leftM2.horizontalHeader().setStretchLastSection(True)
+        self.table_scroll_leftM2.horizontalHeader().setStretchLastSection(True)
+
+        self.frozen_table_colorM2.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.frozen_table_leftM2.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        # self.table_scroll_color.setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        # )
+        self.table_scroll_leftM2.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.table_scroll_leftM2.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+
+        def sync_horizontal_scrollM2(vale):
+            self.frozen_table_colorM2.horizontalScrollBar().setValue(vale)
+            self.table_scroll_colorM2.horizontalScrollBar().setValue(vale)
+
+        def sync_vertical_scrollM2(vale):
+            self.table_scroll_leftM2.verticalScrollBar().setValue(vale)
+            self.table_scroll_colorM2.verticalScrollBar().setValue(vale)
+
+        self.table_scroll_colorM2.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM2
+        )
+        self.frozen_table_colorM2.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM2
+        )
+        self.table_scroll_colorM2.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM2
+        )
+        self.table_scroll_leftM2.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM2
+        )
+
+        self.table_scroll_colorM2.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_colorM2.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
+
+        self.updateTableColorM2()
+
+    def configheader_table_colorM2(self):
+        for table in [
+            self.frozen_table_colorM2,
+            self.frozen_table_leftM2,
+            self.table_scroll_colorM2,
+            self.table_scroll_leftM2,
+        ]:
+
+            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            # / Font
+            table.setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+            )
+            # / Header
+            table.horizontalHeader().hide()
+            table.verticalHeader().hide()
+            if table not in [self.frozen_table_colorM2, self.frozen_table_leftM2]:
+                table.verticalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+                table.horizontalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+            else:
+                if table == self.frozen_table_colorM2:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.ResizeToContents
+                    )
+                else:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.Stretch
+                    )
+
+    # TODO Handle Table M3
+
+    def renderTableColorM3(self):
+        # / Create Widget table
+        self.table_main_colorM3 = QSplitter(Qt.Horizontal)
+        self.widget_main.addWidget(self.table_main_colorM3)
+
+        # / Table Create
+        # Create a vertical splitter
+        self.splitter_leftM3 = QSplitter(Qt.Vertical)
+        self.frozen_table_leftM3 = QTableWidget()
+        self.table_scroll_leftM3 = QTableWidget()
+        self.splitter_leftM3.addWidget(self.frozen_table_leftM3)
+        self.splitter_leftM3.addWidget(self.table_scroll_leftM3)
+
+        self.table_main_colorM3.addWidget(self.splitter_leftM3)
+
+        # Create a vertical splitter
+        self.splitter_rightM3 = QSplitter(Qt.Vertical)
+        self.frozen_table_colorM3 = QTableWidget()
+        self.table_scroll_colorM3 = QTableWidget()
+        self.splitter_rightM3.addWidget(self.frozen_table_colorM3)
+        self.splitter_rightM3.addWidget(self.table_scroll_colorM3)
+
+        self.table_main_colorM3.addWidget(self.splitter_rightM3)
+
+        # / Config table
+        self.frozen_table_colorM3.setRowCount(1)
+
+        self.frozen_table_leftM3.setRowCount(1)
+
+        self.frozen_table_leftM3.setColumnCount(1)
+        self.table_scroll_leftM3.setColumnCount(1)
+
+        # / Config Header col
+        self.updateHeaderColorM3()
+        # / config header Row
+        for i in range(self.frozen_table_leftM3.rowCount()):
+            item = QTableWidgetItem(f"Ngày")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_leftM3.setItem(i, 0, item)
+
+        # / Config Header
+        self.configheader_table_colorM3()
+
+        height_of_row = self.frozen_table_colorM3.verticalHeader().sectionSize(0)
+        width_of_row = self.frozen_table_colorM3.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM3.setMaximumHeight(height_of_row)
+        self.frozen_table_colorM3.setMinimumHeight(height_of_row)
+
+        self.frozen_table_leftM3.setMaximumSize(width_of_row + 30, height_of_row)
+        self.frozen_table_leftM3.setMinimumSize(width_of_row + 30, height_of_row)
+
+        self.frozen_table_leftM3.horizontalHeader().setStretchLastSection(True)
+        self.table_scroll_leftM3.horizontalHeader().setStretchLastSection(True)
+
+        self.frozen_table_colorM3.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.frozen_table_leftM3.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        # self.table_scroll_color.setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        # )
+        self.table_scroll_leftM3.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.table_scroll_leftM3.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+
+        def sync_horizontal_scrollM3(vale):
+            self.frozen_table_colorM3.horizontalScrollBar().setValue(vale)
+            self.table_scroll_colorM3.horizontalScrollBar().setValue(vale)
+
+        def sync_vertical_scrollM3(vale):
+            self.table_scroll_leftM3.verticalScrollBar().setValue(vale)
+            self.table_scroll_colorM3.verticalScrollBar().setValue(vale)
+
+        self.table_scroll_colorM3.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM3
+        )
+        self.frozen_table_colorM3.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM3
+        )
+        self.table_scroll_colorM3.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM3
+        )
+        self.table_scroll_leftM3.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM3
+        )
+
+        self.table_scroll_colorM3.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_colorM3.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
+
+        self.updateTableColorM3()
+
+    def configheader_table_colorM3(self):
+        for table in [
+            self.frozen_table_colorM3,
+            self.frozen_table_leftM3,
+            self.table_scroll_colorM3,
+            self.table_scroll_leftM3,
+        ]:
+
+            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            # / Font
+            table.setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+            )
+            # / Header
+            table.horizontalHeader().hide()
+            table.verticalHeader().hide()
+            if table not in [self.frozen_table_colorM3, self.frozen_table_leftM3]:
+                table.verticalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+                table.horizontalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+            else:
+                if table == self.frozen_table_colorM3:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.ResizeToContents
+                    )
+                else:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.Stretch
+                    )
 
     # TODO Handler Button
+
+    def clearLayout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+        self.noticeView = []
+        self.jumpAction = {}
+
+    def addNoticeView(self, button, label, itemColor):
+        self.noticeView.append(
+            {
+                "isView": False,
+                "label": label,
+                "localItem": {
+                    "row": itemColor["row"],
+                    "col": itemColor["col"],
+                },
+                "button": button,
+                "notice": itemColor["notice"],
+                "thong": itemColor["thong"],
+                "col_d": itemColor["col_d"],
+                "color_value": itemColor["color_value"],
+            }
+        )
+
+    def handleButtonClick(self, label):
+        matching_item = next(
+            (item for item in self.noticeView if label == item["label"])
+        )
+        current_widget = self.widget_main.currentWidget()
+        if matching_item:
+            self.table_scroll_count.clearSelection()
+            self.table_scroll_color.clearSelection()
+            self.table_scroll_colorM3.clearSelection()
+            self.table_scroll_colorM2.clearSelection()
+            # / Get Value from Item
+            localItem = matching_item["localItem"]
+            row = localItem["row"]
+            col = localItem["col"]
+            button = matching_item["button"]
+            notice = matching_item["notice"]
+            if "_m2" in matching_item["label"]:
+                if current_widget != self.table_main_colorM2:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM2)
+                    self.changeStatusBar("Bảng Màu M2", "Bảng Màu M2")
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM2.item(row, col)
+                self.table_scroll_colorM2.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+            if "_m3" in matching_item["label"]:
+                if current_widget != self.table_main_colorM3:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM3)
+                    self.changeStatusBar("Bảng Màu M3", "Bảng Màu M2")
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM3.item(row, col)
+                self.table_scroll_colorM3.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+            return
+
+    def signal_scrollbar(self, value):
+        self.scroll_area.horizontalScrollBar().setValue(value)
+        self.scroll_area_second.horizontalScrollBar().setValue(value)
+
+    def jump_fisrt_column(self):
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        row_aline = len(filter_data)
+        current_widget = self.TableChange.text()
+        if current_widget == "Bảng Màu":
+            item = self.table_scroll_count.item(row_aline - 1, 0)
+            self.table_scroll_count.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+        else:
+            item = self.table_scroll_color.item(row_aline - 1, 0)
+            self.table_scroll_color.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+
     def insertData(self):
-        #/ Config Icon Windows
+        # / Config Icon Windows
         icon = self.path.path_logo()
 
         # / Create Dialog Windows
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Bảng Nhập Liệu')
+        dialog = QDialog()
+        dialog.setWindowTitle("Bảng Nhập Liệu")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1110,710)
+        dialog.setFixedSize(1110, 710)
         dialog.show()
 
-        #/ Create Layout
+        # / Create Layout
         insert_w = QWidget()
         insert_l = QVBoxLayout(insert_w)
         insert_l.setSpacing(0)
-        insert_l.setContentsMargins(0,0,0,0)
+        insert_l.setContentsMargins(0, 0, 0, 0)
         dialog.setLayout(insert_l)
 
-        title_label = QLabel('Bảng Nhập Liệu')
+        title_label = QLabel("Bảng Nhập Liệu")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet(css_title)
         insert_l.addWidget(title_label)
@@ -525,60 +1209,68 @@ class TinhAndMauPage(QWidget):
         layout.setSpacing(0)
         insert_l.addWidget(layout_w)
 
-        #/ Table Insert
+        # / Table Insert
         insert_thong_table = QTableWidget()
         insert_thong_table.setFixedSize(610, 710)
         insert_thong_table.setStyleSheet(css_table_header)
-        layout.addWidget(insert_thong_table, 0,0,Qt.AlignmentFlag.AlignLeft)
-        #/ Config Table
+        layout.addWidget(insert_thong_table, 0, 0, Qt.AlignmentFlag.AlignLeft)
+        # / Config Table
         insert_thong_table.setColumnCount(8)
         insert_thong_table.setRowCount(15)
 
         insert_thong_table.horizontalHeader().hide()
         insert_thong_table.verticalHeader().hide()
 
-        insert_thong_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
+        insert_thong_table.setSelectionBehavior(
+            QTableWidget.SelectionBehavior.SelectItems
+        )
         insert_thong_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
 
-        insert_thong_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        insert_thong_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        insert_thong_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        insert_thong_table.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
 
         insert_thong_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        insert_thong_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        insert_thong_table.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
 
         insert_thong_table.setFont(self.font)
         insert_thong_table.horizontalHeader().setFont(self.font)
         insert_thong_table.verticalHeader().setFont(self.font)
 
-        #/ Render Row Table
+        # / Render Row Table
         for i in range(15):
             for j in range(8):
                 value = i + j * 15
-                value = value if value > 9 else f'0{value}'
-                item = QTableWidgetItem(f'{value}')
+                value = value if value > 9 else f"0{value}"
+                item = QTableWidgetItem(f"{value}")
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 insert_thong_table.setItem(i, j, item)
-        
-        #/ Insert From
+
+        # / Insert From
         insert_from_w = QWidget()
         # insert_from_w.setMinimumWidth(530)
         insert_from_l = QGridLayout(insert_from_w)
         insert_from_l.setSpacing(20)
         layout.addWidget(insert_from_w, 0, 1, Qt.AlignmentFlag.AlignTop)
-        
-        #/ Insert Day
-        insert_day_label = QLabel('Ngày Tháng')
+
+        # / Insert Day
+        insert_day_label = QLabel("Ngày Tháng")
         insert_day_label.setStyleSheet(css_lable)
 
         insert_day_edit = QDateEdit()
-        insert_day_edit.setStyleSheet(css_input)
+        insert_day_edit.setStyleSheet(f"{css_input}" + "background-color: #FAA0A0;")
         insert_day_edit.setCalendarPopup(True)
 
-        insert_from_l.addWidget(insert_day_label,1,0)
-        insert_from_l.addWidget(insert_day_edit,1,1)
+        insert_from_l.addWidget(insert_day_label, 1, 0)
+        insert_from_l.addWidget(insert_day_edit, 1, 1)
 
-        #/ Insert Ngang
-        insert_ngang_label = QLabel('Dòng Hàng Ngang')
+        # / Insert Ngang
+        insert_ngang_label = QLabel("Dòng Hàng Ngang")
         insert_ngang_label.setStyleSheet(css_lable)
 
         insert_ngang_grid_w = QWidget()
@@ -589,20 +1281,18 @@ class TinhAndMauPage(QWidget):
         insert_ngang_edit.setMaximum(31)
         insert_ngang_edit.setStyleSheet(css_input)
 
-        insert_ngang_edit_first = QLabel('')
+        insert_ngang_edit_first = QLabel("")
         insert_ngang_edit_first.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        insert_ngang_edit_first.setStyleSheet(
-           css_customs_table
-        )
+        insert_ngang_edit_first.setStyleSheet(css_customs_table)
 
-        insert_ngang_gird.addWidget(insert_ngang_edit, 0,0)
-        insert_ngang_gird.addWidget(insert_ngang_edit_first, 0,1)
+        insert_ngang_gird.addWidget(insert_ngang_edit, 0, 0)
+        insert_ngang_gird.addWidget(insert_ngang_edit_first, 0, 1)
 
-        insert_from_l.addWidget(insert_ngang_label, 2,0)
-        insert_from_l.addWidget(insert_ngang_grid_w, 2,1)
+        insert_from_l.addWidget(insert_ngang_label, 2, 0)
+        insert_from_l.addWidget(insert_ngang_grid_w, 2, 1)
 
-        #/ Insert Thong
-        insert_thong_label = QLabel('Dòng Thông số')
+        # / Insert Thong
+        insert_thong_label = QLabel("Dòng Thông số")
         insert_thong_label.setStyleSheet(css_lable)
 
         insert_thong_grid_w = QWidget()
@@ -613,37 +1303,34 @@ class TinhAndMauPage(QWidget):
         insert_thong_edit.setMaximum(120)
         insert_thong_edit.setStyleSheet(css_input)
 
-        insert_thong_edit_first = QLabel('')
+        insert_thong_edit_first = QLabel("")
         insert_thong_edit_first.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        insert_thong_edit_first.setStyleSheet(
-            css_customs_table
-        )
+        insert_thong_edit_first.setStyleSheet(css_customs_table)
 
-        insert_thong_gird.addWidget(insert_thong_edit, 0,0)
-        insert_thong_gird.addWidget(insert_thong_edit_first, 0,1)
+        insert_thong_gird.addWidget(insert_thong_edit, 0, 0)
+        insert_thong_gird.addWidget(insert_thong_edit_first, 0, 1)
 
+        insert_from_l.addWidget(insert_thong_label, 3, 0)
+        insert_from_l.addWidget(insert_thong_grid_w, 3, 1)
 
-        insert_from_l.addWidget(insert_thong_label, 3,0)
-        insert_from_l.addWidget(insert_thong_grid_w, 3,1)
-
-        #/ Features insert
-        virable_one_edit = QCheckBox('Kích Hoạt N:2')
+        # / Features insert
+        virable_one_edit = QCheckBox("Kích Hoạt N:2")
         virable_one_edit.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
         virable_one_edit.setStyleSheet(css_button_checkbox)
 
-        virable_two_edit = QCheckBox('CĐ 1 DNgang')
+        virable_two_edit = QCheckBox("CĐ 1 DNgang")
         virable_two_edit.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
         virable_two_edit.setStyleSheet(css_button_checkbox)
-        
-        insert_from_l.addWidget(virable_one_edit, 4,0, Qt.AlignmentFlag.AlignCenter)
-        insert_from_l.addWidget(virable_two_edit, 4,1, Qt.AlignmentFlag.AlignCenter)
 
-        #/ Button Insert
-        submit = QPushButton('Soát Rồi OK Toán')
+        insert_from_l.addWidget(virable_one_edit, 4, 0, Qt.AlignmentFlag.AlignCenter)
+        insert_from_l.addWidget(virable_two_edit, 4, 1, Qt.AlignmentFlag.AlignCenter)
+
+        # / Button Insert
+        submit = QPushButton("Soát Rồi OK Toán")
         submit.setCursor(QCursor(Qt.PointingHandCursor))
         submit.setStyleSheet(css_button_submit)
 
-        exit = QPushButton('Thoát')
+        exit = QPushButton("Thoát")
         exit.setCursor(QCursor(Qt.PointingHandCursor))
         exit.setStyleSheet(css_button_cancel)
         # exit.setFixedWidth(60)
@@ -652,40 +1339,38 @@ class TinhAndMauPage(QWidget):
         label_exit = QLabel()
         label_exit.setFixedHeight(220)
 
-        insert_from_l.addWidget(label_submit,6,1)
-        insert_from_l.addWidget(submit,7,1)
-        insert_from_l.addWidget(label_exit,8,1)
-        insert_from_l.addWidget(exit,9,0)
+        insert_from_l.addWidget(label_submit, 6, 1)
+        insert_from_l.addWidget(submit, 7, 1)
+        insert_from_l.addWidget(label_exit, 8, 1)
+        insert_from_l.addWidget(exit, 9, 0)
 
-        
-        #/ Config Data
-        old_data = self.ban_info['data'][-1] if len(self.ban_info['data']) > 0 else None
+        # / Config Data
+        old_data = self.ban_info["data"][-1] if len(self.ban_info["data"]) > 0 else None
         data = {}
-        data['insert'] = {}
-        data['update'] = self.ban_info['meta']['features']
+        data["insert"] = {}
+        data["update"] = self.ban_info["meta"]["features"]
 
-        
-        #/ Config Data
-        old_data = self.ban_info['data'][-1] if len(self.ban_info['data']) > 0 else None
-        data = {}
-        data['insert'] = {}
-        data['update'] = self.ban_info['meta']['features']
+        # / Config Data
+        # old_data = self.ban_info["data"][-1] if len(self.ban_info["data"]) > 0 else None
+        # data = {}
+        # data["insert"] = {}
+        # data["update"] = self.ban_info["meta"]["features"]
 
-        #TODO Handler Button exit
+        # TODO Handler Button exit
         def exit_click():
             dialog.reject()
 
         def changeDate(value):
             date = QDate(value)
-            data['insert']['date'] = date.toString('dd/MM/yyyy')
-            if not data['update']['N=1']['status']:
+            data["insert"]["date"] = date.toString("dd/MM/yyyy")
+            if not data["update"]["N=1"]["status"]:
                 day = date.day()
                 insert_ngang_edit.setValue(day)
 
         def changeNgang(value):
-            data['insert']['ngang'] = value - 1
+            data["insert"]["ngang"] = value - 1
             number_value = self.number_info[value - 1]
-            insert_ngang_edit_first.setText(f'{number_value[0]}')
+            insert_ngang_edit_first.setText(f"{number_value[0]}")
 
         def changeThongTable(value):
             item = value.text()
@@ -694,12 +1379,12 @@ class TinhAndMauPage(QWidget):
 
         def changeThongEdit(value):
             insert_thong_table.clearSelection()
-            data['insert']['thong'] = value
+            data["insert"]["thong"] = value
             if value == -1:
-                insert_thong_edit_first.setText(f'')
+                insert_thong_edit_first.setText(f"")
                 return
             thong_value = self.thong_info[0][value]
-            insert_thong_edit_first.setText(f'{thong_value}')
+            insert_thong_edit_first.setText(f"{thong_value}")
 
             col = value // 15  # Calculate column index
             row = value % 15  # Calculate row index
@@ -708,54 +1393,51 @@ class TinhAndMauPage(QWidget):
                 item.setSelected(True)
 
         def changeVirableOne(value):
-            data['update']['N:2'] = value
+            data["update"]["N:2"] = value
             insert_thong_edit.setDisabled(value)
             insert_thong_table.setDisabled(value)
             if value:
                 insert_thong_edit.setValue(-1)
-                insert_thong_edit_first.setText('')
-                title_label.setText('Bảng Nhập Liệu - Nhập Rời')
+                insert_thong_edit_first.setText("")
+                title_label.setText("Bảng Nhập Liệu - Nhập Rời")
             else:
-                title_label.setText('Bảng Nhập Liệu - Nhập Liền')
-                
+                title_label.setText("Bảng Nhập Liệu - Nhập Liền")
+
         def changeVirableTwo(value):
-            data['update']['N=1'] = {
+            data["update"]["N=1"] = {
                 "status": value,
-                "value": insert_ngang_edit.value() - 1 if value else 0
+                "value": insert_ngang_edit.value() - 1 if value else 0,
             }
             insert_ngang_edit.setDisabled(value)
 
-
-        
-        #/ Thong
+        # / Thong
         insert_thong_table.itemClicked.connect(changeThongTable)
         insert_thong_edit.valueChanged.connect(changeThongEdit)
 
-        #/ Date
+        # / Date
         insert_day_edit.dateChanged.connect(changeDate)
 
-        #/ Ngang
+        # / Ngang
         insert_ngang_edit.valueChanged.connect(changeNgang)
 
-        #/ Features
+        # / Features
         virable_one_edit.clicked.connect(changeVirableOne)
         virable_two_edit.clicked.connect(changeVirableTwo)
-        
-        
-        #TODO Set Default for insert
+
+        # TODO Set Default for insert
         if old_data:
-            date_old = old_data['date'].split('/')
+            date_old = old_data["date"].split("/")
             date_old = [int(item) for item in date_old]
-            date_def = QDate(date_old[2],date_old[1],date_old[0]).addDays(1)
+            date_def = QDate(date_old[2], date_old[1], date_old[0]).addDays(1)
 
             insert_day_edit.setDate(date_def)
-            data['insert']['date'] = date_def.toString('dd/MM/yyyy')
-            
+            data["insert"]["date"] = date_def.toString("dd/MM/yyyy")
+
             value = date_def.day()
-            data['insert']['ngang'] = value - 1
+            data["insert"]["ngang"] = value - 1
             insert_ngang_edit.setValue(value)
 
-            thong_value = old_data['thong']
+            thong_value = old_data["thong"]
             if thong_value != -1:
                 changeThongEdit(thong_value)
                 insert_thong_edit.setValue(thong_value)
@@ -763,77 +1445,77 @@ class TinhAndMauPage(QWidget):
         else:
             date_def = QDate().currentDate()
             insert_day_edit.setDate(date_def)
-            data['insert']['date'] = date_def.toString('dd/MM/yyyy')
+            data["insert"]["date"] = date_def.toString("dd/MM/yyyy")
 
             value = date_def.day()
             insert_ngang_edit.setValue(value)
             number_value = self.number_info[value - 1][:2]
-            insert_ngang_edit_first.setText(f'{number_value[0]}')
+            insert_ngang_edit_first.setText(f"{number_value[0]}")
+            data["insert"]["ngang"] = value - 1
 
-        if data['update']['N:2']:
+        if data["update"]["N:2"]:
             insert_thong_edit.setValue(-1)
             insert_thong_edit.setDisabled(True)
             insert_thong_table.setDisabled(True)
-            title_label.setText('Bảng Nhập Liệu - Nhập Rời')
+            title_label.setText("Bảng Nhập Liệu - Nhập Rời")
         else:
-            title_label.setText('Bảng Nhập Liệu - Nhập Liền')
+            title_label.setText("Bảng Nhập Liệu - Nhập Liền")
 
-
-        if data['update']['N=1']['status']:
-            value = data['update']['N=1']['value']
+        if data["update"]["N=1"]["status"]:
+            value = data["update"]["N=1"]["value"]
             insert_ngang_edit.setValue(value + 1)
             insert_ngang_edit.setDisabled(True)
             number_value = self.number_info[value][:2]
-            insert_ngang_edit_first.setText(f'{number_value[0]}')
-        
-        virable_one_edit.setChecked(data['update']['N:2'])
-        virable_two_edit.setChecked(data['update']['N=1']['status'])
-        data['insert']['thong'] = insert_thong_edit.value()
+            insert_ngang_edit_first.setText(f"{number_value[0]}")
+            data["insert"]["ngang"] = value
+
+        virable_one_edit.setChecked(data["update"]["N:2"])
+        virable_two_edit.setChecked(data["update"]["N=1"]["status"])
+        data["insert"]["thong"] = insert_thong_edit.value()
 
         exit.clicked.connect(exit_click)
         submit.clicked.connect(lambda: self.submit_insert(data, dialog))
 
-    def submit_insert(self,data,dialog):
-        data['id'] = self.ban_info['id']
-        data_old = self.ban_info['data']
+    def submit_insert(self, data, dialog):
+        data["id"] = self.ban_info["id"]
         msg = updateBanInsert(data)
-        if msg['status']:
+        if msg["status"]:
             dialog.reject()
-            if len(data_old) == 0:
-                self.renderTableCount()
-                self.renderTableColor()
-            self.ban_info = msg['data']
-            self.widget_main.setCurrentWidget(self.table_main_count)
-            self.TableChange.setText('Bảng Màu')
-            self.handlerData()
-            self.updateTableCount()
-            self.updateTableColor()
-            self.showNoticeColorButton()
-            if data['insert']['thong'] != -1:
-                self.questionInsertDate()
+            if self.widget_main.currentWidget() != self.table_main_count:
+                self.widget_main.setCurrentWidget(self.table_main_count)
+            self.ban_info = msg["data"]
+            self.show_loading_screen()
+            self.thread = Thread()
+            self.thread.task_completed.connect(
+                lambda: self.updateWidget([self.reload_widget])
+            )
+            self.thread.start()
+            if data["insert"]["thong"] != -1:
+                # self.questionInsertDate()
+                self.thread.task_completed.connect(lambda: self.questionInsertDate())
         return
 
     def insertThong(self):
-        #/ Config Data
-        old_data = self.ban_info['data'][-1] if len(self.ban_info['data']) > 0 else None
-        #/ Config Icon Windows
+        # / Config Data
+        old_data = self.ban_info["data"][-1] if len(self.ban_info["data"]) > 0 else None
+        # / Config Icon Windows
         icon = self.path.path_logo()
 
         # / Create Dialog Windows
-        dialog = QDialog(self)
-        dialog.setWindowTitle('Bảng Nhập Thông')
+        dialog = QDialog()
+        dialog.setWindowTitle("Bảng Nhập Thông")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1110,710)
+        dialog.setFixedSize(1110, 710)
         dialog.show()
 
-        #/ Create Layout
+        # / Create Layout
         insert_w = QWidget()
         insert_l = QVBoxLayout(insert_w)
         insert_l.setSpacing(0)
-        insert_l.setContentsMargins(0,0,0,0)
+        insert_l.setContentsMargins(0, 0, 0, 0)
         dialog.setLayout(insert_l)
 
-        title_label = QLabel('Bảng Nhập Thông - Nhập Rời')
+        title_label = QLabel("Bảng Nhập Thông - Nhập Rời")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet(css_lable)
         insert_l.addWidget(title_label)
@@ -843,41 +1525,49 @@ class TinhAndMauPage(QWidget):
         layout.setSpacing(0)
         insert_l.addWidget(layout_w)
 
-        #/ Table Insert
+        # / Table Insert
         insert_thong_table = QTableWidget()
         insert_thong_table.setFixedSize(610, 710)
         insert_thong_table.setStyleSheet(css_table_header)
-        layout.addWidget(insert_thong_table, 0,0,Qt.AlignmentFlag.AlignLeft)
-        #/ Config Table
+        layout.addWidget(insert_thong_table, 0, 0, Qt.AlignmentFlag.AlignLeft)
+        # / Config Table
         insert_thong_table.setColumnCount(8)
         insert_thong_table.setRowCount(15)
 
         insert_thong_table.horizontalHeader().hide()
         insert_thong_table.verticalHeader().hide()
 
-        insert_thong_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectItems)
+        insert_thong_table.setSelectionBehavior(
+            QTableWidget.SelectionBehavior.SelectItems
+        )
         insert_thong_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
 
-        insert_thong_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        insert_thong_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        insert_thong_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        insert_thong_table.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
 
         insert_thong_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        insert_thong_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        insert_thong_table.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
 
         insert_thong_table.setFont(self.font)
         insert_thong_table.horizontalHeader().setFont(self.font)
         insert_thong_table.verticalHeader().setFont(self.font)
 
-        #/ Render Row Table
+        # / Render Row Table
         for i in range(15):
             for j in range(8):
                 value = i + j * 15
-                value = value if value > 9 else f'0{value}'
-                item = QTableWidgetItem(f'{value}')
+                value = value if value > 9 else f"0{value}"
+                item = QTableWidgetItem(f"{value}")
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 insert_thong_table.setItem(i, j, item)
-        
-        #/ Insert From
+
+        # / Insert From
         insert_from_w_2 = QWidget()
         insert_from_l_2 = QVBoxLayout(insert_from_w_2)
         insert_from_l_2.setSpacing(100)
@@ -890,14 +1580,13 @@ class TinhAndMauPage(QWidget):
         insert_from_l.setSpacing(20)
         insert_from_l_2.addWidget(insert_from_w)
 
-        #/ Title Thong
-        insert_thong_title = QLabel('Mời Nhập Thông Số')
+        # / Title Thong
+        insert_thong_title = QLabel("Mời Nhập Thông Số")
         insert_thong_title.setStyleSheet(css_title)
-        insert_from_l.addWidget(insert_thong_title, 2,0)
+        insert_from_l.addWidget(insert_thong_title, 2, 0)
 
-
-        #/ Insert Thong
-        insert_thong_label = QLabel('Dòng Thông')
+        # / Insert Thong
+        insert_thong_label = QLabel("Dòng Thông")
         insert_thong_label.setStyleSheet(css_lable)
         # insert_thong_label.setAlignment(Qt.AlignmentFlag.AlignRight)
 
@@ -909,37 +1598,34 @@ class TinhAndMauPage(QWidget):
         insert_thong_edit.setMaximum(120)
         insert_thong_edit.setStyleSheet(css_input)
 
-        insert_thong_edit_first = QLabel('')
+        insert_thong_edit_first = QLabel("")
         # insert_thong_edit_first.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        insert_thong_edit_first.setStyleSheet(
-            css_customs_table
-        )
+        insert_thong_edit_first.setStyleSheet(css_customs_table)
 
-        insert_thong_gird.addWidget(insert_thong_edit, 0,0)
-        insert_thong_gird.addWidget(insert_thong_edit_first, 0,1)
+        insert_thong_gird.addWidget(insert_thong_edit, 0, 0)
+        insert_thong_gird.addWidget(insert_thong_edit_first, 0, 1)
 
+        insert_from_l.addWidget(insert_thong_label, 3, 0)
+        insert_from_l.addWidget(insert_thong_grid_w, 3, 1)
 
-        insert_from_l.addWidget(insert_thong_label, 3,0)
-        insert_from_l.addWidget(insert_thong_grid_w, 3,1)
-
-        #/ Button Insert
-        submit = QPushButton('OK Toán')
+        # / Button Insert
+        submit = QPushButton("OK Toán")
         submit.setCursor(QCursor(Qt.PointingHandCursor))
         submit.setStyleSheet(css_button_submit)
         submit.setFixedWidth(300)
         submit.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
         insert_from_l_2.addWidget(submit)
 
-        #/ Button Exit
-        exit = QPushButton('Thoát')
+        # / Button Exit
+        exit = QPushButton("Thoát")
         exit.setCursor(QCursor(Qt.PointingHandCursor))
         exit.setStyleSheet(css_button_cancel)
         exit.setFixedWidth(150)
         exit.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
         insert_from_l_2.addWidget(exit)
 
-        #TODO Set Default for insert
-        #TODO Handler Button exit
+        # TODO Set Default for insert
+        # TODO Handler Button exit
         def exit_click():
             dialog.reject()
 
@@ -950,12 +1636,12 @@ class TinhAndMauPage(QWidget):
 
         def changeThongEdit(value):
             insert_thong_table.clearSelection()
-            old_data['thong'] = value
+            old_data["thong"] = value
             if value == -1:
-                insert_thong_edit_first.setText('')
+                insert_thong_edit_first.setText("")
                 return
             thong_value = self.thong_info[0][value]
-            insert_thong_edit_first.setText(f'{thong_value}')
+            insert_thong_edit_first.setText(f"{thong_value}")
 
             col = value // 15  # Calculate column index
             row = value % 15  # Calculate row index
@@ -964,616 +1650,683 @@ class TinhAndMauPage(QWidget):
                 item.setSelected(True)
 
         if old_data:
-            thong_value = old_data['thong']
+            thong_value = old_data["thong"]
             changeThongEdit(thong_value)
             insert_thong_edit.setValue(thong_value)
+
+        def submit_click():
+            self.update_thong_insert(old_data, dialog)
+            return
 
         # def cancel_clicked():
         #     dialog.reject()
         #     self.insertData()
-        
 
         # cancel.clicked.connect(cancel_clicked)
         exit.clicked.connect(exit_click)
-        submit.clicked.connect(lambda: self.update_thong_insert(old_data, dialog))
-        #/ Thong
+        submit.clicked.connect(submit_click)
+        # / Thong
         insert_thong_table.itemClicked.connect(changeThongTable)
         insert_thong_edit.valueChanged.connect(changeThongEdit)
-    
+
     def update_thong_insert(self, data, dialog):
         data_send = {}
-        data_send['thong'] = data
-        data_send['id'] = self.ban_info['id']
+        data_send["thong"] = data
         msg = updateThongInsert(data_send)
-        if msg['status']:
+        if msg["status"]:
             dialog.reject()
-            self.ban_info = msg['data']
-            self.widget_main.setCurrentWidget(self.table_main_count)
-            self.TableChange.setText('Bảng Màu')
-            self.handlerData()
-            self.updateTableCount()
-            self.updateTableColor()
-            self.showNoticeColorButton()
-            self.questionInsertDate()
+            if self.widget_main.currentWidget() != self.table_main_count:
+                self.widget_main.setCurrentWidget(self.table_main_count)
+            self.ban_info = msg["data"]
+
+            self.show_loading_screen()
+            self.thread = Thread()
+            self.thread.task_completed.connect(
+                lambda: self.updateWidget([self.reload_widget, self.questionInsertDate])
+            )
+            self.thread.start()
         return
 
     def questionInsertDate(self):
-        #/ Config Icon Windows
+        # / Config Icon Windows
         icon = self.path.path_logo()
 
         # / Create Dialog Windows
         message = QMessageBox()
-        message.setWindowTitle('Thông Báo')
+        message.setWindowTitle("Thông Báo")
         message.setWindowIcon(QIcon(icon))
-        message.setText('Nhập liệu dòng mới')
+        message.setText("Nhập liệu dòng mới")
         message.setIcon(QMessageBox.Icon.Question)
         ok_button = message.addButton(QMessageBox.StandardButton.Yes)
-        ok_button.setText('OK')
+        ok_button.setText("OK")
         no_button = message.addButton(QMessageBox.StandardButton.No)
-        no_button.setText('Thoát')
+        no_button.setText("Thoát")
         # message.setDefaultButton(ok_button)
         message.setFont(self.font)
         result = message.exec()
         if result == QMessageBox.StandardButton.Yes:
             self.insertData()
 
-    def changeTable(self):
-        types = self.TableChange.text()
-        if 'Màu' in types:
-            self.widget_main.setCurrentWidget(self.table_main_color)
-            self.TableChange.setText('Bảng Tính')
-            self.note_color_label.setText(self.note_color)
-        else:
-            self.widget_main.setCurrentWidget(self.table_main_count)
-            self.TableChange.setText('Bảng Màu')
-            self.note_color_label.setText('')
-
-    def jumpColNotice(self):
-        self.table_scroll_count.clearSelection()
-        self.table_scroll_color.clearSelection()
-        current_widget = self.widget_main.currentWidget()
-        if current_widget != self.table_main_color:
-            self.widget_main.setCurrentWidget(self.table_main_color)
-        self.TableChange.setText('Bảng Tính')
-        self.note_color_label.setText(self.note_color)
-        sender = self.sender()
-        typeButton = sender.text()
-
-        if '1' in typeButton:
-            if len(self.unique_number) > 0:
-                col_d_data = self.unique_number[0]['color_value']
-                filter_col_d_data = [item for item in self.find_last_data if item['color_value'] == col_d_data]
-                self.buttonOne.setStyleSheet(css_button_view)
-                data_item = filter_col_d_data[0]
-                data_row = data_item['row']
-                data_col = data_item['col']
-                data_notice = data_item['notice']
-                item_target = self.table_scroll_color.item(data_row,data_col)
-                self.table_scroll_color.scrollToItem(item_target, hint=QTableWidget.ScrollHint.PositionAtCenter)
-                self.setHighlight(item_target,data_notice)
-
-        elif '2' in typeButton:
-            if len(self.unique_number) > 1:
-                col_d_data = self.unique_number[1]['color_value']
-                filter_col_d_data = [item for item in self.find_last_data if item['color_value'] == col_d_data]
-                self.buttonTwo.setStyleSheet(css_button_view)
-                data_item = filter_col_d_data[0]
-                data_row = data_item['row']
-                data_col = data_item['col']
-                data_notice = data_item['notice']
-                item_target = self.table_scroll_color.item(data_row,data_col)
-                self.table_scroll_color.scrollToItem(item_target, hint=QTableWidget.ScrollHint.PositionAtCenter)
-                self.setHighlight(item_target,data_notice)
-
-        elif '3' in typeButton:
-            if len(self.unique_number) > 2:
-                col_d_data = self.unique_number[2]['color_value']
-                filter_col_d_data = [item for item in self.find_last_data if item['color_value'] == col_d_data]
-                self.buttonThree.setStyleSheet(css_button_view)
-                data_item = filter_col_d_data[0]
-                data_row = data_item['row']
-                data_col = data_item['col']
-                data_notice = data_item['notice']
-                item_target = self.table_scroll_color.item(data_row,data_col)
-                self.table_scroll_color.scrollToItem(item_target, hint=QTableWidget.ScrollHint.PositionAtCenter)
-                self.setHighlight(item_target,data_notice)
-
-        elif '4' in typeButton:
-            # if len(self.find_last_data) > 4:
-            #     self.buttonFor.setStyleSheet(css_button_view)
-            #     data_item = self.find_last_data[4]
-            #     data_row = data_item['row']
-            #     data_col = data_item['col']
-            #     item_target = self.table_scroll_color.item(data_row,data_col)
-            #     self.table_scroll_color.scrollToItem(item_target, hint=QTableWidget.ScrollHint.PositionAtCenter)
-            #     self.setHighlight(item_target)
-            return
-        else:
-            return
-
     def changeSettingColor(self):
-        change_data = self.ban_info['meta']['number']
-        old_data = self.ban_info['meta']['notice']
-        col_e = self.ban_info['meta']['setting']
+        change_data = self.ban_info["meta"]["number"]
+        old_data = self.ban_info["meta"]["notice"]
+        col_e = self.ban_info["meta"]["setting"]
         col_ngang = self.ban_info
-        col_thong = self.ban_info['thong']
-        maxRow = self.ban_info['meta']
-        buttons = self.ban_info['meta']['buttons']
-        #/ Config Icon Windows
+        col_thong = self.ban_info["thong"]
+        maxRow = self.ban_info["meta"]
+        buttons = self.ban_info["meta"]["buttons"]
+        # / Config Icon Windows
         icon = self.path.path_logo()
 
         # / Create Dialog Windows
         dialog = QDialog(self)
-        dialog.setWindowTitle('Cài đặt bảng')
+        dialog.setWindowTitle("Cài đặt bảng")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1000,700)
+        # dialog.setFixedSize(1000, 700)
         dialog.show()
 
-        #/ Create Layout
+        # / Create Layout
         layout = QGridLayout()
         layout.setSpacing(6)
         dialog.setLayout(layout)
 
-        #/ Setting Color Table Count
+        # / Setting Color Table Count
         setting_color_count_w = QWidget()
         setting_color_count_l = QGridLayout(setting_color_count_w)
 
-        setting_color_count_label = QLabel('Cài Đặt Báo Màu Bảng Tính')
+        setting_color_count_label = QLabel("Báo Màu Bảng Tính")
         setting_color_count_label.setStyleSheet(css_lable)
-        
+
         setting_color_count_edit_fisrt = QSpinBox()
         setting_color_count_edit_fisrt.setMinimum(0)
         setting_color_count_edit_fisrt.setMaximum(120)
         setting_color_count_edit_fisrt.setStyleSheet(css_input)
-        setting_color_count_edit_fisrt.setValue(old_data['count'][0])
-        
+        setting_color_count_edit_fisrt.setValue(old_data["count"][0])
+
         setting_color_count_edit_second = QSpinBox()
         setting_color_count_edit_second.setMinimum(0)
         setting_color_count_edit_second.setMaximum(120)
         setting_color_count_edit_second.setStyleSheet(css_input)
-        setting_color_count_edit_second.setValue(old_data['count'][1])
+        setting_color_count_edit_second.setValue(old_data["count"][1])
 
-        setting_color_count_l.addWidget(setting_color_count_edit_fisrt, 0,0)
-        setting_color_count_l.addWidget(setting_color_count_edit_second, 0,1)
+        setting_color_count_l.addWidget(setting_color_count_edit_fisrt, 0, 0)
+        setting_color_count_l.addWidget(setting_color_count_edit_second, 0, 1)
 
-        layout.addWidget(setting_color_count_label, 0,0)
+        layout.addWidget(setting_color_count_label, 0, 0)
         layout.addWidget(setting_color_count_w, 1, 0)
 
-        #/ Setting Color Table Color
+        # / Setting Color Table Color
         setting_color_color_w = QWidget()
         setting_color_color_l = QGridLayout(setting_color_color_w)
 
-        setting_color_color_label = QCheckBox('Báo Màu Theo Cài Đặt (có là báo)')
-        setting_color_color_label.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        setting_color_color_label.setChecked(buttons[0])
+        setting_color_color_label = QLabel("Báo Màu BM1")
         setting_color_color_label.setStyleSheet(css_lable)
-        
+
         setting_color_color_edit_fisrt = QSpinBox()
         setting_color_color_edit_fisrt.setDisabled(not buttons[0])
         setting_color_color_edit_fisrt.setMinimum(0)
         setting_color_color_edit_fisrt.setMaximum(120)
         setting_color_color_edit_fisrt.setStyleSheet(css_input)
-        setting_color_color_edit_fisrt.setValue(old_data['color'][0])
-        
+        setting_color_color_edit_fisrt.setValue(old_data["color"][0])
+
         setting_color_color_edit_second = QSpinBox()
         setting_color_color_edit_second.setDisabled(not buttons[0])
         setting_color_color_edit_second.setMinimum(0)
         setting_color_color_edit_second.setMaximum(120)
         setting_color_color_edit_second.setStyleSheet(css_input)
-        setting_color_color_edit_second.setValue(old_data['color'][1])
+        setting_color_color_edit_second.setValue(old_data["color"][1])
 
-        setting_color_color_l.addWidget(setting_color_color_edit_fisrt, 0,0)
-        setting_color_color_l.addWidget(setting_color_color_edit_second, 0,1)
+        setting_color_color_l.addWidget(setting_color_color_edit_fisrt, 0, 0)
+        setting_color_color_l.addWidget(setting_color_color_edit_second, 0, 1)
 
-        
-        layout.addWidget(setting_color_color_label, 0,1)
-        layout.addWidget(setting_color_color_w, 1, 1)
+        layout.addWidget(setting_color_color_label, 2, 0)
+        layout.addWidget(setting_color_color_w, 3, 0)
 
-        #/ Setting Thong Change
-        setting_thong_change_label = QLabel('Bộ Chuyển Đổi')
+        # / Setting Buttons Notice M2
+        setting_color_color_w_m2 = QWidget()
+        setting_color_color_l_m2 = QGridLayout(setting_color_color_w_m2)
+
+        setting_color_color_label_m2 = QLabel("Báo Màu BM2")
+        setting_color_color_label_m2.setStyleSheet(css_lable)
+
+        setting_buttons_notice_edit_fisrt_m2 = QSpinBox()
+        setting_buttons_notice_edit_fisrt_m2.setMinimum(0)
+        setting_buttons_notice_edit_fisrt_m2.setMaximum(120)
+        setting_buttons_notice_edit_fisrt_m2.setStyleSheet(css_input)
+        setting_buttons_notice_edit_fisrt_m2.setValue(old_data["colorM2"][0])
+
+        setting_buttons_notice_edit_second_m2 = QSpinBox()
+        setting_buttons_notice_edit_second_m2.setMinimum(0)
+        setting_buttons_notice_edit_second_m2.setMaximum(120)
+        setting_buttons_notice_edit_second_m2.setStyleSheet(css_input)
+        setting_buttons_notice_edit_second_m2.setValue(old_data["colorM2"][1])
+
+        setting_color_color_l_m2.addWidget(setting_buttons_notice_edit_fisrt_m2, 0, 0)
+        setting_color_color_l_m2.addWidget(setting_buttons_notice_edit_second_m2, 0, 1)
+
+        layout.addWidget(setting_color_color_label_m2, 4, 0)
+        layout.addWidget(setting_color_color_w_m2, 5, 0)
+
+        # / Setting Color Table Color M3
+        setting_color_color_w_m3 = QWidget()
+        setting_color_color_l_m3 = QGridLayout(setting_color_color_w_m3)
+
+        setting_color_color_label_m3 = QLabel("Báo Màu BM3")
+        setting_color_color_label_m3.setStyleSheet(css_lable)
+
+        setting_buttons_notice_edit_fisrt_m3 = QSpinBox()
+        setting_buttons_notice_edit_fisrt_m3.setMinimum(0)
+        setting_buttons_notice_edit_fisrt_m3.setMaximum(120)
+        setting_buttons_notice_edit_fisrt_m3.setStyleSheet(css_input)
+        setting_buttons_notice_edit_fisrt_m3.setValue(old_data["colorM3"][0])
+
+        setting_buttons_notice_edit_second_m3 = QSpinBox()
+        setting_buttons_notice_edit_second_m3.setMinimum(0)
+        setting_buttons_notice_edit_second_m3.setMaximum(120)
+        setting_buttons_notice_edit_second_m3.setStyleSheet(css_input)
+        setting_buttons_notice_edit_second_m3.setValue(old_data["colorM3"][1])
+
+        setting_color_color_l_m3.addWidget(setting_buttons_notice_edit_fisrt_m3, 0, 0)
+        setting_color_color_l_m3.addWidget(setting_buttons_notice_edit_second_m3, 0, 1)
+
+        layout.addWidget(setting_color_color_label_m3, 6, 0)
+        layout.addWidget(setting_color_color_w_m3, 7, 0)
+
+        # / Setting Thong Value
+        setting_thong_value_label = QLabel("Số Thông")
+        setting_thong_value_label.setStyleSheet(css_lable)
+
+        setting_thong_value_w = QWidget()
+        setting_thong_value_l = QGridLayout(setting_thong_value_w)
+
+        setting_thong_value_edit_fisrt = QSpinBox()
+        setting_thong_value_edit_fisrt.setMinimum(1)
+        setting_thong_value_edit_fisrt.setMaximum(420)
+        setting_thong_value_edit_fisrt.setStyleSheet(css_input)
+        setting_thong_value_edit_fisrt.setValue(col_thong["value"][0])
+
+        setting_thong_value_edit_second = QSpinBox()
+        setting_thong_value_edit_second.setMinimum(1)
+        setting_thong_value_edit_second.setMaximum(420)
+        setting_thong_value_edit_second.setStyleSheet(css_input)
+        setting_thong_value_edit_second.setValue(col_thong["value"][1])
+
+        setting_thong_value_l.addWidget(setting_thong_value_edit_fisrt, 0, 0)
+        setting_thong_value_l.addWidget(setting_thong_value_edit_second, 0, 1)
+
+        layout.addWidget(setting_thong_value_label, 8, 0)
+        layout.addWidget(setting_thong_value_w, 9, 0)
+
+        # / Setting Ngang Value
+        setting_ngang_value_label = QLabel("Số Cột Ngang")
+        setting_ngang_value_label.setStyleSheet(css_lable)
+
+        setting_ngang_value_w = QWidget()
+        setting_ngang_value_l = QGridLayout(setting_ngang_value_w)
+
+        setting_ngang_value_edit_fisrt = QSpinBox()
+        setting_ngang_value_edit_fisrt.setMinimum(1)
+        setting_ngang_value_edit_fisrt.setMaximum(600)
+        setting_ngang_value_edit_fisrt.setStyleSheet(css_input)
+        setting_ngang_value_edit_fisrt.setValue(col_ngang["col"][0])
+
+        setting_ngang_value_edit_second = QSpinBox()
+        setting_ngang_value_edit_second.setMinimum(1)
+        setting_ngang_value_edit_second.setMaximum(600)
+        setting_ngang_value_edit_second.setStyleSheet(css_input)
+        setting_ngang_value_edit_second.setValue(col_ngang["col"][1])
+
+        setting_ngang_value_l.addWidget(setting_ngang_value_edit_fisrt, 0, 0)
+        setting_ngang_value_l.addWidget(setting_ngang_value_edit_second, 0, 1)
+
+        layout.addWidget(setting_ngang_value_label, 8, 1)
+        layout.addWidget(setting_ngang_value_w, 9, 1)
+
+        # / Setting Thong Ke D B Tinh
+        setting_count_d_label = QLabel("Thông Kê D M1")
+        setting_count_d_label.setStyleSheet(css_lable)
+
+        setting_count_d_w = QWidget()
+        setting_count_d_l = QGridLayout(setting_count_d_w)
+
+        setting_count_d_edit_fisrt = QSpinBox()
+        setting_count_d_edit_fisrt.setMinimum(2)
+        setting_count_d_edit_fisrt.setMaximum(120)
+        setting_count_d_edit_fisrt.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt.setValue(col_e["col_e"][0])
+
+        setting_count_d_edit_second = QSpinBox()
+        setting_count_d_edit_second.setMinimum(2)
+        setting_count_d_edit_second.setMaximum(120)
+        setting_count_d_edit_second.setStyleSheet(css_input)
+        setting_count_d_edit_second.setValue(col_e["col_e"][1])
+
+        setting_count_d_l.addWidget(setting_count_d_edit_fisrt, 0, 0)
+        setting_count_d_l.addWidget(setting_count_d_edit_second, 0, 1)
+
+        layout.addWidget(setting_count_d_label, 2, 1)
+        layout.addWidget(setting_count_d_w, 3, 1)
+
+        # / Setting Thong Ke D M1
+        setting_count_d_label_m2 = QLabel("Thông Kê D M2")
+        setting_count_d_label_m2.setStyleSheet(css_lable)
+
+        setting_count_d_w_m2 = QWidget()
+        setting_count_d_l_m2 = QGridLayout(setting_count_d_w_m2)
+
+        setting_count_d_edit_fisrt_m2 = QSpinBox()
+        setting_count_d_edit_fisrt_m2.setMinimum(2)
+        setting_count_d_edit_fisrt_m2.setMaximum(120)
+        setting_count_d_edit_fisrt_m2.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt_m2.setValue(col_e["col_e2"][0])
+
+        setting_count_d_edit_second_m2 = QSpinBox()
+        setting_count_d_edit_second_m2.setMinimum(2)
+        setting_count_d_edit_second_m2.setMaximum(120)
+        setting_count_d_edit_second_m2.setStyleSheet(css_input)
+        setting_count_d_edit_second_m2.setValue(col_e["col_e2"][1])
+
+        setting_count_d_l_m2.addWidget(setting_count_d_edit_fisrt_m2, 0, 0)
+        setting_count_d_l_m2.addWidget(setting_count_d_edit_second_m2, 0, 1)
+
+        layout.addWidget(setting_count_d_label_m2, 4, 1)
+        layout.addWidget(setting_count_d_w_m2, 5, 1)
+
+        # / Setting Thong Ke D M2=
+        setting_count_d_label_m3 = QLabel("Thông Kê D M3")
+        setting_count_d_label_m3.setStyleSheet(css_lable)
+
+        setting_count_d_w_m3 = QWidget()
+        setting_count_d_l_m3 = QGridLayout(setting_count_d_w_m3)
+
+        setting_count_d_edit_fisrt_m3 = QSpinBox()
+        setting_count_d_edit_fisrt_m3.setMinimum(2)
+        setting_count_d_edit_fisrt_m3.setMaximum(120)
+        setting_count_d_edit_fisrt_m3.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt_m3.setValue(col_e["col_e3"][0])
+
+        setting_count_d_edit_second_m3 = QSpinBox()
+        setting_count_d_edit_second_m3.setMinimum(2)
+        setting_count_d_edit_second_m3.setMaximum(120)
+        setting_count_d_edit_second_m3.setStyleSheet(css_input)
+        setting_count_d_edit_second_m3.setValue(col_e["col_e3"][1])
+
+        setting_count_d_l_m3.addWidget(setting_count_d_edit_fisrt_m3, 0, 0)
+        setting_count_d_l_m3.addWidget(setting_count_d_edit_second_m3, 0, 1)
+
+        layout.addWidget(setting_count_d_label_m3, 6, 1)
+        layout.addWidget(setting_count_d_w_m3, 7, 1)
+
+        # / Setting Thong Value
+        setting_max_row_label = QLabel("Tối Đa Dòng Tồn Tại")
+        setting_max_row_label.setStyleSheet(css_lable)
+
+        setting_max_row_edit_fisrt = QSpinBox()
+        setting_max_row_edit_fisrt.setMinimum(1)
+        setting_max_row_edit_fisrt.setMaximum(1000)
+        setting_max_row_edit_fisrt.setStyleSheet(css_input)
+        setting_max_row_edit_fisrt.setValue(maxRow["maxRow"])
+
+        layout.addWidget(setting_max_row_label, 10, 0)
+        layout.addWidget(setting_max_row_edit_fisrt, 11, 0)
+
+        # / Setting Thong Change
+        setting_thong_change_label = QLabel("Bộ Chuyển Đổi")
         setting_thong_change_label.setStyleSheet(css_lable)
-        
+
         setting_thong_change_edit_fisrt = QSpinBox()
         setting_thong_change_edit_fisrt.setMinimum(0)
         setting_thong_change_edit_fisrt.setMaximum(5)
         setting_thong_change_edit_fisrt.setStyleSheet(css_input)
         setting_thong_change_edit_fisrt.setValue(change_data)
 
-        layout.addWidget(setting_thong_change_label, 2,0)
-        layout.addWidget(setting_thong_change_edit_fisrt, 3, 0)
+        layout.addWidget(setting_thong_change_label, 10, 1)
+        layout.addWidget(setting_thong_change_edit_fisrt, 11, 1)
 
-        #/ Setting Buttons Notice
-        setting_buttons_notice_label = QCheckBox('Báo Màu Theo Cài Đặt (>= 2 DL)')
-        setting_buttons_notice_label.setChecked(buttons[1])
-        setting_buttons_notice_label.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        setting_buttons_notice_label.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_w = QWidget()
-        setting_buttons_notice_edit_l = QGridLayout(setting_buttons_notice_edit_w)
-        
-        setting_buttons_notice_edit_fisrt = QSpinBox()
-        setting_buttons_notice_edit_fisrt.setMinimum(1)
-        setting_buttons_notice_edit_fisrt.setMaximum(120)
-        setting_buttons_notice_edit_fisrt.setDisabled(not buttons[1])
-        setting_buttons_notice_edit_fisrt.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt.setValue(old_data['color2'][0])
-        
-        setting_buttons_notice_edit_second = QSpinBox()
-        setting_buttons_notice_edit_second.setMinimum(1)
-        setting_buttons_notice_edit_second.setMaximum(120)
-        setting_buttons_notice_edit_second.setDisabled(not buttons[1])
-        setting_buttons_notice_edit_second.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second.setValue(old_data['color2'][1])
-
-        setting_buttons_notice_edit_l.addWidget(setting_buttons_notice_edit_fisrt, 0,0)
-        setting_buttons_notice_edit_l.addWidget(setting_buttons_notice_edit_second, 0,1)
-
-        layout.addWidget(setting_buttons_notice_label, 2,1)
-        layout.addWidget(setting_buttons_notice_edit_w, 3, 1)
-
-        #/ Setting Thong Value
-        setting_thong_value_label = QLabel('Số Thông')
-        setting_thong_value_label.setStyleSheet(css_lable)
-
-        setting_thong_value_w = QWidget()
-        setting_thong_value_l = QGridLayout(setting_thong_value_w)
-        
-        setting_thong_value_edit_fisrt = QSpinBox()
-        setting_thong_value_edit_fisrt.setMinimum(1)
-        setting_thong_value_edit_fisrt.setMaximum(420)
-        setting_thong_value_edit_fisrt.setStyleSheet(css_input)
-        setting_thong_value_edit_fisrt.setValue(col_thong['value'][0])
-        
-        setting_thong_value_edit_second = QSpinBox()
-        setting_thong_value_edit_second.setMinimum(1)
-        setting_thong_value_edit_second.setMaximum(420)
-        setting_thong_value_edit_second.setStyleSheet(css_input)
-        setting_thong_value_edit_second.setValue(col_thong['value'][1])
-
-        setting_thong_value_l.addWidget(setting_thong_value_edit_fisrt, 0,0)
-        setting_thong_value_l.addWidget(setting_thong_value_edit_second, 0,1)
-
-        layout.addWidget(setting_thong_value_label, 4,0)
-        layout.addWidget(setting_thong_value_w, 5, 0)
-
-        #/ Setting Ngang Value
-        setting_ngang_value_label = QLabel('Số Cột Ngang')
-        setting_ngang_value_label.setStyleSheet(css_lable)
-        
-        setting_ngang_value_edit_fisrt = QSpinBox()
-        setting_ngang_value_edit_fisrt.setMinimum(1)
-        setting_ngang_value_edit_fisrt.setMaximum(600)
-        setting_ngang_value_edit_fisrt.setStyleSheet(css_input)
-        setting_ngang_value_edit_fisrt.setValue(col_ngang['col'])
-
-        layout.addWidget(setting_ngang_value_label, 4,1)
-        layout.addWidget(setting_ngang_value_edit_fisrt, 5, 1)
-
-        #/ Setting Thong Ke D B Tinh
-        setting_count_d_label = QLabel('Thông Kê D B Tính')
-        setting_count_d_label.setStyleSheet(css_lable)
-
-        setting_count_d_w = QWidget()
-        setting_count_d_l = QGridLayout(setting_count_d_w)
-        
-        setting_count_d_edit_fisrt = QSpinBox()
-        setting_count_d_edit_fisrt.setMinimum(2)
-        setting_count_d_edit_fisrt.setMaximum(120)
-        setting_count_d_edit_fisrt.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt.setValue(col_e['col_e'][0])
-        
-        setting_count_d_edit_second = QSpinBox()
-        setting_count_d_edit_second.setMinimum(2)
-        setting_count_d_edit_second.setMaximum(120)
-        setting_count_d_edit_second.setStyleSheet(css_input)
-        setting_count_d_edit_second.setValue(col_e['col_e'][1])
-
-        setting_count_d_l.addWidget(setting_count_d_edit_fisrt, 0,0)
-        setting_count_d_l.addWidget(setting_count_d_edit_second, 0,1)
-
-        layout.addWidget(setting_count_d_label, 6,0)
-        layout.addWidget(setting_count_d_w, 7, 0)
-
-        #/ Setting Thong Value
-        setting_max_row_label = QLabel('Tối Đa Dòng Tồn Tại')
-        setting_max_row_label.setStyleSheet(css_lable)
-        
-        setting_max_row_edit_fisrt = QSpinBox()
-        setting_max_row_edit_fisrt.setMinimum(1)
-        setting_max_row_edit_fisrt.setMaximum(1000)
-        setting_max_row_edit_fisrt.setStyleSheet(css_input)
-        setting_max_row_edit_fisrt.setValue(maxRow['maxRow'])
-
-        layout.addWidget(setting_max_row_label, 6,1)
-        layout.addWidget(setting_max_row_edit_fisrt, 7, 1)
-
-        #/ Button Save And Exit
+        # / Button Save And Exit
         submit_w = QWidget()
         submit_l = QVBoxLayout(submit_w)
-        submit = QPushButton('Lưu')
+        submit = QPushButton("Lưu")
         submit.setStyleSheet(css_button_submit)
         submit_l.addWidget(submit)
 
         exit_w = QWidget()
         exit_l = QVBoxLayout(exit_w)
-        exit = QPushButton('Thoát')
+        exit = QPushButton("Thoát")
         exit.setStyleSheet(css_button_cancel)
         exit_l.addWidget(exit)
 
-        layout.addWidget(submit_w, 8,0)
-        layout.addWidget(exit_w, 8, 1)
+        layout.addWidget(submit_w, 12, 0)
+        layout.addWidget(exit_w, 12, 1)
 
-        #TODO Handler Button
+        # TODO Handler Button
         def changeColorCount():
             value1 = setting_color_count_edit_fisrt.value()
             value2 = setting_color_count_edit_second.value()
-            old_data['count'] = [value1, value2]
+            old_data["count"] = [value1, value2]
 
         def changeColorColor():
             value1 = setting_color_color_edit_fisrt.value()
             value2 = setting_color_color_edit_second.value()
-            old_data['color'] = [value1, value2]
+            old_data["color"] = [value1, value2]
 
         def changeThong():
             value = setting_thong_change_edit_fisrt.value()
-            self.ban_info['meta']['number'] = value
+            self.ban_info["meta"]["number"] = value
             if value != 0:
                 note = Note[value - 1]
                 self.note.setText(note)
             else:
-                self.note.setText('')
-                
+                self.note.setText("")
 
         def changeThongValue():
             value_1 = setting_thong_value_edit_fisrt.value()
             value_2 = setting_thong_value_edit_second.value()
-            col_thong['value'] = [value_1, value_2]
+            col_thong["value"] = [value_1, value_2]
 
         def changeNgangValue():
-            value = setting_ngang_value_edit_fisrt.value()
-            col_ngang['col'] = value
+            value_1 = setting_ngang_value_edit_fisrt.value()
+            value_2 = setting_ngang_value_edit_second.value()
+            col_ngang["col"] = [value_1, value_2]
 
         def changeColunmE():
             value1 = setting_count_d_edit_fisrt.value()
             value2 = setting_count_d_edit_second.value()
-            col_e['col_e'] = [value1, value2]
+            col_e["col_e"] = [value1, value2]
+
+        def changeColunmEM2():
+            value1 = setting_count_d_edit_fisrt_m2.value()
+            value2 = setting_count_d_edit_second_m2.value()
+            col_e["col_e2"] = [value1, value2]
+
+        def changeColunmEM3():
+            value1 = setting_count_d_edit_fisrt_m3.value()
+            value2 = setting_count_d_edit_second_m3.value()
+            col_e["col_e3"] = [value1, value2]
 
         def changeMaxRow():
             value = setting_max_row_edit_fisrt.value()
-            maxRow['maxRow'] = value
+            maxRow["maxRow"] = value
 
         def submit_click():
             data = {
-                "id": self.ban_info['id'],
+                "id": self.ban_info["id"],
                 "notice": old_data,
-                "col_e": col_e['col_e'],
-                "number": self.ban_info['meta']['number'],
-                "col": col_ngang['col'],
+                "col_e": col_e["col_e"],
+                "col_e2": col_e["col_e2"],
+                "col_e3": col_e["col_e3"],
+                "number": self.ban_info["meta"]["number"],
+                "col": col_ngang["col"],
                 "thong": col_thong,
-                "maxRow": maxRow['maxRow'],
-                "buttons": self.ban_info['meta']['buttons']
+                "maxRow": maxRow["maxRow"],
+                "buttons": self.ban_info["meta"]["buttons"],
             }
             msg = updateColorInsert(data)
-            SendMessage(msg['msg'])
-            if msg['status']:
+            SendMessage(msg["msg"])
+            if msg["status"]:
                 dialog.reject()
-                self.ban_info = msg['data']
+                self.ban_info = msg["data"]
                 self.widget_main.setCurrentWidget(self.table_main_count)
-                self.TableChange.setText('Bảng Màu')
-                SendMessage('Xin vui lòng thoát và vào lại bảng tính để cập nhật cài đặt')
+                self.TableChange.setText("Bảng Màu")
+                SendMessage(
+                    "Xin vui lòng thoát và vào lại bảng tính để cập nhật cài đặt"
+                )
             return
 
         def exit_click():
             dialog.reject()
-        
-        def changeButtonNotice():
-            value1 = setting_buttons_notice_edit_fisrt.value()
-            value2 = setting_buttons_notice_edit_second.value()
-            old_data['color2'] = [value1, value2]
 
-        def changeButtonsColorTypeOne():
-            value1 = setting_color_color_label.isChecked()
-            value2 = setting_buttons_notice_label.isChecked()
-            if value1:
-                setting_color_color_edit_fisrt.setDisabled(False)
-                setting_color_color_edit_second.setDisabled(False)
+        def changeButtonNoticeM2():
+            value1 = setting_buttons_notice_edit_fisrt_m2.value()
+            value2 = setting_buttons_notice_edit_second_m2.value()
+            old_data["colorM2"] = [value1, value2]
 
-                setting_buttons_notice_label.setChecked(False)
-                setting_buttons_notice_edit_fisrt.setDisabled(True)
-                setting_buttons_notice_edit_second.setDisabled(True)
-                value2 = False
-            else:
-                setting_color_color_edit_fisrt.setDisabled(True)
-                setting_color_color_edit_second.setDisabled(True)
+        def changeButtonNoticeM3():
+            value1 = setting_buttons_notice_edit_fisrt_m3.value()
+            value2 = setting_buttons_notice_edit_second_m3.value()
+            old_data["colorM3"] = [value1, value2]
 
-                setting_buttons_notice_label.setChecked(True)
-                setting_buttons_notice_edit_fisrt.setDisabled(False)
-                setting_buttons_notice_edit_second.setDisabled(False)
-                value2 = True
-
-            self.ban_info['meta']['buttons'] = [value1,value2]
-        
-        def changeButtonsColorTypeTwo():
-            value1 = setting_color_color_label.isChecked()
-            value2 = setting_buttons_notice_label.isChecked()
-            if value2:
-                setting_buttons_notice_edit_fisrt.setDisabled(False)
-                setting_buttons_notice_edit_second.setDisabled(False)
-
-                setting_color_color_label.setChecked(False)
-                setting_color_color_edit_fisrt.setDisabled(True)
-                setting_color_color_edit_second.setDisabled(True)
-                value1 = False
-            else:
-                setting_buttons_notice_edit_fisrt.setDisabled(True)
-                setting_buttons_notice_edit_second.setDisabled(True)
-
-                setting_color_color_label.setChecked(True)
-                setting_color_color_edit_fisrt.setDisabled(False)
-                setting_color_color_edit_second.setDisabled(False)
-                value1 = True
-            
-            self.ban_info['meta']['buttons'] = [value1,value2]
-
-            
-
-
-        #/ Buttons tpye 1 change (Color)
+        # / Buttons tpye 1 change (Color)
         setting_color_color_edit_fisrt.valueChanged.connect(changeColorColor)
         setting_color_color_edit_second.valueChanged.connect(changeColorColor)
-        #/ Buttons Color Count Change
+        # / Buttons Color Count Change
         setting_color_count_edit_fisrt.valueChanged.connect(changeColorCount)
         setting_color_count_edit_second.valueChanged.connect(changeColorCount)
-        #/ Change Number
+        # / Change Number
         # setting_ngang_change_edit_fisrt.valueChanged.connect(changeNgang)
         setting_thong_change_edit_fisrt.valueChanged.connect(changeThong)
-        #/ Change Value of Thong and Ngang (Column)
+        # / Change Value of Thong and Ngang (Column)
         setting_ngang_value_edit_fisrt.valueChanged.connect(changeNgangValue)
+        setting_ngang_value_edit_second.valueChanged.connect(changeNgangValue)
         setting_thong_value_edit_fisrt.valueChanged.connect(changeThongValue)
         setting_thong_value_edit_second.valueChanged.connect(changeThongValue)
-        #/ Change value of Column Table Color
+        # / Change value of Column Table Color
         setting_count_d_edit_fisrt.valueChanged.connect(changeColunmE)
         setting_count_d_edit_second.valueChanged.connect(changeColunmE)
-        #/ Change MaxRow for All Table
+        # / Change value of Column Table M2 Color
+        setting_count_d_edit_fisrt_m2.valueChanged.connect(changeColunmEM2)
+        setting_count_d_edit_second_m2.valueChanged.connect(changeColunmEM2)
+        # / Change value of Column Table M3 Color
+        setting_count_d_edit_fisrt_m3.valueChanged.connect(changeColunmEM3)
+        setting_count_d_edit_second_m3.valueChanged.connect(changeColunmEM3)
+        # / Change MaxRow for All Table
         setting_max_row_edit_fisrt.valueChanged.connect(changeMaxRow)
-        #/ Buttons Type 2 change (Color)
-        setting_buttons_notice_edit_fisrt.valueChanged.connect(changeButtonNotice)
-        setting_buttons_notice_edit_second.valueChanged.connect(changeButtonNotice)
+        # / Buttons Type 2 change (Color)
+        # setting_buttons_notice_edit_fisrt.valueChanged.connect(changeButtonNotice)
+        # setting_buttons_notice_edit_second.valueChanged.connect(changeButtonNotice)
+        # / Buttons Type 2 change (ColorM2)
+        setting_buttons_notice_edit_fisrt_m2.valueChanged.connect(changeButtonNoticeM2)
+        setting_buttons_notice_edit_second_m2.valueChanged.connect(changeButtonNoticeM2)
 
-        #/ Button Color Type
-        setting_buttons_notice_label.stateChanged.connect(changeButtonsColorTypeTwo)
-        setting_color_color_label.stateChanged.connect(changeButtonsColorTypeOne)
+        # / Buttons Type 2 change (ColorM3)
+        setting_buttons_notice_edit_fisrt_m3.valueChanged.connect(changeButtonNoticeM3)
+        setting_buttons_notice_edit_second_m3.valueChanged.connect(changeButtonNoticeM3)
+
+        # / Button Color Type
+        # setting_buttons_notice_label.stateChanged.connect(changeButtonsColorTypeTwo)
+        # setting_color_color_label.stateChanged.connect(changeButtonsColorTypeOne)
 
         submit.clicked.connect(submit_click)
         exit.clicked.connect(exit_click)
 
-    def setHighlight(self, item, isColor):
-        if len(self.jumpAction) == 2:
-            if self.jumpAction[1]:
-                self.jumpAction[0].setBackground(self.jumpAction[1])
+    def setHighlight(self, data):
+        # / Handler prev item
+        if "prev" in self.jumpAction:
+            item_prev = self.jumpAction["prev"]["item"]
+            item_prev_color = self.jumpAction["prev"]["color"]
+            item_prev.setBackground(item_prev_color)
+
+        current = data["current"]
+        i_next = data["next"]
+        i_next["item"].setBackground(self.cyan)
+        self.jumpAction = {
+            "prev": {"item": current["item"], "color": current["color"]},
+            "next": {"item": i_next["item"], "color": i_next["color"]},
+        }
+
+    def reload_color_item(self):
+        if "prev" in self.jumpAction:
+            item = self.jumpAction["prev"]["item"]
+            color = self.jumpAction["prev"]["color"]
+            item.setBackground(color)
+            # / Swap prev to next
+            if "next" in self.jumpAction:
+                prev_item = self.jumpAction["next"]
+                del self.jumpAction["next"]
+                self.jumpAction["prev"] = prev_item
+
+    def setHighlight_Thong(self, data):
+        self.table_main_thong.clearSelection()
+        col = data["col"]
+        value = data["value"]
+        isCol_a = data["isCol_a"]
+        thong_info = self.ban_info["thong"]
+        name_thong = thong_info["name"]
+        type_count = 1 if "1." in name_thong else 2 if "2." in name_thong else 0
+        thong_data = self.thong_info
+        value_thong = thong_info["value"]
+        thong_index_thong = value_thong[0] - 1 + int(col) - 5
+        thong_index_row = []
+        for i in range(121):
+            v = thong_data[thong_index_thong][i]
+            if type_count == 1:
+                if str(v) == str(value):
+                    thong_index_row.append(i)
             else:
-                self.jumpAction[0].setBackground(QColor("#FFFFFF"))
-        item.setBackground(self.cyan)
-        self.jumpAction = [item, isColor]
+                if type_count == 2:
+                    if isCol_a:
+                        isEqual = self.checkColorThong(str(value), str(v))
+                        if isEqual:
+                            thong_index_row.append(i)
+                    else:
+                        if v == value:
+                            thong_index_row.append(i)
+
+                else:
+                    isEqual = self.checkColorThong(str(value), str(v))
+                    if isEqual:
+                        thong_index_row.append(i)
+
+        self.table_main_thong.selectColumn(int(col))
+
+        for i in thong_index_row:
+            self.table_main_thong.selectRow(i)
 
     def deleteNewRow(self):
-        #/ Config Icon Windows
+        # / Config Icon Windows
         icon = self.path.path_logo()
 
         # / Create Dialog Windows
         message = QMessageBox()
-        message.setWindowTitle('Thông Báo')
+        message.setWindowTitle("Thông Báo")
         message.setWindowIcon(QIcon(icon))
-        message.setText('Bạn có muốn xóa dòng mới nhất không?')
+        message.setText("Bạn có muốn xóa dòng mới nhất không?")
         message.setIcon(QMessageBox.Icon.Question)
-        message.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        message.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
         message.setDefaultButton(QMessageBox.StandardButton.No)
         message.setFont(self.font)
         result = message.exec()
 
         if result == QMessageBox.StandardButton.Yes:
-            #/ delete last data
-            self.ban_info['data'] = self.ban_info['data'][:-1]
-            msg = deleteRowBan({
-                "update": self.ban_info['data'],
-                "id": self.ban_info['id']
-            })
-            #/ Set table count is main
+            # / delete last data
+            self.ban_info["data"] = self.ban_info["data"][:-1]
+            msg = deleteRowBan(
+                {"update": self.ban_info["data"], "id": self.ban_info["id"]}
+            )
+            # / Set table count is main
             self.widget_main.setCurrentWidget(self.table_main_count)
-            #/ Send Notice Message
-            SendMessage(msg)
-            #/ re-render all tables
-            self.handlerData()
-            self.updateTableCount()
-            self.updateTableColor()
-            self.showNoticeColorButton()
+            # / re-render all tables
+
+            self.show_loading_screen()
+            self.thread = Thread()
+            self.thread.task_completed.connect(
+                lambda: self.updateWidget([self.reload_widget])
+            )
+            self.thread.task_completed.connect(lambda: SendMessage(msg))
+            self.thread.start()
+            # / Send Notice Message
 
     def deleteFromToRow(self):
-        #/ Config Icon Windows
+        # / Config Icon Windows
         icon = self.path.path_logo()
 
         # / Create Dialog Windows
         dialog = QDialog(self)
-        dialog.setWindowTitle('Cài đặt bảng')
+        dialog.setWindowTitle("Cài đặt bảng")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1000,400)
+        dialog.setFixedSize(1000, 400)
         dialog.show()
 
-        #/ Default Date
+        # / Default Date
         date = QDate().currentDate()
         date_from = date.addDays(-7)
 
-        #/ Create Layout
+        # / Create Layout
         layout = QGridLayout()
         layout.setSpacing(50)
         dialog.setLayout(layout)
 
-        #/ Setting Color Table Count
+        # / Setting Color Table Count
         delete_from_w = QWidget()
         delete_from_l = QGridLayout(delete_from_w)
 
-        delete_from_label = QLabel('Ngày Bắt Đầu')
+        delete_from_label = QLabel("Ngày Bắt Đầu")
         delete_from_label.setStyleSheet(css_lable)
-        
+
         delete_from_edit = QDateEdit()
         delete_from_edit.setCalendarPopup(True)
         delete_from_edit.setStyleSheet(css_input)
         delete_from_edit.setDate(date_from)
 
-        delete_from_l.addWidget(delete_from_edit, 0,0)
+        delete_from_l.addWidget(delete_from_edit, 0, 0)
 
-        layout.addWidget(delete_from_label, 0,0)
+        layout.addWidget(delete_from_label, 0, 0)
         layout.addWidget(delete_from_w, 1, 0)
 
-        #/ Setting Color Table Color
+        # / Setting Color Table Color
         delete_to_w = QWidget()
         delete_to_l = QGridLayout(delete_to_w)
 
-        delete_to_label = QLabel('Ngày Kết Thúc')
+        delete_to_label = QLabel("Ngày Kết Thúc")
         delete_to_label.setStyleSheet(css_lable)
-        
+
         delete_to_edit = QDateEdit()
         delete_to_edit.setCalendarPopup(True)
         delete_to_edit.setStyleSheet(css_input)
         delete_to_edit.setDate(date)
 
-        delete_to_l.addWidget(delete_to_edit, 0,0)
-        
-        layout.addWidget(delete_to_label, 0,1)
+        delete_to_l.addWidget(delete_to_edit, 0, 0)
+
+        layout.addWidget(delete_to_label, 0, 1)
         layout.addWidget(delete_to_w, 1, 1)
 
-        #/ Button Save And Exit
+        # delete_all_w = QWidget()
+        # delete_all_l = QGridLayout(delete_all_w)
+
+        delete_all_day = QCheckBox("Xóa Tất Cả")
+        delete_all_day.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        delete_all_day.setStyleSheet(css_button_checkbox)
+
+        layout.addWidget(delete_all_day, 2, 0)
+
+        # / Button Save And Exit
         submit_w = QWidget()
         submit_l = QVBoxLayout(submit_w)
-        submit = QPushButton('Xóa')
+        submit = QPushButton("Xóa")
         submit.setStyleSheet(css_button_submit)
         submit_l.addWidget(submit)
 
         exit_w = QWidget()
         exit_l = QVBoxLayout(exit_w)
-        exit = QPushButton('Thoát')
+        exit = QPushButton("Thoát")
         exit.setStyleSheet(css_button_cancel)
         exit_l.addWidget(exit)
 
-        layout.addWidget(submit_w, 2,0)
-        layout.addWidget(exit_w, 2, 1)
+        layout.addWidget(submit_w, 3, 0)
+        layout.addWidget(exit_w, 3, 1)
 
         def exit_click():
             dialog.reject()
 
         def submit_click():
-            fromdate = delete_from_edit.date().toString('dd/MM/yyyy')
-            todate = delete_to_edit.date().toString('dd/MM/yyyy')
-            msg = deleteFromToBan(fromdate, todate, self.ban_info['id'])
-            SendMessage(msg['msg'])
-            if msg['status']:
+            fromdate = delete_from_edit.date().toString("dd/MM/yyyy")
+            todate = delete_to_edit.date().toString("dd/MM/yyyy")
+            isDeleteAll = delete_all_day.isChecked()
+            msg = deleteFromToBan(fromdate, todate, self.ban_info["id"], isDeleteAll)
+            if msg["status"]:
                 dialog.reject()
-                self.ban_info = msg['data']
+                self.ban_info = msg["data"]
                 self.widget_main.setCurrentWidget(self.table_main_count)
-                self.handlerData()
-                self.updateTableCount()
-                self.updateTableColor()
-                self.showNoticeColorButton()
+
+                self.show_loading_screen()
+                self.thread = Thread()
+                self.thread.task_completed.connect(
+                    lambda: self.updateWidget([self.reload_widget])
+                )
+                self.thread.task_completed.connect(lambda: SendMessage(msg["msg"]))
+                self.thread.start()
 
         exit.clicked.connect(exit_click)
         submit.clicked.connect(submit_click)
@@ -1581,7 +2334,11 @@ class TinhAndMauPage(QWidget):
     def jumpTableWithRow(self, pos):
         self.table_scroll_count.clearSelection()
         self.table_scroll_color.clearSelection()
-        current_widget  = self.widget_main.currentWidget()
+        self.table_scroll_colorM2.clearSelection()
+        self.table_scroll_colorM3.clearSelection()
+        current_widget = self.widget_main.currentWidget()
+        color_widgetM2 = self.table_main_colorM2
+        color_widgetM3 = self.table_main_colorM3
         color_widget = self.table_main_color
         count_widget = self.table_main_count
 
@@ -1590,76 +2347,211 @@ class TinhAndMauPage(QWidget):
             item_count_data = item_count.data(Qt.ItemDataRole.UserRole)
             if item_count_data:
                 menu = QMenu()
-                moveTable = QAction('VBM')
+                moveTable = QAction("VBM1")
                 moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(lambda: self.moveTableWithAction(item_count_data))
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_count_data, "vbm1")
+                )
+
+                if item_count_data["actionM2"] is not None:
+                    moveTable2 = QAction("VBM2")
+                    moveTable2.setFont(self.font_action)
+                    moveTable2.triggered.connect(
+                        partial(self.moveTableWithAction, item_count_data, "vbm2")
+                    )
+                    menu.addAction(moveTable2)
+
+                if item_count_data["actionM3"] is not None:
+                    moveTable3 = QAction("VBM3")
+                    moveTable3.setFont(self.font_action)
+                    moveTable3.triggered.connect(
+                        partial(self.moveTableWithAction, item_count_data, "vbm3")
+                    )
+                    menu.addAction(moveTable3)
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_count_data, "vbthong")
+                )
 
                 menu.addAction(moveTable)
+                menu.addAction(moveTable_thong)
                 menu.exec(self.table_scroll_count.mapToGlobal(pos))
                 return
-        
+
         if current_widget == color_widget:
             item_color = self.table_scroll_color.itemAt(pos)
             item_color_data = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_data:
                 menu = QMenu()
-                moveTable = QAction('VBT')
+                moveTable = QAction("VBT")
                 moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(lambda: self.moveTableWithAction(item_color_data))
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_data, "vbt")
+                )
+
+                if item_color_data["actionM2"] is not None:
+                    moveTable2 = QAction("VBM2")
+                    moveTable2.setFont(self.font_action)
+                    moveTable2.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_data, "vbm2")
+                    )
+                    menu.addAction(moveTable2)
+
+                if item_color_data["actionM3"] is not None:
+                    moveTable3 = QAction("VBM3")
+                    moveTable3.setFont(self.font_action)
+                    moveTable3.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_data, "vbm3")
+                    )
+                    menu.addAction(moveTable3)
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_data, "vbthong")
+                )
 
                 menu.addAction(moveTable)
+                menu.addAction(moveTable_thong)
+                menu.exec(self.table_scroll_color.mapToGlobal(pos))
+                return
+
+        if current_widget == color_widgetM2:
+            item_color = self.table_scroll_colorM2.itemAt(pos)
+            item_color_dataM2 = item_color.data(Qt.ItemDataRole.UserRole)
+            if item_color_dataM2:
+                menu = QMenu()
+                moveTable = QAction("VBT")
+                moveTable.setFont(self.font_action)
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM2, "vbt")
+                )
+
+                moveTable1 = QAction("VBM1")
+                moveTable1.setFont(self.font_action)
+                moveTable1.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM2, "vbm1")
+                )
+
+                if item_color_dataM2["actionM3"] is not None:
+                    moveTable3 = QAction("VBM3")
+                    moveTable3.setFont(self.font_action)
+                    moveTable3.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM2, "vbm3")
+                    )
+                    menu.addAction(moveTable3)
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM2, "vbthong")
+                )
+
+                menu.addAction(moveTable)
+                menu.addAction(moveTable1)
+                menu.addAction(moveTable_thong)
+                menu.exec(self.table_scroll_color.mapToGlobal(pos))
+                return
+
+        if current_widget == color_widgetM3:
+            item_color = self.table_scroll_colorM3.itemAt(pos)
+            item_color_dataM3 = item_color.data(Qt.ItemDataRole.UserRole)
+            if item_color_dataM3:
+                menu = QMenu()
+                moveTable = QAction("VBT")
+                moveTable.setFont(self.font_action)
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM3, "vbt")
+                )
+
+                moveTable1 = QAction("VBM1")
+                moveTable1.setFont(self.font_action)
+                moveTable1.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM3, "vbm1")
+                )
+
+                moveTable2 = QAction("VBM2")
+                moveTable2.setFont(self.font_action)
+                moveTable2.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM3, "vbm2")
+                )
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM3, "vbthong")
+                )
+
+                menu.addAction(moveTable)
+                menu.addAction(moveTable1)
+                menu.addAction(moveTable2)
+                menu.addAction(moveTable_thong)
                 menu.exec(self.table_scroll_color.mapToGlobal(pos))
                 return
 
     # TODO Handler Data Table
     def updateTableCount(self):
-        value_col = self.ban_info['col']
+        ban_info = self.ban_info
+        value_col = ban_info["col"][1] - (ban_info["col"][0] - 1)
+        filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
+        rowCount = len(filter_data)
         self.frozen_table_count.setRowCount(0)
         self.table_scroll_count.setRowCount(0)
-        ban_info = self.ban_info
-        #/ Config table
-        rowCount = len(ban_info['data'])
+        # / Config table
         self.frozen_table_count.setRowCount(rowCount)
         self.table_scroll_count.setRowCount(rowCount)
-        thong_range = ban_info['thong']['value']
+        thong_range = ban_info["thong"]["value"]
         thong_range_1 = thong_range[0] - 1
         thong_range_2 = thong_range[1]
         thong_ranges = thong_range_2 - thong_range_1
-        for i in range(rowCount):
-            date = ban_info['data'][i]['date'].split('/')
-            item = QTableWidgetItem(f'{date[0]}/{date[1]}/.')
-            self.frozen_table_count.setVerticalHeaderItem(i, item)
 
-        #/ Render Row without Thong
+        for i in range(rowCount):
+            date = filter_data[i]["date"].split("/")
+            item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            self.frozen_table_count.setItem(i, 0, item)
+
+        # / Render Row without Thong
         for item in self.dataCount:
-            row_item = item['row']
-            col_item = item['col']
-            data_item = item['data']
-            color_item = item['color']
-            notice_item = item['notice']
-            item_table = QTableWidgetItem(f'{data_item}')
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            item_table = QTableWidgetItem(f"{data_item}")
             item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if color_item:
                 item_table.setForeground(color_item)
             if notice_item:
                 item_table.setBackground(notice_item)
-            if 'action' in item:
-                item_table.setData(Qt.ItemDataRole.UserRole, {"action": item['action'], "isColor": notice_item})
+            if "actionM1" in item:
+                item_table.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "actionM1": item["actionM1"],
+                        "actionM2": (item["actionM2"] if "actionM2" in item else None),
+                        "actionM3": (item["actionM3"] if "actionM3" in item else None),
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_table,
+                    },
+                )
             self.table_scroll_count.setItem(row_item, col_item, item_table)
-        
-        for i, item in enumerate(ban_info['data']):
-            item_thong = item['thong']
+
+        for i, item in enumerate(filter_data):
+            item_thong = item["thong"]
             jump_col = 0
             for j in range(thong_ranges):
-                if item_thong > - 1:
+                if item_thong > -1:
                     thong_value = self.thong_info[j + thong_range_1][item_thong]
                     if j == 0:
-                        item_table = QTableWidgetItem(f'{thong_value}')
+                        item_table = QTableWidgetItem(f"{thong_value}")
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                         item_table.setForeground(self.red)
-                        self.frozen_table_count.setItem(i, 0, item_table)
+                        self.frozen_table_count.setItem(i, 1, item_table)
                     else:
-                        item_table = QTableWidgetItem(f'{thong_value}')
+                        item_table = QTableWidgetItem(f"{thong_value}")
                         item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                         item_table.setForeground(self.red)
                         self.table_scroll_count.setItem(i, jump_col, item_table)
@@ -1667,21 +2559,35 @@ class TinhAndMauPage(QWidget):
                     jump_col += value_col
 
         # width_of_row = self.frozen_table_count.horizontalHeader().sectionPosition(0)
-        
-        # Resize columns to fit content
-        self.frozen_table_count.resizeColumnsToContents()
-        # Get last data
-        if rowCount == 1 and self.ban_info['data'][rowCount - 1]['thong'] == -1:
-            self.frozen_table_count.setFixedWidth(180)
-        else:
-            cell_width = 0
-            for i in range(rowCount):
-                cell_width = max(cell_width, self.frozen_table_count.visualItemRect(self.frozen_table_count.item(i, 0)).width())
-            # # Lấy kích thước của header dọc
-            vertical_header_width = self.frozen_table_count.verticalHeader().width()
 
-            # Đặt kích thước cố định cho QTableWidget
-            self.frozen_table_count.setFixedWidth(cell_width + vertical_header_width)
+        # Resize columns to fit content
+        # self.frozen_table_count.resizeColumnsToContents()
+        # # Get last data
+        # if rowCount == 1 and self.ban_info['data'][rowCount - 1]['thong'] == -1:
+        #     self.frozen_table_count.setFixedWidth(180)
+        # else:
+        #     cell_width = 0
+        #     for i in range(rowCount):
+        #         cell_width = max(cell_width, self.frozen_table_count.visualItemRect(self.frozen_table_count.item(i, 0)).width())
+        #     # # Lấy kích thước của header dọc
+        #     vertical_header_width = self.frozen_table_count.verticalHeader().width()
+
+        #     # Đặt kích thước cố định cho QTableWidget
+        #     self.frozen_table_count.setFixedWidth(cell_width + vertical_header_width)
+
+        # info_last_item = self.dataCount[len(self.dataCount) - 1]
+        # last_item_scroll = self.table_scroll_count.item(info_last_item["row"], 1)
+        # last_item_frozen = self.frozen_table_count.item(info_last_item["row"], 1)
+        # print(last_item_frozen, last_item_scroll, info_last_item)
+
+        # if last_item_scroll:
+        #     sleep(2)
+        #     self.table_scroll_count.scrollToItem(
+        #         last_item_scroll, hint=QTableWidget.ScrollHint.PositionAtCenter
+        #     )
+        #     self.frozen_table_count.scrollToItem(
+        #         last_item_frozen, hint=QTableWidget.ScrollHint.PositionAtCenter
+        #     )
 
         self.table_scroll_count.scrollToBottom()
         self.frozen_table_count.scrollToBottom()
@@ -1691,50 +2597,54 @@ class TinhAndMauPage(QWidget):
         self.ranges = []
         cols_arr = []
         total_column = 0
-        thong_range = self.ban_info['thong']['value']
+        thong_range = self.ban_info["thong"]["value"]
         thong_range_1 = thong_range[0] - 1
         thong_range_2 = thong_range[1]
         thong_ranges = thong_range_2 - thong_range_1
         for i in range(thong_ranges):
             range_data = {}
-            thong_name = QTableWidgetItem(f'T.{i + thong_range_1 + 1}')
+            thong_name = QTableWidgetItem(f"T.{i + thong_range_1 + 1}")
             thong_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             thong_name.setForeground(self.red)
-            range_data['start'] = total_column
-            range_data['value'] = total_column
+            range_data["start"] = total_column
+            range_data["value"] = total_column
             if i != 0:
                 cols_arr.append(thong_name)
                 total_column += 1
-            for j in range(self.ban_info['col']):
-                col_name = QTableWidgetItem(f'C.{j + 1}')
+            for j in range(self.ban_info["col"][0] - 1, self.ban_info["col"][1]):
+                col_name = QTableWidgetItem(f"C.{j + 1}")
                 col_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 cols_arr.append(col_name)
                 total_column += 1
-            range_data['end'] = total_column
-            range_data['thong'] = i + thong_range_1
+            range_data["end"] = total_column
+            range_data["thong"] = i + thong_range_1
             self.ranges.append(range_data)
-        
+
         self.table_scroll_count.setColumnCount(total_column)
 
         for i, item in enumerate(cols_arr):
             self.table_scroll_count.setHorizontalHeaderItem(i, item)
 
     def updateTableColor(self):
-        #/ Set RowCount = 0
+        # / Set RowCount = 0
         self.table_scroll_color.setRowCount(0)
         self.table_scroll_left.setRowCount(0)
-        #/ Config rowCount With data 
-        rowCount = len(self.ban_info['data'])
+        # / Config rowCount With data
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        rowCount = len(filter_data)
         self.table_scroll_color.setRowCount(rowCount)
         self.table_scroll_left.setRowCount(rowCount)
         for i in range(rowCount):
-                    date = self.ban_info['data'][i]['date'].split('/')
-                    item = QTableWidgetItem(f'{date[0]}/{date[1]}/.')
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_left.setItem(i,0, item)
+            date = filter_data[i]["date"].split("/")
+            item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_scroll_left.setItem(i, 0, item)
         self.table_scroll_left.setHorizontalHeaderItem(0, QTableWidgetItem())
-        #/ render row defalut
-        col_e = self.ban_info['meta']['setting']['col_e']
+
+        # / render row defalut
+        col_e = self.ban_info["meta"]["setting"]["col_e"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -1745,32 +2655,44 @@ class TinhAndMauPage(QWidget):
                 num_cols = 3  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f'*')
+                    col_header = QTableWidgetItem(f"*")
                     col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_color.setItem(i,total_columns + j, col_header)
+                    self.table_scroll_color.setItem(i, total_columns + j, col_header)
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
-                col_null.setBackground(QColor(Qt.GlobalColor.white))  # Đặt màu nền là màu trắng
-                self.table_scroll_color.setItem(i,total_columns + num_cols, col_null)
+                col_null.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Đặt màu nền là màu trắng
+                self.table_scroll_color.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-        
-        #/ render row color table
+
+        # / render row color table
         for item in self.dataColor:
-            row_item = item['row']
-            col_item = item['col']
-            data_item = item['data']
-            color_item = item['color']
-            notice_item = item['notice']
-            action_item = item['action']
-            item_insert = QTableWidgetItem(f'{data_item}')
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            action_item = item["action"]
+            item_insert = QTableWidgetItem(f"{data_item}")
             item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if color_item:
                 item_insert.setForeground(color_item)
             if notice_item:
                 item_insert.setBackground(notice_item)
             if action_item:
-                item_insert.setData(Qt.ItemDataRole.UserRole, {"action": action_item, "isColor": notice_item})
+                item_insert.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "action": action_item,
+                        "actionM2": (item["actionM2"] if "actionM2" in item else None),
+                        "actionM3": (item["actionM3"] if "actionM3" in item else None),
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_insert,
+                    },
+                )
             self.table_scroll_color.setItem(row_item, col_item, item_insert)
 
         for i in range(self.table_scroll_color.columnCount()):
@@ -1781,359 +2703,1131 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_left.scrollToBottom()
 
     def updateHeaderColor(self):
-        current_column  = 0
+        current_column = 0
         # Khởi tạo biến để theo dõi tổng số cột
         total_columns = 0
         step_count = 0
 
-        col_e = self.ban_info['meta']['setting']['col_e']
+        col_e = self.ban_info["meta"]["setting"]["col_e"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 2, value2 - 1):
-            current_column  += 4  # Số cột tạo cho mỗi lần là 3 cột + 1 cột phụ trợ
+            current_column += 4  # Số cột tạo cho mỗi lần là 3 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_color.setColumnCount(current_column)
         self.table_scroll_color.setColumnCount(current_column)
-        
+
         # Tạo cột từ 0 đến 83
-        for i in range(value1 - 2, value2  - 1):
+        for i in range(value1 - 2, value2 - 1):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = 3  # Số lượng cột tối đa có thể thêm
 
             # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 2}")
+            header_item = QTableWidgetItem(f"D {i + 2}/M1")
             header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.frozen_table_color.setItem(0, total_columns, header_item)
             self.frozen_table_color.setSpan(0, total_columns, 1, num_cols)
 
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
-                col_header = QTableWidgetItem(f'{j + 1}')
+                col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_scroll_color.setHorizontalHeaderItem(total_columns + j, col_header)
+                self.table_scroll_color.setHorizontalHeaderItem(
+                    total_columns + j, col_header
+                )
 
-            
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
-            col_null.setBackground(QColor(Qt.GlobalColor.white))  # Đặt màu nền là màu trắng
-            self.table_scroll_color.setHorizontalHeaderItem(total_columns + num_cols, col_null)
-
+            col_null.setBackground(
+                QColor(Qt.GlobalColor.white)
+            )  # Đặt màu nền là màu trắng
+            self.table_scroll_color.setHorizontalHeaderItem(
+                total_columns + num_cols, col_null
+            )
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
- 
+
+    def updateTableColorM2(self):
+        # / Set RowCount = 0
+        self.table_scroll_colorM2.setRowCount(0)
+        self.table_scroll_leftM2.setRowCount(0)
+        # / Config rowCount With data
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        rowCount = len(filter_data)
+        self.table_scroll_colorM2.setRowCount(rowCount)
+        self.table_scroll_leftM2.setRowCount(rowCount)
+        for i in range(rowCount):
+            date = filter_data[i]["date"].split("/")
+            item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_scroll_leftM2.setItem(i, 0, item)
+        self.table_scroll_leftM2.setHorizontalHeaderItem(0, QTableWidgetItem())
+
+        # / render row defalut
+        col_e = self.ban_info["meta"]["setting"]["col_e2"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(rowCount):
+            # Khởi tạo biến để theo dõi tổng số cột
+            total_columns = 0
+            for c in range(value1 - 2, value2 - 1):
+                num_cols = 2  # Số lượng cột tối đa có thể thêm
+                # Thêm tên cột cho hàng header
+                for j in range(num_cols):
+                    col_header = QTableWidgetItem(f"*")
+                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.table_scroll_colorM2.setItem(i, total_columns + j, col_header)
+                # Tạo ô trống ở cột cuối cùng
+                col_null = QTableWidgetItem()
+                col_null.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Đặt màu nền là màu trắng
+                self.table_scroll_colorM2.setItem(i, total_columns + num_cols, col_null)
+                # Cập nhật tổng số cột
+                total_columns += num_cols + 1
+
+        # / render row color table
+        for item in self.dataColor2:
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            action_item = item["action"]
+            item_insert = QTableWidgetItem(f"{data_item}")
+            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if color_item:
+                item_insert.setForeground(color_item)
+            if notice_item:
+                item_insert.setBackground(notice_item)
+            if action_item:
+                item_insert.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "action": action_item,
+                        "actionM1": item["actionM1"],
+                        "actionM3": (item["actionM3"] if "actionM3" in item else None),
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_insert,
+                    },
+                )
+            self.table_scroll_colorM2.setItem(row_item, col_item, item_insert)
+
+        for i in range(self.table_scroll_colorM2.columnCount()):
+            width = self.table_scroll_colorM2.columnWidth(i)
+            self.frozen_table_colorM2.setColumnWidth(i, width)
+
+        self.table_scroll_colorM2.scrollToBottom()
+        self.table_scroll_leftM2.scrollToBottom()
+
+    def updateHeaderColorM2(self):
+        current_column = 0
+        # Khởi tạo biến để theo dõi tổng số cột
+        total_columns = 0
+        step_count = 0
+
+        col_e = self.ban_info["meta"]["setting"]["col_e2"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 2, value2 - 1):
+            current_column += 3  # Số cột tạo cho mỗi lần là 2 cột + 1 cột phụ trợ
+
+        # Thiết lập số lượng cột cho bảng
+        self.frozen_table_colorM2.setColumnCount(current_column)
+        self.table_scroll_colorM2.setColumnCount(current_column)
+
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 2, value2 - 1):
+            # Xác định số lượng cột cho mỗi lần tạo
+            num_cols = 2  # Số lượng cột tối đa có thể thêm
+
+            # Tạo hàng header cho mỗi lần tạo cột
+            header_item = QTableWidgetItem(f"D {i + 2}/M2")
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_colorM2.setItem(0, total_columns, header_item)
+            self.frozen_table_colorM2.setSpan(0, total_columns, 1, num_cols)
+
+            # Thêm tên cột cho hàng header
+            for j in range(num_cols):
+                col_header = QTableWidgetItem(f"{j + 1}")
+                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_scroll_colorM2.setHorizontalHeaderItem(
+                    total_columns + j, col_header
+                )
+
+            # Tạo ô trống ở cột cuối cùng
+            col_null = QTableWidgetItem()
+            col_null.setBackground(
+                QColor(Qt.GlobalColor.white)
+            )  # Đặt màu nền là màu trắng
+            self.table_scroll_colorM2.setHorizontalHeaderItem(
+                total_columns + num_cols, col_null
+            )
+
+            # Cập nhật tổng số cột
+            total_columns += num_cols + 1
+            step_count += 1
+
+    def updateTableColorM3(self):
+        # / Set RowCount = 0
+        self.table_scroll_colorM3.setRowCount(0)
+        self.table_scroll_leftM3.setRowCount(0)
+        # / Config rowCount With data
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        rowCount = len(filter_data)
+        self.table_scroll_colorM3.setRowCount(rowCount)
+        self.table_scroll_leftM3.setRowCount(rowCount)
+        for i in range(rowCount):
+            date = filter_data[i]["date"].split("/")
+            item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_scroll_leftM3.setItem(i, 0, item)
+        self.table_scroll_leftM3.setHorizontalHeaderItem(0, QTableWidgetItem())
+
+        # / render row defalut
+        col_e = self.ban_info["meta"]["setting"]["col_e3"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(rowCount):
+            # Khởi tạo biến để theo dõi tổng số cột
+            total_columns = 0
+            for c in range(value1 - 2, value2 - 1):
+                num_cols = 1  # Số lượng cột tối đa có thể thêm
+                # Thêm tên cột cho hàng header
+                for j in range(num_cols):
+                    col_header = QTableWidgetItem(f"*")
+                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.table_scroll_colorM3.setItem(i, total_columns + j, col_header)
+                # Tạo ô trống ở cột cuối cùng
+                col_null = QTableWidgetItem()
+                col_null.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Đặt màu nền là màu trắng
+                self.table_scroll_colorM3.setItem(i, total_columns + num_cols, col_null)
+                # Cập nhật tổng số cột
+                total_columns += num_cols + 1
+
+        # / render row color table
+        for item in self.dataColor3:
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            action_item = item["action"]
+            item_insert = QTableWidgetItem(f"{data_item}")
+            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if color_item:
+                item_insert.setForeground(color_item)
+            if notice_item:
+                item_insert.setBackground(notice_item)
+            if action_item:
+                item_insert.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "action": action_item,
+                        "actionM1": item["actionM1"],
+                        "actionM2": item["actionM2"],
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_insert,
+                    },
+                )
+            self.table_scroll_colorM3.setItem(row_item, col_item, item_insert)
+
+        for i in range(self.table_scroll_colorM3.columnCount()):
+            width = self.table_scroll_colorM3.columnWidth(i)
+            self.frozen_table_colorM3.setColumnWidth(i, width)
+
+        self.table_scroll_colorM3.scrollToBottom()
+        self.table_scroll_leftM3.scrollToBottom()
+
+    def updateHeaderColorM3(self):
+        current_column = 0
+        # Khởi tạo biến để theo dõi tổng số cột
+        total_columns = 0
+        step_count = 0
+
+        col_e = self.ban_info["meta"]["setting"]["col_e3"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 2, value2 - 1):
+            current_column += 2  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+
+        # Thiết lập số lượng cột cho bảng
+        self.frozen_table_colorM3.setColumnCount(current_column)
+        self.table_scroll_colorM3.setColumnCount(current_column)
+
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 2, value2 - 1):
+            # Xác định số lượng cột cho mỗi lần tạo
+            num_cols = 1  # Số lượng cột tối đa có thể thêm
+
+            # Tạo hàng header cho mỗi lần tạo cột
+            header_item = QTableWidgetItem(f"D {i + 2}/M3")
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_colorM3.setItem(0, total_columns, header_item)
+            # self.frozen_table_colorM3.setSpan(0, total_columns, 1, num_cols)
+
+            # Thêm tên cột cho hàng header
+            for j in range(num_cols):
+                col_header = QTableWidgetItem(f"{j + 1}")
+                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_scroll_colorM3.setHorizontalHeaderItem(
+                    total_columns + j, col_header
+                )
+
+            # Tạo ô trống ở cột cuối cùng
+            col_null = QTableWidgetItem()
+            col_null.setBackground(
+                QColor(Qt.GlobalColor.white)
+            )  # Đặt màu nền là màu trắng
+            self.table_scroll_colorM3.setHorizontalHeaderItem(
+                total_columns + num_cols, col_null
+            )
+
+            # Cập nhật tổng số cột
+            total_columns += num_cols + 1
+            step_count += 1
+
     def handlerData(self):
-        #/ Config Data
+        # / Config Data
+        ban_info = self.ban_info
         thong_info = self.thong_info
         ngang_info = self.number_info
-        thong_range = self.ban_info['thong']['value']
+        thong_range = ban_info["thong"]["value"]
         thong_range_1 = thong_range[0] - 1
         thong_range_2 = thong_range[1]
         thong_ranges = thong_range_2 - thong_range_1
-        ngang = self.ban_info['col']
-        data = self.ban_info['data']
-        meta = self.ban_info['meta']['notice']
-        notice_count = meta['count']
-        notice_color1 = meta['color']
-        notice_color2 = meta['color2']
+        ngangs = ban_info["col"][1] - (ban_info["col"][0] - 1)
+        data = ban_info["data"]
+        meta = ban_info["meta"]["notice"]
+        notice_count = meta["count"]
+        notice_color1 = meta["color"]
+        notice_color2 = meta["color2"]
+        notice_colorM2 = meta["colorM2"]
+        notice_colorM3 = meta["colorM3"]
         notice_color = []
-        buttons = self.ban_info['meta']['buttons']
+        buttons = ban_info["meta"]["buttons"]
         if buttons[0]:
             notice_color = notice_color1
         if buttons[1]:
             notice_color = notice_color2
-        
-        col_e = self.ban_info['meta']['setting']['col_e']
+
+        col_e = ban_info["meta"]["setting"]["col_e"]
         value1 = col_e[0]
         value2 = col_e[1]
 
-        #/ Setup Variable
-        self.count_handler = {} # data so dem (d = Bang tinh, e = Bang mau)
-        self.math_isFirst = {} # data toan duoc (c1 = Bang tinh, STT = Bang Mau (Min 3 - Max 4))
-        self.isFrits = {} # So dau tien
-        self.dataCount = [] # Data Bang tinh
-        self.dataColor = [] # Data Bang mau
-        #/ Start Render data
+        col_e2 = ban_info["meta"]["setting"]["col_e2"]
+        value1_2 = col_e2[0]
+        value2_2 = col_e2[1]
+
+        col_e3 = ban_info["meta"]["setting"]["col_e3"]
+        value1_3 = col_e3[0]
+        value2_3 = col_e3[1]
+
+        # / Setup Variable
+        self.count_handler = {}  # data so dem (d = Bang tinh, e = Bang mau)
+        self.math_isFirst = (
+            {}
+        )  # data toan duoc (c1 = Bang tinh, STT = Bang Mau (Min 3 - Max 4))
+        self.isFrits = {}  # So dau tien
+        self.dataCount = []  # Data Bang tinh
+        self.dataColor = []  # Data Bang Mau M1
+        self.dataColor2 = []  # Data Bang Mau M1
+        self.dataColor3 = []  # Data Bang Mau M1
+        countRow = 0
+        isCountRow = 0
+        # / Start Render data
         for i, item in enumerate(data):
-            item_date = item.get('date')
-            item_thong = item.get('thong')
-            item_ngang = item.get('ngang')
+            item_date = item.get("date")
+            item_thong = item.get("thong")
+            item_ngang = item.get("ngang")
+            isDeleted = item.get("isDeleted")
             total_column = 0
+            if not isDeleted:
+                countRow = isCountRow
+                isCountRow += 1
+            else:
+                countRow = -1
             for t in range(thong_ranges):
-                # print(t)
-                col_t = thong_info[t + thong_range_1][item_thong] if item_thong > -1 else '*'
+                col_t = (
+                    thong_info[t + thong_range_1][item_thong]
+                    if item_thong > -1
+                    else f"?"
+                )
                 if t != 0:
                     total_column += 1
-                for c in range(ngang):
+                for c in range(ngangs):
                     col_a = ngang_info[item_ngang][c]
                     stt_cot = c + 1
 
-                    #/ Start Count Handler
-                    dem_col_row = f'{stt_cot}:{t}'
+                    # / Start Count Handler
+                    dem_col_row = f"{stt_cot}:{t}"
                     if not dem_col_row in self.count_handler:
                         self.count_handler[dem_col_row] = 1
                     else:
                         self.count_handler[dem_col_row] += 1
-                    #/ End Count Handler
-                    col_d = self.count_handler[dem_col_row] # so dem Bang tinh
-                    isNoticeCount = self.checkNotice(col_d, notice_count[0], notice_count[1])
+                    # / End Count Handler
+                    col_d = self.count_handler[dem_col_row]  # so dem Bang tinh
+                    isNoticeCount = self.checkNotice(
+                        col_d, notice_count[0], notice_count[1]
+                    )
 
-                    #/ Start check isFirst
-                    isColFisrt = f'{col_a}:{i}:{t}'
+                    # / Start check isFirst
+                    isColFisrt = f"{col_a}:{i}:{col_d}"
 
-                    #/ Check col_a equal col_t
-                    isEqual = self.checkColor(str(col_a), str(col_t))
+                    # / Check col_a equal col_t
+                    isEqual = (
+                        self.checkColor(str(col_a), str(col_t))
+                        if item_thong > -1
+                        else None
+                    )
 
                     if col_d == 1:
-                        self.dataCount.append({
-                            "row": i,
-                            "col": total_column,
-                            "color": isEqual,
-                            "data": f'{col_a}/{col_d}',
-                            "notice": isNoticeCount,
-                            "date": item_date,
-                            "color_value": col_d,
-                        })
+                        self.dataCount.append(
+                            {
+                                "row": countRow,
+                                "col": total_column,
+                                "color": isEqual,
+                                "data": f"{col_a}/{col_d}",
+                                "notice": isNoticeCount,
+                                "date": item_date,
+                                "color_value": col_d,
+                                "isDeleted": isDeleted,
+                            }
+                        )
                     else:
-                        if not isColFisrt in self.isFrits:
-                            self.isFrits[isColFisrt] = True
-
-                            #/ Start check col_c is first Like first check
-                            maths_c1 = f'{col_d}:{t}:{i}:_color'
-                            if not maths_c1 in self.math_isFirst:
-                                self.math_isFirst[maths_c1] = 1
-                                # col_c1 = self.math_isFirst[maths_c1] # toan duoc lan 1
-
-                                #/ Start check col_stt table count min 3 and max 4 with every count_handler
-                                math_count_handler = f'{col_d}:{i}:_color'
+                        # / End count color with col_d
+                        if value1 <= col_d <= value2:
+                            if not isColFisrt in self.isFrits:
+                                self.isFrits[isColFisrt] = True
+                                # / Start check col_stt table count min 3 and max 4 with every count_handler
+                                math_count_handler = f"{col_d}:{i}:_color"
                                 if not math_count_handler in self.count_handler:
                                     self.count_handler[math_count_handler] = 1
                                 else:
                                     self.count_handler[math_count_handler] += 1
 
-                                #/ End check col_stt table count
-                                stt_count_with_d = self.count_handler[math_count_handler] # So thu tu cua so dem
+                                # / End check col_stt table count
+                                stt_count_with_d = self.count_handler[
+                                    math_count_handler
+                                ]  # So thu tu cua so dem
 
-                                #/ Start Check count handler with if and else
+                                # / Start Check count handler with if and else
                                 if stt_count_with_d <= 3:
 
-                                    #/ Start count color with col_d
-                                    col_e_count = f'{col_d}:{stt_count_with_d}:col_e'
+                                    # / Start count color with col_d
+                                    col_e_count = f"{col_d}:{stt_count_with_d}:col_e"
                                     if not col_e_count in self.count_handler:
                                         self.count_handler[col_e_count] = 1
                                     else:
                                         self.count_handler[col_e_count] += 1
-                                    col_e = self.count_handler[col_e_count] # so dem bang mau
-                                    isNoticeColor = self.checkNotice(col_e, notice_color[0], notice_color[1])
-                                    #/ End count color with col_d
-                                    if col_d >= value1 and col_d <= value2:
-                                        find_null_color = (1 if col_d - value1 > 0 else 0) * (col_d - value1)
-                                        find_stt_color = stt_count_with_d - 1
-                                        find_next_color = ( col_d - value1 ) * 3
-                                        col_color = find_next_color + find_null_color + find_stt_color  # vi tri col cua item bang mau
-                                        #/ Add Data to Table count
-                                        self.dataCount.append({
-                                            "row": i,
-                                            "col": total_column,
-                                            "data": f'{col_a}/{t + 1}/{stt_cot}/{col_d}',
-                                            "color": isEqual,
-                                            "action":{
-                                                "name": "color",
-                                                "row": i,
-                                                "col": col_color
-                                            },
-                                            "notice": isNoticeCount,
-                                            "date": item_date,
-                                            "color_value": col_d
-                                        })
-                                        
-                                        #/ Add data to table color
-                                        self.dataColor.append({
-                                            "row": i,
-                                            "col": col_color,
-                                            "data": f'{col_a}/{t + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}',
-                                            "color": isEqual,
-                                            "action":{
-                                                "name": 'count',
-                                                "row": i,
-                                                "col": total_column
-                                            },
-                                            "notice": isNoticeColor,
-                                            "date": item_date,
-                                            "color_value": col_e,
-                                            "col_d": col_d,
-                                        })
-                                    
-                                    else:
-                                        self.dataCount.append({
-                                            "row": i,
-                                            "col": total_column,
-                                            "color": isEqual,
-                                            "data": f'{col_a}/{col_d}',
-                                            "notice": isNoticeCount,
-                                            "color_value": col_d
-                                        })
-
-                                    if isEqual:
-                                        #/ Reset Col_e with isEqual
-                                        self.count_handler[col_e_count] = 0
-                                else:
-                                    #/ Add Data to Table count without math
-                                    self.dataCount.append({
-                                        "row": i,
+                                    col_e = self.count_handler[
+                                        col_e_count
+                                    ]  # so dem bang mau
+                                    isNoticeColor = self.checkNotice(
+                                        col_e, notice_color[0], notice_color[1]
+                                    )
+                                    find_null_color = (
+                                        1 if col_d - value1 > 0 else 0
+                                    ) * (col_d - value1)
+                                    find_stt_color = stt_count_with_d - 1
+                                    find_next_color = (col_d - value1) * 3
+                                    col_color = (
+                                        find_next_color
+                                        + find_null_color
+                                        + find_stt_color
+                                    )  # vi tri col cua item bang mau
+                                    row_thong = item_thong
+                                    if row_thong < 0:
+                                        row_thong = self.find_row_thong_with_col_a(
+                                            col_a, thong_info[t + thong_range_1]
+                                        )
+                                    # / Add Data to Table count
+                                    dataCount = {
+                                        "row": countRow,
                                         "col": total_column,
+                                        "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d}",
                                         "color": isEqual,
-                                        "data": f'{col_a}/{col_d}',
+                                        "actionM1": {
+                                            "name": "color",
+                                            "row": countRow,
+                                            "col": col_color,
+                                            "isColor": isNoticeColor,
+                                        },
                                         "notice": isNoticeCount,
                                         "date": item_date,
-                                        "color_value": col_d
-                                    })
+                                        "color_value": col_d,
+                                        "thong": {
+                                            "row": row_thong,
+                                            "col": t + 5,
+                                            "col_a": col_t if col_t != "?" else col_a,
+                                            "isCol_a": False if col_t != "?" else True,
+                                        },
+                                        "isDeleted": isDeleted,
+                                    }
+                                    dataColorM1 = {
+                                        "row": countRow,
+                                        "col": col_color,
+                                        "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}",
+                                        "color": isEqual,
+                                        "action": {
+                                            "name": "count",
+                                            "row": countRow,
+                                            "col": total_column,
+                                            "isColor": isNoticeCount,
+                                        },
+                                        "notice": isNoticeColor,
+                                        "date": item_date,
+                                        "color_value": col_e,
+                                        "col_d": col_d,
+                                        "thong": {
+                                            "row": row_thong,
+                                            "col": t + 5,
+                                            "col_a": col_t if col_t != "?" else col_a,
+                                            "isCol_a": False if col_t != "?" else True,
+                                        },
+                                        "isDeleted": isDeleted,
+                                    }
+
+                                    dataColorM2 = None
+
+                                    dataColorM3 = None
+
+                                    # / M2 Start
+                                    if value1_2 <= col_e <= value2_2:
+                                        math_count_handler_m2 = f"{col_e}:{i}:_color_m2"
+                                        if (
+                                            not math_count_handler_m2
+                                            in self.count_handler
+                                        ):
+                                            self.count_handler[
+                                                math_count_handler_m2
+                                            ] = 1
+                                        else:
+                                            self.count_handler[
+                                                math_count_handler_m2
+                                            ] += 1
+
+                                        # / End check col_stt table count
+                                        stt_count_with_d_m2 = self.count_handler[
+                                            math_count_handler_m2
+                                        ]  # So thu tu cua so dem
+                                        if stt_count_with_d_m2 <= 2:
+                                            # / Start count color with col_e
+                                            col_e_count_m2 = f"{col_e}:{stt_count_with_d_m2}:col_e_m2"
+                                            if not col_e_count_m2 in self.count_handler:
+                                                self.count_handler[col_e_count_m2] = 1
+                                            else:
+                                                self.count_handler[col_e_count_m2] += 1
+                                            col_e_m2 = self.count_handler[
+                                                col_e_count_m2
+                                            ]  # so dem bang mau
+                                            isNoticeColor_m2 = self.checkNotice(
+                                                col_e_m2,
+                                                notice_colorM2[0],
+                                                notice_colorM2[1],
+                                            )
+                                            find_null_color_m2 = (
+                                                1 if col_e - value1_2 > 0 else 0
+                                            ) * (col_e - value1_2)
+                                            find_stt_color_m2 = stt_count_with_d_m2 - 1
+                                            find_next_color_m2 = (col_e - value1_2) * 2
+                                            col_color_m2 = (
+                                                find_next_color_m2
+                                                + find_null_color_m2
+                                                + find_stt_color_m2
+                                            )  # vi tri col cua item bang mau
+                                            # / Add data to table color
+                                            dataColorM2 = {
+                                                "row": countRow,
+                                                "col": col_color_m2,
+                                                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}",
+                                                "color": isEqual,
+                                                "action": {
+                                                    "name": "count",
+                                                    "row": countRow,
+                                                    "col": total_column,
+                                                    "isColor": isNoticeCount,
+                                                },
+                                                "actionM1": {
+                                                    "name": "color",
+                                                    "row": countRow,
+                                                    "col": col_color,
+                                                    "isColor": isNoticeColor,
+                                                },
+                                                "notice": isNoticeColor_m2,
+                                                "date": item_date,
+                                                "color_value": col_e2,
+                                                "col_d": col_e,
+                                                "thong": {
+                                                    "row": row_thong,
+                                                    "col": t + 5,
+                                                    "col_a": (
+                                                        col_t if col_t != "?" else col_a
+                                                    ),
+                                                    "isCol_a": (
+                                                        False if col_t != "?" else True
+                                                    ),
+                                                },
+                                                "isDeleted": isDeleted,
+                                            }
+
+                                            if isEqual:
+                                                self.count_handler[col_e_count_m2] = 0
+
+                                            # / M3 start
+                                            if value1_3 <= col_e_m2 <= value2_3:
+                                                math_count_handler_m3 = (
+                                                    f"{col_e_m2}:{i}:_color_m3"
+                                                )
+                                                if (
+                                                    not math_count_handler_m3
+                                                    in self.count_handler
+                                                ):
+                                                    self.count_handler[
+                                                        math_count_handler_m3
+                                                    ] = 1
+                                                else:
+                                                    self.count_handler[
+                                                        math_count_handler_m3
+                                                    ] += 1
+
+                                                # / End check col_stt table count
+                                                stt_count_with_d_m3 = (
+                                                    self.count_handler[
+                                                        math_count_handler_m3
+                                                    ]
+                                                )  # So thu tu cua so dem
+                                                if stt_count_with_d_m3 <= 1:
+                                                    # / Start count color with col_e
+                                                    col_e_count_m3 = f"{col_e_m2}:{stt_count_with_d_m3}:col_e_m3"
+                                                    if (
+                                                        not col_e_count_m3
+                                                        in self.count_handler
+                                                    ):
+                                                        self.count_handler[
+                                                            col_e_count_m3
+                                                        ] = 1
+                                                    else:
+                                                        self.count_handler[
+                                                            col_e_count_m3
+                                                        ] += 1
+                                                    col_e_m3 = self.count_handler[
+                                                        col_e_count_m3
+                                                    ]  # so dem bang mau
+                                                    isNoticeColor_m3 = self.checkNotice(
+                                                        col_e_m3,
+                                                        notice_colorM3[0],
+                                                        notice_colorM3[1],
+                                                    )
+                                                    find_null_color_m3 = (
+                                                        1
+                                                        if col_e_m2 - value1_3 > 0
+                                                        else 0
+                                                    ) * (col_e_m2 - value1_3)
+                                                    find_stt_color_m3 = (
+                                                        stt_count_with_d_m3 - 1
+                                                    )
+                                                    find_next_color_m3 = (
+                                                        col_e_m2 - value1_3
+                                                    ) * 1
+                                                    col_color_m3 = (
+                                                        find_next_color_m3
+                                                        + find_null_color_m3
+                                                        + find_stt_color_m3
+                                                    )  # vi tri col cua item bang mau
+                                                    # / Add data to table color 3
+                                                    dataColorM3 = {
+                                                        "row": countRow,
+                                                        "col": col_color_m3,
+                                                        "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}",
+                                                        "color": isEqual,
+                                                        "action": {
+                                                            "name": "count",
+                                                            "row": countRow,
+                                                            "col": total_column,
+                                                            "isColor": isNoticeCount,
+                                                        },
+                                                        "actionM1": {
+                                                            "name": "color",
+                                                            "row": countRow,
+                                                            "col": col_color,
+                                                            "isColor": isNoticeColor,
+                                                        },
+                                                        "actionM2": {
+                                                            "name": "color",
+                                                            "row": countRow,
+                                                            "col": col_color_m2,
+                                                            "isColor": isNoticeColor_m2,
+                                                        },
+                                                        "notice": isNoticeColor_m3,
+                                                        "date": item_date,
+                                                        "color_value": col_e3,
+                                                        "col_d": col_e_m2,
+                                                        "thong": {
+                                                            "row": row_thong,
+                                                            "col": t + 5,
+                                                            "col_a": (
+                                                                col_t
+                                                                if col_t != "?"
+                                                                else col_a
+                                                            ),
+                                                            "isCol_a": (
+                                                                False
+                                                                if col_t != "?"
+                                                                else True
+                                                            ),
+                                                        },
+                                                        "isDeleted": isDeleted,
+                                                    }
+
+                                                    if isEqual:
+                                                        self.count_handler[
+                                                            col_e_count_m3
+                                                        ] = 0
+
+                                    if dataColorM3:
+                                        self.dataColor3.append(dataColorM3)
+                                        dataCount["actionM3"] = {
+                                            "name": "colorM3",
+                                            "row": countRow,
+                                            "col": dataColorM3["col"],
+                                            "isColor": dataColorM3["notice"],
+                                        }
+                                        dataColorM1["actionM3"] = {
+                                            "name": "colorM3",
+                                            "row": countRow,
+                                            "col": dataColorM3["col"],
+                                            "isColor": dataColorM3["notice"],
+                                        }
+                                        dataColorM2["actionM3"] = {
+                                            "name": "colorM3",
+                                            "row": countRow,
+                                            "col": dataColorM3["col"],
+                                            "isColor": dataColorM3["notice"],
+                                        }
+                                    if dataColorM2:
+                                        self.dataColor2.append(dataColorM2)
+                                        dataCount["actionM2"] = {
+                                            "name": "colorM2",
+                                            "row": countRow,
+                                            "col": dataColorM2["col"],
+                                            "isColor": dataColorM2["notice"],
+                                        }
+                                        dataColorM1["actionM2"] = {
+                                            "name": "colorM2",
+                                            "row": countRow,
+                                            "col": dataColorM2["col"],
+                                            "isColor": dataColorM2["notice"],
+                                        }
+                                    self.dataCount.append(dataCount)
+
+                                    # / Add data to table color
+                                    self.dataColor.append(dataColorM1)
+
+                                    if isEqual:
+                                        # / Reset Col_e with isEqual
+                                        self.count_handler[col_e_count] = 0
+
+                                else:
+                                    # / Add Data to Table count without math
+                                    self.dataCount.append(
+                                        {
+                                            "row": countRow,
+                                            "col": total_column,
+                                            "color": isEqual,
+                                            "data": f"{col_a}/{col_d}",
+                                            "notice": isNoticeCount,
+                                            "date": item_date,
+                                            "color_value": col_d,
+                                            "isDeleted": isDeleted,
+                                        }
+                                    )
+                            # / End check col_c is first
                             else:
-                                #/ Add Data to Table count without math
-                                self.dataCount.append({
-                                    "row": i,
+                                # / Add Data to Table count without math
+                                self.dataCount.append(
+                                    {
+                                        "row": countRow,
+                                        "col": total_column,
+                                        "color": isEqual,
+                                        "data": f"{col_a}/{col_d}",
+                                        "notice": isNoticeCount,
+                                        "date": item_date,
+                                        "color_value": col_d,
+                                        "isDeleted": isDeleted,
+                                    }
+                                )
+
+                        else:
+                            self.dataCount.append(
+                                {
+                                    "row": countRow,
                                     "col": total_column,
                                     "color": isEqual,
-                                    "data": f'{col_a}/{col_d}',
+                                    "data": f"{col_a}/{col_d}",
                                     "notice": isNoticeCount,
-                                    "date": item_date,
-                                    "color_value": col_d
-                                })
-                        #/ End check col_c is first
-                        else:
-                            #/ Add Data to Table count without math
-                            self.dataCount.append({
-                                "row": i,
-                                "col": total_column,
-                                "color": isEqual,
-                                "data": f'{col_a}/{col_d}',
-                                "notice": isNoticeCount,
-                                "date": item_date,
-                                "color_value": col_d
-                            })
-                        
+                                    "color_value": col_d,
+                                    "isDeleted": isDeleted,
+                                }
+                            )
                     if isEqual:
-                        #/ Reset Count col_d if isEqual
+                        # / Reset Count col_d if isEqual
                         self.count_handler[dem_col_row] = 0
-                    
-                    #/ End check isFirst
+
+                    # / End check isFirst
                     total_column += 1
 
-    def handlerDataColorUpdate(self):
-        data_color = self.ban_info['meta']['notice']
-        color_count = data_color['count']
-        notice_color1 = data_color['color']
-        notice_color2 = data_color['color2']
-        color_color = []
-        buttons = self.ban_info['meta']['buttons']
-        if buttons[0]:
-            color_color = notice_color1
-        if buttons[1]:
-            color_color = notice_color2
+        # / filter data isDeleted
+        old_dataCount = self.dataCount
+        new_dataCount = [entry for entry in old_dataCount if not entry["isDeleted"]]
+        self.dataCount = new_dataCount
 
-        # TODO Handler Update Color Table Count
-        for i, item in enumerate(self.dataCount):
-            color_value = item['color_value']
-            isNoticeColor = self.checkNotice(color_value, color_count[0], color_count[1])
-            item['notice'] = isNoticeColor
-            self.dataCount[i] = item
-        
-        # TODO Handler Update Color Table Color
-        for i, item in enumerate(self.dataColor):
-            color_value = item['color_value']
-            isNoticeColor = self.checkNotice(color_value, color_color[0], color_color[1])
-            item['notice'] = isNoticeColor
-            self.dataColor[i] = item
-                
+        old_dataColor = self.dataColor
+        new_dataColor = [entry for entry in old_dataColor if not entry["isDeleted"]]
+        self.dataColor = new_dataColor
+
+        old_dataColorM2 = self.dataColor2
+        new_dataColorM2 = [entry for entry in old_dataColorM2 if not entry["isDeleted"]]
+        self.dataColor2 = new_dataColorM2
+
     def checkColor(self, value1, value2):
         for char in value1:
             if char in value2:
                 return self.red
         return None
-            
-    def checkNotice(self,value1, notice1, notice2):
+
+    def checkColorThong(self, value1, value2):
+        for char in value1:
+            if char in value2:
+                return True
+        return False
+
+    def checkNotice(self, value1, notice1, notice2):
         if value1 >= notice1 and value1 <= notice2:
             return self.yellow
         else:
             return None
 
-    def showNoticeColorButton(self):
-        buttons = self.ban_info['meta']['buttons']
-        #/ Check Len
-        last_date = self.ban_info['data'][-1]['date'] if len(self.ban_info['data']) > 0 else []
-        self.find_last_data = [item for item in self.dataColor if item['date'] == last_date and item['notice']]
-        self.unique_number = []
-        seen = set()
+    def moveTableWithAction(self, data, ac):
+        self.reload_color_item()
 
-        #/ Check duplicate
-        for num in self.find_last_data:
-            if not num['color_value'] in seen:
-                self.unique_number.append(num)
-                seen.add(num['color_value'])
-        
-        #/ get 3 col_d
-        self.unique_number = self.unique_number[:3]
-        
-        #/ Connect slot
-        self.buttonColor.clicked.connect(self.changeTable)
-        self.buttonOne.clicked.connect(self.jumpColNotice)
-        self.buttonTwo.clicked.connect(self.jumpColNotice)
-        self.buttonThree.clicked.connect(self.jumpColNotice)
-        # self.buttonFor.clicked.connect(self.jumpColNotice)
-
-        #/ Set Default Color
-        self.buttonColor.setStyleSheet(css_button_normal)
-        self.buttonOne.setStyleSheet(css_button_normal)
-        self.buttonTwo.setStyleSheet(css_button_normal)
-        self.buttonThree.setStyleSheet(css_button_normal)
-        # self.buttonFor.setStyleSheet(css_button_normal)
-        #/ Set many color have
-        button = 0
-        if buttons[1]:
-            button = 2
-        for num in range(len(self.unique_number)):
-            col_d_data = self.unique_number[num]['color_value']
-            filter_col_d_data = [item for item in self.find_last_data if item['color_value'] == col_d_data]
-            if num == 0:
-                if len(filter_col_d_data) >= button:
-                    self.buttonColor.setStyleSheet(css_button_notice)
-                    self.buttonOne.setStyleSheet(css_button_notice)
-                else:
-                    self.buttonOne.clicked.disconnect(self.jumpColNotice)
-                    self.buttonOne.setStyleSheet(css_button_normal)
-            elif num == 1:
-                if len(filter_col_d_data) >= button:
-                    self.buttonTwo.setStyleSheet(css_button_notice)
-                else:
-                    self.buttonTwo.clicked.disconnect(self.jumpColNotice)
-                    self.buttonTwo.setStyleSheet(css_button_normal)
-            else:
-                if len(filter_col_d_data) >= button:
-                    self.buttonThree.setStyleSheet(css_button_notice)
-                else:
-                    self.buttonThree.clicked.disconnect(self.jumpColNotice)
-                    self.buttonThree.setStyleSheet(css_button_normal)
-
-    def moveTableWithAction(self, data):
-        action = data['action']
-        name = action['name']
-        row = action['row']
-        col = action['col']
-        if name == 'color':
+        if ac == "vbm1":
+            action = data["actionM1"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
             self.widget_main.setCurrentWidget(self.table_main_color)
             item = self.table_scroll_color.item(row, col)
-            self.table_scroll_color.scrollToItem(item, hint=QTableWidget.ScrollHint.PositionAtCenter)
-            self.setHighlight(item, data['isColor'])
-            self.TableChange.setText('Bảng Tính')
-            self.note_color_label.setText(self.note_color)
-        else:
+            self.table_scroll_color.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.changeStatusBar("Bảng Màu 1", "Bảng Màu 2")
+            # self.note_color_label.setText(self.note_color)
+        elif ac == "vbm2":
+            action = data["actionM2"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
+            self.widget_main.setCurrentWidget(self.table_main_colorM2)
+            item = self.table_scroll_colorM2.item(row, col)
+            self.table_scroll_colorM2.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.changeStatusBar("Bảng Màu 2", "Bảng Tính")
+            # self.note_color_label.setText(self.note_color)
+        elif ac == "vbm3":
+            action = data["actionM3"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
+            self.widget_main.setCurrentWidget(self.table_main_colorM3)
+            item = self.table_scroll_colorM3.item(row, col)
+            self.table_scroll_colorM3.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.changeStatusBar("Bảng Màu 2", "Bảng Tính")
+        elif ac == "vbt":
+
+            action = data["action"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
             self.widget_main.setCurrentWidget(self.table_main_count)
             item = self.table_scroll_count.item(row, col)
-            self.table_scroll_count.scrollToItem(item, hint=QTableWidget.ScrollHint.PositionAtCenter)
-            self.setHighlight(item, data['isColor'])
-            self.TableChange.setText('Bảng Màu')
-            self.note_color_label.setText('')
+            self.table_scroll_count.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.changeStatusBar("Bảng Tính", "Bảng Mau M1")
+            # self.note_color_label.setText("")
+        else:
+            thong = data["thong"]
+            row_thong = thong["row"]
+            col_thong = thong["col"]
+            self.widget_main.setCurrentWidget(self.table_main_thong)
+            item = self.table_main_thong.item(row_thong, col_thong)
+            self.table_main_thong.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "col": col_thong,
+                "value": thong["col_a"],
+                "isCol_a": thong["isCol_a"],
+            }
+            self.setHighlight_Thong(new_data)
+            # / Config status bar
+            self.changeStatusBar("Bảng Thông", "Bảng Tính")
 
+    # TODO Add-on: GUI Thong Table
+
+    def render_table_thong(self):
+        """
+        TODO Gui thong table
+        !DES: Make a Thong table with features will show the item had result after render
+        !: and highlight them into table.
+        ? Features available:
+        ? 1. Swap Button Notice to Thong Table
+        ? 2. Swap between item in table color and Thong Table
+        """
+        # / Config func
+        self.start_col = 1
+        self.value_col = 1
+        number_change = self.ban_info["meta"]["number"]
+        thong_info = self.ban_info["thong"]
+        stt = self.thong_db["stt"][number_change]
+        data_value = self.thong_db["data"]
+        thong_data = self.thong_info
+
+        # / Create widget main thong table
+        self.table_main_thong = QTableWidget()
+        self.widget_main.addWidget(self.table_main_thong)
+
+        # / Config table
+        value_thong = thong_info["value"]
+        thong_ranges = value_thong[1] - value_thong[0] + 1
+        colCount = thong_ranges + 5  #! 5 is the number of columns outside
+        rowCount = 121
+        # / Column
+        self.table_main_thong.setColumnCount(colCount)
+        self.table_main_thong.setRowCount(rowCount)
+
+        # / Config Font
+        self.table_main_thong.setFont(self.font)
+        self.table_main_thong.horizontalHeader().setFont(self.font)
+        self.table_main_thong.verticalHeader().setFont(self.font)
+
+        self.table_main_thong.setStyleSheet(
+            """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+        )
+
+        self.table_main_thong.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.table_main_thong.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.table_main_thong.horizontalScrollBar().valueChanged.connect(
+            self.freeze_col_stt
+        )
+        self.table_main_thong.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_main_thong.setSelectionMode(
+            QTableWidget.SelectionMode.MultiSelection
+        )
+
+        # / config header and render header
+
+        for i in range(thong_ranges):
+            if i == 0:
+                item_stt = QTableWidgetItem(f"STT")
+                item_stt.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setHorizontalHeaderItem(0, item_stt)
+
+                item_zero = QTableWidgetItem(f"Cột 0")
+                item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setHorizontalHeaderItem(1, item_zero)
+
+                item_a = QTableWidgetItem(f"A")
+                item_a.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setHorizontalHeaderItem(2, item_a)
+
+                item_b = QTableWidgetItem(f"B")
+                item_b.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setHorizontalHeaderItem(3, item_b)
+
+                item_c = QTableWidgetItem(f"C")
+                item_c.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setHorizontalHeaderItem(4, item_c)
+
+                item = QTableWidgetItem(f"T.{i+ value_thong[0]}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setHorizontalHeaderItem(i + 5, item)
+            else:
+                item = QTableWidgetItem(f"T.{i + value_thong[0]}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setHorizontalHeaderItem(i + 5, item)
+        # / render rows
+        # ? Render Rows STT First
+        for i in range(rowCount):
+            zero_value = f"{i:02}."
+            item_zero = QTableWidgetItem(f"{zero_value}")
+            item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_main_thong.setItem(i, 0, item_zero)
+
+            stt_value = stt[i]
+            item = QTableWidgetItem(f"{stt_value}")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            item.setBackground(self.stt_highlight)
+            self.table_main_thong.setItem(i, 1, item)
+
+        # ? Change data value with number change
+        if number_change != 0:
+            data_value_new = map(
+                lambda values: list(
+                    map(lambda value: TachVaGhep(number_change, value), values)
+                ),
+                data_value,
+            )
+            data_value = list(data_value_new)
+        # ? Render Rows Custom First
+        for i in range(len(data_value)):
+            value_col = data_value[i]
+            for j in range(121):
+                item = QTableWidgetItem(f"{value_col[j]}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setItem(j, i + 2, item)
+                if i + 2 == 2 or i + 2 == 4:
+                    item.setBackground(self.stt_highlight)
+        # ? Render Rows
+        for i in range(thong_ranges):
+            thong_row = thong_data[i + value_thong[0] - 1]
+            for j in range(121):
+                item = QTableWidgetItem(f"{thong_row[j]}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setItem(j, i + 5, item)
+
+    def freeze_col_stt(self, value):
+        if value >= self.start_col:
+            self.table_main_thong.horizontalHeader().moveSection(self.value_col, value)
+            self.value_col = value
+        elif value < self.start_col:
+            value = self.start_col
+            self.table_main_thong.horizontalHeader().moveSection(self.value_col, value)
+            self.value_col = value
+
+    def changeStatusBar(self, status, next):
+        old_title = self.title.text()
+        new_title = old_title
+        for text in [
+            "Bảng Tính",
+            "Bảng Màu 1",
+            "Bảng Màu 2",
+            "Bảng Thông",
+            "Bảng Màu 3",
+        ]:
+            if text in old_title:
+                new_title = old_title.replace(text, status)
+                self.title.setText(new_title)
+                return
+
+    def reload_widget(self):
+        self.handlerData()
+        self.renderNavigation()
+        self.updateTableCount()
+        self.updateTableColor()
+        self.updateTableColorM2()
+        self.updateTableColorM3()
+        self.render_table_thong()
+
+    def find_row_thong_with_col_a(self, col_a, thong_data):
+        for i in range(len(thong_data)):
+            val = thong_data[i]
+            if str(col_a) in str(val):
+                return i
+
+    def show_loading_screen(self):
+        self.loadingScreen.show()
+        self.loadingScreen.start()
+
+    def hide_loading_screen(self):
+        self.loadingScreen.stop()
+        self.loadingScreen.hide()
+
+    def updateWidget(self, widgets):
+        self.hide_loading_screen()
+        for widget in widgets:
+            widget()

@@ -2,72 +2,57 @@ import os
 import json
 from Controller.handler import TachVaGhep
 
-current_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data') #/ File Data for Dev
-
+current_dir = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "data"
+)  # / File Data for Dev
 
 
 def path_number():
-    path = os.path.join(current_dir,'number')
+    path = os.path.join(current_dir, "number")
     return path
+
+
 def path_thong():
-    path = os.path.join(current_dir, 'thong')
+    path = os.path.join(current_dir, "thong")
     return path
 
-def createNewNumber():
-    path = path_number()
-    number_bk = os.path.join(path, 'number_backup.json')
-    with open(number_bk, 'r') as file:
-        number_data = json.load(file)
-    #/ Add new 10 row and 600 col into by one
-    row_add = 10
-    col_add = 600
-    for i in range(row_add):
-        new_number_data = []
-        for j in range(col_add):
-            new_number_data.append('')
-        number_data.append(new_number_data)
-    #/ Save data backup!
-    with open(number_bk, 'w') as file:
-        json.dump(number_data, file)
-    
-    change = 6
-    for i in range(change):
-        #/ Convert Data change with Func
-        number_change = list(map(
-            lambda item: list(map(
-                lambda x: TachVaGhep(i, x), item
-            )), number_data
-        ))
-        #/ get path Number change
-        number_path = os.path.join(path, f'number_{i}.json')
-        #/ Save data change
-        with open(number_path, 'w') as file:
-            json.dump(number_change, file)
 
-def createNewSttNumber():
-    path = path_number()
-    number_path = os.path.join(path, 'number.json')
-    with open(number_path, 'r') as file:
-        number_data = json.load(file)
-    
-    new_number_data = []
-    for i in range(6):
-        data = []
-        for j in range(41):
-            value = f'{j + 1:02}'
-            data.append(value)
-        new_number_data.append(data)
-    
-    # #/ Save new data stt
-    number_data = {
-        "stt": new_number_data,
-        "number": 0,
-        "change": []
-    }
-    print(number_data)
-    #/ Save data
-    with open(number_path, 'w') as file:
-        json.dump(number_data, file)
+def create_new_number():
+    data_path = path_number()
+    backup_path = os.path.join(data_path, "number_backup.json")
+    with open(backup_path, "r") as file:
+        original_data = json.load(file)
 
-createNewSttNumber()
-createNewNumber()
+    rows_to_add = 10
+    columns_to_add = 600
+    for _ in range(rows_to_add):
+        new_row = [""] * columns_to_add
+        original_data.append(new_row)
+
+    changes_to_make = 6
+    for change_index in range(changes_to_make):
+        changed_data = [
+            [TachVaGhep(change_index, value) for value in row] for row in original_data
+        ]
+        changed_data_path = os.path.join(data_path, f"number_{change_index}.json")
+        with open(changed_data_path, "w") as file:
+            json.dump(changed_data, file)
+
+
+def create_new_stt_number():
+    data_path = path_number()
+    number_file_path = os.path.join(data_path, "number.json")
+
+    with open(number_file_path, "r") as file:
+        number_data = json.load(file)
+
+    new_number_data = [[f"{j + 1:02}" for j in range(41)] for i in range(6)]
+
+    updated_number_data = {"stt": new_number_data, "number": 0, "change": []}
+
+    with open(number_file_path, "w") as file:
+        json.dump(updated_number_data, file)
+
+
+create_new_stt_number()
+create_new_number()

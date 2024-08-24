@@ -1,11 +1,17 @@
 import sys, os
-from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget ,QVBoxLayout
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QStackedWidget,
+    QWidget,
+    QVBoxLayout,
+)
 from PySide6.QtGui import QIcon
 from Router.navigate import Navbar
 from Controller.main import Controller
 from Pages.components.path import Path
 
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
 basedir = os.path.dirname(__file__)
 
@@ -13,10 +19,12 @@ APP_NAME = "Project Management"
 
 try:
     from ctypes import windll  # Only exists on Windows.
-    myappid = 'rindev.projectmanager.subprojectmanager.1'
+
+    myappid = "rindev.projectmanager.subprojectmanager.1"
     windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except ImportError:
     pass
+
 
 class FullScreenApp(QMainWindow):
     def __init__(self):
@@ -38,11 +46,11 @@ class FullScreenApp(QMainWindow):
         main_layout.addWidget(self.stacked_widget)
 
         # Controller to manage page switching
-        self.controller = Controller()
-        self.controller.set_main_widget(self.stacked_widget)
+        self.controller = Controller(self.stacked_widget)
+        # self.controller.set_main_widget()
 
         # Initially show the home page
-        self.controller.show_home_page()
+        # self.controller.show_home_page()
 
         # Add Navbar widget
         navbar = Navbar(self.controller)
@@ -51,7 +59,8 @@ class FullScreenApp(QMainWindow):
         self.setFocus()
 
         # Make the window fullscreen
-        self.showFullScreen()
+        self.show()
+
 
 if __name__ == "__main__":
     # now_day = datetime.now()
