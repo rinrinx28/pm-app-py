@@ -680,9 +680,9 @@ class ThongPage(QWidget):
 
         # / Find Select Row
         data_select = list(self.selected_row_indices)
-        if len(data_select) != 1:
-            SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
-            return
+        # if len(data_select) != 1:
+        #     SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
+        #     return
         for row in data_select:
             for i in range(5, self.table_main.columnCount()):
                 self.thong_data[i - 5][row] = ""

@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 from PySide6.QtGui import Qt, QCursor, QIcon, QColor, QAction, QFont
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, QTimer
 from Pages.components.stylesheet import (
     css_button_cancel,
     css_button_submit,
@@ -52,6 +52,7 @@ from functools import partial
 import os
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
+from time import sleep
 
 
 class TinhAndMauPage(QWidget):
@@ -684,13 +685,13 @@ class TinhAndMauPage(QWidget):
         # self.button_layout.addWidget(JumpFisrtColumn)
         # / Delete new row
         DeleteNewRow = QPushButton("Xóa Dòng Mới")
-        DeleteNewRow.setStyleSheet(css_button_cancel)
+        DeleteNewRow.setStyleSheet(css_button_submit)
         DeleteNewRow.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(DeleteNewRow)
 
         # / Delete from to
         DeleteFromTo = QPushButton("Xóa Từ Ngày")
-        DeleteFromTo.setStyleSheet(css_button_cancel)
+        DeleteFromTo.setStyleSheet(css_button_submit)
         DeleteFromTo.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(DeleteFromTo)
 
@@ -702,7 +703,7 @@ class TinhAndMauPage(QWidget):
 
         # / Setting Table
         SettingTable = QPushButton("Cài Đặt Bảng")
-        SettingTable.setStyleSheet(css_button_cancel)
+        SettingTable.setStyleSheet(css_button_submit)
         SettingTable.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(SettingTable)
 
@@ -1678,7 +1679,9 @@ class TinhAndMauPage(QWidget):
             if self.widget_main.currentWidget() != self.table_main_count:
                 self.widget_main.setCurrentWidget(self.table_main_count)
             self.ban_info = msg["data"]
-
+            # self.reload_widget()
+            # sleep(0.5)
+            # self.questionInsertDate()
             self.show_loading_screen()
             self.thread = Thread()
             self.thread.task_completed.connect(
@@ -2497,8 +2500,10 @@ class TinhAndMauPage(QWidget):
         value_col = ban_info["col"][1] - (ban_info["col"][0] - 1)
         filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
         rowCount = len(filter_data)
+        # Xóa tất cả các item trong bảng trước khi đặt lại số lượng hàng
         self.frozen_table_count.setRowCount(0)
         self.table_scroll_count.setRowCount(0)
+
         # / Config table
         self.frozen_table_count.setRowCount(rowCount)
         self.table_scroll_count.setRowCount(rowCount)
@@ -2558,39 +2563,20 @@ class TinhAndMauPage(QWidget):
                         jump_col += 1
                     jump_col += value_col
 
-        # width_of_row = self.frozen_table_count.horizontalHeader().sectionPosition(0)
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.frozen_table_count.viewport().update()
+        # self.table_scroll_count.viewport().update()
 
-        # Resize columns to fit content
-        # self.frozen_table_count.resizeColumnsToContents()
-        # # Get last data
-        # if rowCount == 1 and self.ban_info['data'][rowCount - 1]['thong'] == -1:
-        #     self.frozen_table_count.setFixedWidth(180)
-        # else:
-        #     cell_width = 0
-        #     for i in range(rowCount):
-        #         cell_width = max(cell_width, self.frozen_table_count.visualItemRect(self.frozen_table_count.item(i, 0)).width())
-        #     # # Lấy kích thước của header dọc
-        #     vertical_header_width = self.frozen_table_count.verticalHeader().width()
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_count.scrollToBottom)
+        QTimer.singleShot(0, self.frozen_table_count.scrollToBottom)
 
-        #     # Đặt kích thước cố định cho QTableWidget
-        #     self.frozen_table_count.setFixedWidth(cell_width + vertical_header_width)
+        # sleep(0.5)
+        # self.table_scroll_count.scrollToBottom()
+        # self.frozen_table_count.scrollToBottom()
 
-        # info_last_item = self.dataCount[len(self.dataCount) - 1]
-        # last_item_scroll = self.table_scroll_count.item(info_last_item["row"], 1)
-        # last_item_frozen = self.frozen_table_count.item(info_last_item["row"], 1)
-        # print(last_item_frozen, last_item_scroll, info_last_item)
-
-        # if last_item_scroll:
-        #     sleep(2)
-        #     self.table_scroll_count.scrollToItem(
-        #         last_item_scroll, hint=QTableWidget.ScrollHint.PositionAtCenter
-        #     )
-        #     self.frozen_table_count.scrollToItem(
-        #         last_item_frozen, hint=QTableWidget.ScrollHint.PositionAtCenter
-        #     )
-
-        self.table_scroll_count.scrollToBottom()
-        self.frozen_table_count.scrollToBottom()
+        # self.frozen_table_count.resizeRowsToContents()
+        # self.table_scroll_count.resizeRowsToContents()
 
     def updateHeaderCount(self):
         self.table_scroll_count.setColumnCount(0)
@@ -2699,8 +2685,16 @@ class TinhAndMauPage(QWidget):
             width = self.table_scroll_color.columnWidth(i)
             self.frozen_table_color.setColumnWidth(i, width)
 
-        self.table_scroll_color.scrollToBottom()
-        self.table_scroll_left.scrollToBottom()
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.table_scroll_color.viewport().update()
+        # self.table_scroll_left.viewport().update()
+
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_left.scrollToBottom)
+        QTimer.singleShot(0, self.table_scroll_color.scrollToBottom)
+        # sleep(0.5)
+        # self.table_scroll_left.scrollToBottom()
+        # self.table_scroll_color.scrollToBottom()
 
     def updateHeaderColor(self):
         current_column = 0
@@ -2825,8 +2819,17 @@ class TinhAndMauPage(QWidget):
             width = self.table_scroll_colorM2.columnWidth(i)
             self.frozen_table_colorM2.setColumnWidth(i, width)
 
-        self.table_scroll_colorM2.scrollToBottom()
-        self.table_scroll_leftM2.scrollToBottom()
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.table_scroll_colorM2.viewport().update()
+        # self.table_scroll_leftM2.viewport().update()
+
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_leftM2.scrollToBottom)
+        QTimer.singleShot(0, self.table_scroll_colorM2.scrollToBottom)
+
+        # sleep(0.5)
+        # self.table_scroll_leftM2.scrollToBottom()
+        # self.table_scroll_colorM2.scrollToBottom()
 
     def updateHeaderColorM2(self):
         current_column = 0
@@ -2951,8 +2954,17 @@ class TinhAndMauPage(QWidget):
             width = self.table_scroll_colorM3.columnWidth(i)
             self.frozen_table_colorM3.setColumnWidth(i, width)
 
-        self.table_scroll_colorM3.scrollToBottom()
-        self.table_scroll_leftM3.scrollToBottom()
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.table_scroll_colorM3.viewport().update()
+        # self.table_scroll_leftM3.viewport().update()
+
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_leftM3.scrollToBottom)
+        QTimer.singleShot(0, self.table_scroll_colorM3.scrollToBottom)
+
+        # sleep(0.5)
+        # self.table_scroll_leftM3.scrollToBottom()
+        # self.table_scroll_colorM3.scrollToBottom()
 
     def updateHeaderColorM3(self):
         current_column = 0
@@ -3506,6 +3518,10 @@ class TinhAndMauPage(QWidget):
         new_dataColorM2 = [entry for entry in old_dataColorM2 if not entry["isDeleted"]]
         self.dataColor2 = new_dataColorM2
 
+        old_dataColorM3 = self.dataColor3
+        new_dataColorM3 = [entry for entry in old_dataColorM3 if not entry["isDeleted"]]
+        self.dataColor3 = new_dataColorM3
+
     def checkColor(self, value1, value2):
         for char in value1:
             if char in value2:
@@ -3806,12 +3822,17 @@ class TinhAndMauPage(QWidget):
 
     def reload_widget(self):
         self.handlerData()
+        # sleep(0.5)
         self.renderNavigation()
+        # sleep(0.5)
         self.updateTableCount()
+        # sleep(0.5)
         self.updateTableColor()
+        # sleep(0.5)
         self.updateTableColorM2()
+        # sleep(0.5)
         self.updateTableColorM3()
-        self.render_table_thong()
+        # sleep(0.5)
 
     def find_row_thong_with_col_a(self, col_a, thong_data):
         for i in range(len(thong_data)):
@@ -3829,5 +3850,7 @@ class TinhAndMauPage(QWidget):
 
     def updateWidget(self, widgets):
         self.hide_loading_screen()
+        # sleep(0.5)
         for widget in widgets:
             widget()
+            # sleep(0.5)

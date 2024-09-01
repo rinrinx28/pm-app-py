@@ -622,7 +622,7 @@ def saveAllThong(data):
     current_path = rf"C:\data"
 
     if type_count == 1:
-        for i in range(10):
+        for i in range(30):
             file_type = i + 1
             thong_path = os.path.join(current_path, f"{file_type}", "thong")
             with open(os.path.join(thong_path, "thongs.json"), "r") as file:
@@ -643,7 +643,7 @@ def saveAllThong(data):
             ) as file:
                 json.dump(update, file)
     elif type_count == 2:
-        for i in range(10, 20):
+        for i in range(30, 60):
             file_type = i + 1
             thong_path = os.path.join(current_path, f"{file_type}", "thong")
             with open(os.path.join(thong_path, "thongs.json"), "r") as file:
@@ -664,7 +664,7 @@ def saveAllThong(data):
             ) as file:
                 json.dump(update, file)
     else:
-        for i in range(20, 30):
+        for i in range(60, 90):
             file_type = i + 1
             thong_path = os.path.join(current_path, f"{file_type}", "thong")
             with open(os.path.join(thong_path, "thongs.json"), "r") as file:
