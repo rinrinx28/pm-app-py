@@ -46,7 +46,7 @@ class ThongPage(QWidget):
         self.path = Path()
         self.layout_thong = QVBoxLayout(self)
         self.setWindowTitle(
-            "Bảng Thông - Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam"
+            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam"
         )
         logo_path = self.path.path_logo()
         icon = QIcon(logo_path)
@@ -91,6 +91,34 @@ class ThongPage(QWidget):
 
         # / handler count thong
         self.handler = []
+        self.word = [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H",
+            "I",
+            "J",
+            "K",
+            "L",
+            "M",
+            "N",
+            "O",
+            "P",
+            "Q",
+            "R",
+            "S",
+            "T",
+            "U",
+            "V",
+            "W",
+            "X",
+            "Y",
+            "Z",
+        ]
 
         # / Button Main
         self.button_wid_main = QWidget()
@@ -353,27 +381,27 @@ class ThongPage(QWidget):
         SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(SaveFile, 1, 1)
 
-        # / Create Backup
-        ButtonType = QPushButton("Nhập Công Thức")
-        ButtonType.setStyleSheet(css_button_submit)
-        ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(ButtonType, 1, 2)
-
         # / Create HandlerData
         type_input = "Tắt Tùy Chỉnh"
         self.HandlerData = QPushButton(type_input)
         self.HandlerData.setStyleSheet(css_button_submit)
         self.HandlerData.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(self.HandlerData, 1, 3)
+        layout.addWidget(self.HandlerData, 1, 2)
 
         # / Create SaveData
         SaveData = QPushButton("Lưu")
         SaveData.setStyleSheet(css_button_submit)
         SaveData.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(SaveData, 1, 4)
+        layout.addWidget(SaveData, 1, 3)
+
+        # / Create Backup
+        ButtonType = QPushButton("Nhập loại App")
+        ButtonType.setStyleSheet(css_button_submit)
+        ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(ButtonType, 1, 4)
 
         # / Create SaveData
-        SettingType = QPushButton("Cài Đặt")
+        SettingType = QPushButton("Cài Đặt App")
         SettingType.setStyleSheet(css_button_submit)
         SettingType.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(SettingType, 1, 5)
@@ -427,7 +455,7 @@ class ThongPage(QWidget):
         def type_with_button():
             if self.thong_db["setting"] == 0:
                 SendMessage(
-                    "Loại Nhập hiện tại là 0 (Trắng), xin vui lòng chọn loại khác để tiến hành nhập công thức"
+                    "Loại Nhập App hiện tại là 0 (Trắng), xin vui lòng chọn loại App khác để tiến hành nhập công thức"
                 )
                 return
             if self.selected_row_indices:
@@ -508,7 +536,9 @@ class ThongPage(QWidget):
             self.table_main.setItem(i, 0, item_zero)
 
             stt_value = stt[i]
-            item = QTableWidgetItem(f"{stt_value}")
+            item = QTableWidgetItem(
+                f"{stt_value}{self.word[i - 100] if  0 <= i - 100 < 26 else ''}"
+            )
             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             item.setBackground(self.stt_highlight)
             self.table_main.setItem(i, 1, item)
@@ -752,7 +782,7 @@ class ThongPage(QWidget):
         setting_dialog_l = QGridLayout(setting_dialog_w)
         dialog_layout.addWidget(setting_dialog_w)
 
-        type_label = QLabel("Loại Công Thức (0: Trắng; 1: 1 Số; 2: 2 Số)")
+        type_label = QLabel("Tên App (0: App Trắng; 1: App 1 Số; 2: App 2 Số)")
         type_label.setStyleSheet(css_lable)
         setting_dialog_l.addWidget(type_label, 0, 0)
 

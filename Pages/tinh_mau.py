@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (
     QMenu,
     QScrollArea,
     QFrame,
+    QSizePolicy,
+    QApplication,
 )
 from PySide6.QtGui import Qt, QCursor, QIcon, QColor, QAction, QFont
 from PySide6.QtCore import QDate, QTimer
@@ -66,7 +68,7 @@ class TinhAndMauPage(QWidget):
 
         # / Load Title and Icon Page
         self.setWindowTitle(
-            "Bảng Tính và Màu - Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam"
+            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam"
         )
         logo_path = self.path.path_logo()
         icon = QIcon(logo_path)
@@ -234,18 +236,18 @@ class TinhAndMauPage(QWidget):
         col_e3 = ban_info["meta"]["setting"]["col_e3"]
 
         title_text = (
-            f"{ban_thong_name} / Bảng Tính / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
+            f"{ban_thong_name}/30 / Bảng Tính / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
             + f"Số dòng: {row_count}/{max_row} / "
             + f"MBT: {count[0]} đến {count[1]}"
         )
 
         title_text_2 = (
-            f"Thống Kê M1 d: {col_e[0]} đến {col_e[1]} / "
+            f"Thống Kê M1 D: {col_e[0]} đến {col_e[1]} / "
             + f"M{text_color}1: {color[0]} đến {color[1]} / "
-            + f"Thống Kê M2 d: {col_e2[0]} đến {col_e2[1]} / "
-            + f"MBM2: {colorM2[0]} đến {colorM2[1]}"
-            + f"Thống Kê M3 d: {col_e3[0]} đến {col_e3[1]} / "
+            + f"Thống Kê M2 D: {col_e2[0]} đến {col_e2[1]} / "
+            + f"MBM2: {colorM2[0]} đến {colorM2[1]} / "
+            + f"Thống Kê M3 D: {col_e3[0]} đến {col_e3[1]} / "
             + f"MBM3: {colorM3[0]} đến {colorM3[1]}"
         )
 
@@ -439,6 +441,7 @@ class TinhAndMauPage(QWidget):
             """
             )
 
+        self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
         # Set properties for frozen_table_count
         self.frozen_table_count.verticalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
@@ -447,10 +450,12 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_count.setSelectionBehavior(
             QTableWidget.SelectionBehavior.SelectItems
         )
-        self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
+        self.frozen_table_count.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
         self.frozen_table_count.verticalHeader().hide()
-        self.frozen_table_count.setMaximumWidth(110 * 2)
-        self.frozen_table_count.setMinimumWidth(110 * 2)
+        self.frozen_table_count.setMaximumWidth(150 * 2)
+        self.frozen_table_count.setMinimumWidth(150 * 2)
         self.frozen_table_count.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOn
         )
@@ -695,17 +700,29 @@ class TinhAndMauPage(QWidget):
         DeleteFromTo.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(DeleteFromTo)
 
-        # / Insert Data row
-        InsertData = QPushButton("Nhập Liệu")
-        InsertData.setStyleSheet(css_button_submit)
-        InsertData.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(InsertData)
-
         # / Setting Table
         SettingTable = QPushButton("Cài Đặt Bảng")
         SettingTable.setStyleSheet(css_button_submit)
         SettingTable.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(SettingTable)
+
+        # / Insert Data row
+        InsertData = QPushButton("Nhập Liệu")
+        InsertData.setStyleSheet(
+            """
+    QPushButton {
+        padding: 10px;
+        border-radius: 8px; 
+        font-size: 24px;
+        line-height: 32px;
+        font-weight: 600; 
+        color: #ffffff; 
+        background-color: #7CFC00;
+    }
+"""
+        )
+        InsertData.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(InsertData)
 
         # / Bảng Màu
         self.TableChange = QPushButton("Bảng Tính")
@@ -1190,7 +1207,7 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog()
         dialog.setWindowTitle("Bảng Nhập Liệu")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1110, 710)
+        dialog.setFixedSize(1300, 850)
         dialog.show()
 
         # / Create Layout
@@ -1212,7 +1229,8 @@ class TinhAndMauPage(QWidget):
 
         # / Table Insert
         insert_thong_table = QTableWidget()
-        insert_thong_table.setFixedSize(610, 710)
+        insert_thong_table.setFixedWidth(750)
+        insert_thong_table.setFixedHeight(780)
         insert_thong_table.setStyleSheet(css_table_header)
         layout.addWidget(insert_thong_table, 0, 0, Qt.AlignmentFlag.AlignLeft)
         # / Config Table
@@ -1338,7 +1356,7 @@ class TinhAndMauPage(QWidget):
 
         label_submit = QLabel()
         label_exit = QLabel()
-        label_exit.setFixedHeight(220)
+        # label_exit.setFixedHeight(220)
 
         insert_from_l.addWidget(label_submit, 6, 1)
         insert_from_l.addWidget(submit, 7, 1)
@@ -1476,6 +1494,8 @@ class TinhAndMauPage(QWidget):
 
         exit.clicked.connect(exit_click)
         submit.clicked.connect(lambda: self.submit_insert(data, dialog))
+        # Move and set the dialog size
+        self.move_to_right(dialog)
 
     def submit_insert(self, data, dialog):
         data["id"] = self.ban_info["id"]
@@ -1506,7 +1526,7 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog()
         dialog.setWindowTitle("Bảng Nhập Thông")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1110, 710)
+        dialog.setFixedSize(1200, 850)
         dialog.show()
 
         # / Create Layout
@@ -1528,7 +1548,8 @@ class TinhAndMauPage(QWidget):
 
         # / Table Insert
         insert_thong_table = QTableWidget()
-        insert_thong_table.setFixedSize(610, 710)
+        insert_thong_table.setFixedWidth(750)
+        insert_thong_table.setFixedHeight(780)
         insert_thong_table.setStyleSheet(css_table_header)
         layout.addWidget(insert_thong_table, 0, 0, Qt.AlignmentFlag.AlignLeft)
         # / Config Table
@@ -1670,6 +1691,8 @@ class TinhAndMauPage(QWidget):
         insert_thong_table.itemClicked.connect(changeThongTable)
         insert_thong_edit.valueChanged.connect(changeThongEdit)
 
+        self.move_to_right(dialog)
+
     def update_thong_insert(self, data, dialog):
         data_send = {}
         data_send["thong"] = data
@@ -1725,7 +1748,7 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog(self)
         dialog.setWindowTitle("Cài đặt bảng")
         dialog.setWindowIcon(QIcon(icon))
-        # dialog.setFixedSize(1000, 700)
+        dialog.setFixedSize(1200, 850)
         dialog.show()
 
         # / Create Layout
@@ -2132,6 +2155,8 @@ class TinhAndMauPage(QWidget):
         submit.clicked.connect(submit_click)
         exit.clicked.connect(exit_click)
 
+        self.move_to_right(dialog)
+
     def setHighlight(self, data):
         # / Handler prev item
         if "prev" in self.jumpAction:
@@ -2513,8 +2538,10 @@ class TinhAndMauPage(QWidget):
         thong_ranges = thong_range_2 - thong_range_1
 
         for i in range(rowCount):
-            date = filter_data[i]["date"].split("/")
-            item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            # date = filter_data[i]["date"].split("/")
+            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            date = filter_data[i]["date"]
+            item = QTableWidgetItem(f"{date}")
             self.frozen_table_count.setItem(i, 0, item)
 
         # / Render Row without Thong
@@ -2570,6 +2597,8 @@ class TinhAndMauPage(QWidget):
         # Thêm nđộ trễ nhỏ trước khi cuộn
         QTimer.singleShot(0, self.table_scroll_count.scrollToBottom)
         QTimer.singleShot(0, self.frozen_table_count.scrollToBottom)
+
+        self.frozen_table_count.setColumnWidth(0, 120)
 
         # sleep(0.5)
         # self.table_scroll_count.scrollToBottom()
@@ -3854,3 +3883,39 @@ class TinhAndMauPage(QWidget):
         for widget in widgets:
             widget()
             # sleep(0.5)
+
+    # TODO Handler Move
+
+    def move_to_right(self, dialog):
+        # Get the screen geometry
+        screen_geometry = QApplication.primaryScreen().geometry()
+
+        # Set fixed size for the dialog
+        dialog_width = 1300
+        dialog_height = 850
+
+        # Calculate the x and y position to move the dialog to the right
+        x_pos = (
+            screen_geometry.width() - dialog_width - 20
+        )  # 20px padding from right edge
+        y_pos = (screen_geometry.height() - dialog_height) // 2  # Center vertically
+
+        # Move and set the dialog size
+        dialog.setGeometry(x_pos, y_pos, dialog_width, dialog_height)
+
+    def move_to_center(self, dialog):
+        # Get the screen geometry
+        screen_geometry = QApplication.primaryScreen().geometry()
+
+        # Set fixed size for the dialog
+        dialog_width = 1200
+        dialog_height = 850
+
+        # Calculate the x and y position to move the dialog to the right
+        x_pos = (
+            screen_geometry.width() - dialog_width
+        ) // 2  # 20px padding from right edge
+        y_pos = (screen_geometry.height() - dialog_height) // 2  # Center vertically
+
+        # Move and set the dialog size
+        dialog.setGeometry(x_pos, y_pos, dialog_width, dialog_height)
