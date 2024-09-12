@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QFrame,
     QApplication,
+    QSizePolicy,
 )
 from PySide6.QtGui import Qt, QCursor, QIcon, QColor, QAction, QFont
 from PySide6.QtCore import QDate, QTimer
@@ -401,7 +402,7 @@ class TinhAndMauPage(QWidget):
                 self.addNoticeView(btn, f"{btn_label}_m6", isColor)
                 btn.clicked.connect(partial(self.handleButtonClick, f"{btn_label}_m6"))
                 # / Set the maximum width for all buttons
-                # btn.setFixedWidth(240)
+                btn.setFixedWidth(300)
                 # button.setFixedWidth(240)
                 # TODO set color text if isEqual
                 if isColor["color"]:
@@ -764,34 +765,34 @@ class TinhAndMauPage(QWidget):
         self.button_layout.addWidget(self.TableChange)
 
         # / Bảng Màu 1
-        self.TableM1 = QPushButton("Bảng Màu M1")
+        self.TableM1 = QPushButton("BM M1")
         self.TableM1.setStyleSheet(css_button_submit)
         self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableM1)
 
-        # / Bảng Màu 2
-        self.TableM2 = QPushButton("Bảng Màu M2")
+        # / BM 2
+        self.TableM2 = QPushButton("BM M2")
         self.TableM2.setStyleSheet(css_button_submit)
         self.TableM2.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableM2)
 
-        # / Bảng Màu 3
-        self.TableM3 = QPushButton("Bảng Màu M3")
+        # / BM 3
+        self.TableM3 = QPushButton("BM M3")
         self.TableM3.setStyleSheet(css_button_submit)
         self.TableM3.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableM3)
-        # / Bảng Màu 4
-        self.TableM4 = QPushButton("Bảng Màu M4")
+        # / BM 4
+        self.TableM4 = QPushButton("BM M4")
         self.TableM4.setStyleSheet(css_button_submit)
         self.TableM4.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableM4)
-        # / Bảng Màu 5
-        self.TableM5 = QPushButton("Bảng Màu M5")
+        # / BM 5
+        self.TableM5 = QPushButton("BM M5")
         self.TableM5.setStyleSheet(css_button_submit)
         self.TableM5.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableM5)
-        # / Bảng Màu 6
-        self.TableM6 = QPushButton("Bảng Màu M6")
+        # / BM 6
+        self.TableM6 = QPushButton("BM M6")
         self.TableM6.setStyleSheet(css_button_submit)
         self.TableM6.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.TableM6)
@@ -3061,13 +3062,11 @@ class TinhAndMauPage(QWidget):
         delete_from_label.setStyleSheet(css_lable)
 
         delete_from_edit = QDateEdit()
+        font = QFont()
+        font.setPointSize(20)
+        delete_from_edit.setFont(font)
+        delete_from_edit.setWrapping(False)
         delete_from_edit.setCalendarPopup(True)
-        delete_from_edit.setStyleSheet(
-            """
-        width: 100%;
-        font-size: 16px;
-"""
-        )
         delete_from_edit.setDate(date_from)
 
         delete_from_l.addWidget(delete_from_edit, 0, 0)
@@ -3083,13 +3082,9 @@ class TinhAndMauPage(QWidget):
         delete_to_label.setStyleSheet(css_lable)
 
         delete_to_edit = QDateEdit()
+        delete_to_edit.setFont(font)
+        delete_to_edit.setWrapping(False)
         delete_to_edit.setCalendarPopup(True)
-        delete_to_edit.setStyleSheet(
-            """
-        width: 100%;
-        font-size: 16px;
-"""
-        )
         delete_to_edit.setDate(date)
 
         delete_to_l.addWidget(delete_to_edit, 0, 0)
