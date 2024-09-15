@@ -322,6 +322,10 @@ def updateColorInsert(data):
     col_e4 = data["col_e4"]
     col_e5 = data["col_e5"]
     col_e6 = data["col_e6"]
+    col_e7 = data["col_e7"]
+    col_e8 = data["col_e8"]
+    col_e9 = data["col_e9"]
+    col_e10 = data["col_e10"]
     number = data["number"]
     col = data["col"]
     thong = data["thong"]
@@ -335,6 +339,10 @@ def updateColorInsert(data):
     data_db["meta"]["setting"]["col_e4"] = col_e4
     data_db["meta"]["setting"]["col_e5"] = col_e5
     data_db["meta"]["setting"]["col_e6"] = col_e6
+    data_db["meta"]["setting"]["col_e7"] = col_e7
+    data_db["meta"]["setting"]["col_e8"] = col_e8
+    data_db["meta"]["setting"]["col_e9"] = col_e9
+    data_db["meta"]["setting"]["col_e10"] = col_e10
     data_db["meta"]["number"] = number
     data_db["col"] = col
     data_db["thong"] = thong

@@ -113,7 +113,7 @@ class TinhAndMauPage(QWidget):
         self.navbar_layout = QVBoxLayout(self.navbar_wid_main)
         self.navbar_layout.setSpacing(6)
         self.navbar_layout.setContentsMargins(0, 0, 0, 0)
-        self.navbar_wid_main.setMaximumHeight(180)
+        self.navbar_wid_main.setMaximumHeight(220)
         self.layout.addWidget(self.navbar_wid_main)
 
         self.note_w = QWidget()
@@ -133,7 +133,7 @@ class TinhAndMauPage(QWidget):
         else:
             self.note.setText("")
 
-        self.note_color = f"a = sbáo; b = th; c = cột; d = sđếm; s = số trong thông; m1 = sd bmàu; m2 = sd bmàu; m3 = sd bmàu"
+        self.note_color = f"a = sbáo; b = th; c = cột; d = sđếm; s = số trong thông; m1; m2; m3; m4; m5; m6; m7; m8; m9; m10"
         self.note_color_label = QLabel(self.note_color)
         self.note_color_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.note_l.addWidget(self.note_color_label)
@@ -148,6 +148,14 @@ class TinhAndMauPage(QWidget):
         self.table_main_count = None
         self.table_main_color = None
         self.table_main_colorM2 = None
+        self.table_main_colorM3 = None
+        self.table_main_colorM4 = None
+        self.table_main_colorM5 = None
+        self.table_main_colorM6 = None
+        self.table_main_colorM7 = None
+        self.table_main_colorM8 = None
+        self.table_main_colorM9 = None
+        self.table_main_colorM10 = None
         self.ranges = []
         self.ranges_current = None
 
@@ -173,10 +181,22 @@ class TinhAndMauPage(QWidget):
         # * Color M6
         self.table_scroll_colorM6 = None
         self.frozen_table_colorM6 = None
+        # * Color M7
+        self.table_scroll_colorM7 = None
+        self.frozen_table_colorM7 = None
+        # * Color M8
+        self.table_scroll_colorM8 = None
+        self.frozen_table_colorM8 = None
+        # * Color M8
+        self.table_scroll_colorM8 = None
+        self.frozen_table_colorM8 = None
+        # * Color M10
+        self.table_scroll_colorM10 = None
+        self.frozen_table_colorM10 = None
 
         # / Button Main
         self.button_wid_main = QWidget()
-        self.button_layout = QHBoxLayout(self.button_wid_main)
+        self.button_layout = QVBoxLayout(self.button_wid_main)
         # self.button_layout.setSpacing(50)
         self.layout.addWidget(self.button_wid_main)
 
@@ -220,12 +240,16 @@ class TinhAndMauPage(QWidget):
         self.renderTableColorM4()
         self.renderTableColorM5()
         self.renderTableColorM6()
+        self.renderTableColorM7()
+        self.renderTableColorM8()
+        self.renderTableColorM9()
+        self.renderTableColorM10()
         self.renderButton()
         self.render_table_thong()
         self.widget_main.setCurrentWidget(self.table_main_count)
         return
 
-    def renderNavigation(self):
+    def renderNavigation(self, type="m1"):
         # Clear previous widgets in the layout
         self.clearLayout(self.navbar_layout)
 
@@ -243,6 +267,10 @@ class TinhAndMauPage(QWidget):
         colorM4 = notice["colorM4"]
         colorM5 = notice["colorM5"]
         colorM6 = notice["colorM6"]
+        colorM7 = notice["colorM7"]
+        colorM8 = notice["colorM8"]
+        colorM9 = notice["colorM9"]
+        colorM10 = notice["colorM10"]
         color = notice["color"] if btn_color[0] else notice["color2"]
         text_color = "BM" if btn_color[0] else "BM2"
         change_number = ban_info["meta"]["number"]
@@ -255,30 +283,45 @@ class TinhAndMauPage(QWidget):
         col_e4 = ban_info["meta"]["setting"]["col_e4"]
         col_e5 = ban_info["meta"]["setting"]["col_e5"]
         col_e6 = ban_info["meta"]["setting"]["col_e6"]
+        col_e7 = ban_info["meta"]["setting"]["col_e7"]
+        col_e8 = ban_info["meta"]["setting"]["col_e8"]
+        col_e9 = ban_info["meta"]["setting"]["col_e9"]
+        col_e10 = ban_info["meta"]["setting"]["col_e10"]
 
         title_text = (
             f"{ban_thong_name}/30 / Bảng Tính / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
             + f"Số dòng: {row_count}/{max_row} / "
-            + f"MBT: {count[0]} đến {count[1]}"
+            + f"MBT: {count[0]} đến {count[1]} / "
+            + f"Thống Kê M1 D: {col_e[0]} đến {col_e[1]} / "
+            + f"M{text_color}1: {color[0]} đến {color[1]}"
         )
 
         title_text_2 = (
-            f"Thống Kê M1 D: {col_e[0]} đến {col_e[1]} / "
-            + f"M{text_color}1: {color[0]} đến {color[1]} / "
-            + f"Thống Kê M2 D: {col_e2[0]} đến {col_e2[1]} / "
+            f"Thống Kê M2 D: {col_e2[0]} đến {col_e2[1]} / "
             + f"MBM2: {colorM2[0]} đến {colorM2[1]} / "
             + f"Thống Kê M3 D: {col_e3[0]} đến {col_e3[1]} / "
-            + f"MBM3: {colorM3[0]} đến {colorM3[1]}"
+            + f"MBM3: {colorM3[0]} đến {colorM3[1]} / "
+            + f"Thống Kê M4 D: {col_e4[0]} đến {col_e4[1]} / "
+            + f"MBM4: {colorM4[0]} đến {colorM4[1]}"
         )
 
         title_text_3 = (
-            f"Thống Kê M4 D: {col_e4[0]} đến {col_e4[1]} / "
-            + f"MBM4: {colorM4[0]} đến {colorM4[1]} / "
-            + f"Thống Kê M5 D: {col_e5[0]} đến {col_e5[1]} / "
-            + f"MBM5: {colorM5[0]} đến {colorM5[1]} / "
-            + f"Thống Kê M6 D: {col_e6[0]} đến {col_e6[1]} / "
-            + f"MBM6: {colorM6[0]} đến {colorM6[1]}"
+            f"Thống Kê M5 D: {col_e5[0]} đến {col_e5[1]} / "
+            + f"MBM5: {colorM5[0]} đến {colorM5[1]}"
+            +f"Thống Kê M6 D: {col_e6[0]} đến {col_e6[1]} / "
+            + f"MBM6: {colorM6[0]} đến {colorM6[1]} / "
+            + f"Thống Kê M7 D: {col_e7[0]} đến {col_e7[1]} / "
+            + f"MBM7: {colorM7[0]} đến {colorM7[1]}"
+        )
+
+        title_text_4 = (
+            f"Thống Kê M8 D: {col_e8[0]} đến {col_e8[1]} / "
+            + f"MBM8: {colorM8[0]} đến {colorM8[1]} / "
+            + f"Thống Kê M9 D: {col_e9[0]} đến {col_e9[1]} / "
+            + f"MBM9: {colorM9[0]} đến {colorM9[1]} / "
+            + f"Thống Kê M10 D: {col_e10[0]} đến {col_e10[1]} / "
+            + f"MBM10: {colorM10[0]} đến {colorM10[1]}"
         )
 
         self.status_w = QWidget()
@@ -295,6 +338,10 @@ class TinhAndMauPage(QWidget):
         self.title_3 = QLabel(title_text_3)
         self.title_3.setStyleSheet(css_title)
         self.status_l.addWidget(self.title_3)
+
+        self.title_4 = QLabel(title_text_4)
+        self.title_4.setStyleSheet(css_title)
+        self.status_l.addWidget(self.title_4)
 
         self.navbar_layout.addWidget(self.status_w)
 
@@ -331,65 +378,38 @@ class TinhAndMauPage(QWidget):
         #     for item in self.dataColor2
         #     if item["date"] == lastDate and item["notice"]
         # ]
-        color_find_with_dCount_6 = [
-            item
-            for item in self.dataColor6
-            if item["date"] == lastDate and item["notice"]
+        data_color = None
+        if type == "m1":
+            data_color = self.dataColor
+        elif type == "m2":
+            data_color = self.dataColor2
+        elif type == "m3":
+            data_color = self.dataColor3
+        elif type == "m4":
+            data_color = self.dataColor4
+        elif type == "m5":
+            data_color = self.dataColor5
+        elif type == "m6":
+            data_color = self.dataColor6
+        elif type == "m7":
+            data_color = self.dataColor7
+        elif type == "m8":
+            data_color = self.dataColor8
+        elif type == "m9":
+            data_color = self.dataColor9
+        else:
+            data_color = self.dataColor10
+
+        color_find_with_dCount = [
+            item for item in data_color if item["date"] == lastDate and item["notice"]
         ]
 
-        # color_sorted = sorted(color_find_with_dCount, key=lambda x: x["col_d"])
-        # self.color_list = color_sorted
+        color_sorted = sorted(color_find_with_dCount, key=lambda x: x["col_d"])
+        self.color_list = color_sorted
 
-        color_sorted_6 = sorted(color_find_with_dCount_6, key=lambda x: x["col_d"])
-        self.color_list_6 = color_sorted_6
-
-        # for label in range(10):
-        #     button = QPushButton(str(label + 1))
-        #     button.setFixedWidth(60)
-        #     if label < len(self.color_list):
-        #         isColor = self.color_list[label]
-        #     else:
-        #         isColor = None  # Or any default value
-        #     if isColor:
-        #         # / Add button to list of buttons
-        #         btn_label = isColor["data"]
-        #         btn = QPushButton(btn_label)
-        #         btn.setStyleSheet(css_button_notice)
-        #         btn.setCursor(Qt.PointingHandCursor)
-        #         buttons_layout.addWidget(btn)
-        #         self.addNoticeView(btn, f"{btn_label}_m2", isColor)
-        #         btn.clicked.connect(partial(self.handleButtonClick, f"{btn_label}_m2"))
-        #         # / Set the maximum width for all buttons
-        #         btn.setFixedWidth(240)
-        #         button.setFixedWidth(240)
-        #         # TODO set color text if isEqual
-        #         if isColor["color"]:
-        #             btn.setStyleSheet(
-        #                 f"{css_button_notice}"
-        #                 + """
-        #                 QPushButton {
-        #                     color: red;
-        #                 }
-
-        #                 """
-        #             )
-
-        #     else:
-        #         button.setStyleSheet(css_button_normal)
-
-        #         # / Add button to list of buttons
-        #         btn_label = str(label + 1)
-        #         btn = QPushButton(btn_label)
-        #         btn.setFixedWidth(60)
-        #         btn.setStyleSheet(css_button_normal)
-        #         btn.setCursor(Qt.PointingHandCursor)
-        #         buttons_layout.addWidget(btn)
-
-        for label in range(10):
-            button = QPushButton(str(label + 1))
-            # button.setFixedWidth(120)
-            if label < len(self.color_list_6):
-                isColor = self.color_list_6[label]
+        for label in range(6):
+            if label < len(self.color_list):
+                isColor = self.color_list[label]
             else:
                 isColor = None  # Or any default value
             if isColor:
@@ -399,11 +419,12 @@ class TinhAndMauPage(QWidget):
                 btn.setStyleSheet(css_button_notice)
                 btn.setCursor(Qt.PointingHandCursor)
                 buttons_layout_2.addWidget(btn)
-                self.addNoticeView(btn, f"{btn_label}_m6", isColor)
-                btn.clicked.connect(partial(self.handleButtonClick, f"{btn_label}_m6"))
+                self.addNoticeView(btn, f"{btn_label}_{type}", isColor)
+                btn.clicked.connect(
+                    partial(self.handleButtonClick, f"{btn_label}_{type}")
+                )
                 # / Set the maximum width for all buttons
-                btn.setFixedWidth(300)
-                # button.setFixedWidth(240)
+                # btn.setFixedWidth(300)
                 # TODO set color text if isEqual
                 if isColor["color"]:
                     btn.setStyleSheet(
@@ -417,8 +438,6 @@ class TinhAndMauPage(QWidget):
                     )
 
             else:
-                button.setStyleSheet(css_button_normal)
-
                 # / Add button to list of buttons
                 btn_label = str(label + 1)
                 btn = QPushButton(btn_label)
@@ -427,7 +446,6 @@ class TinhAndMauPage(QWidget):
                 btn.setCursor(Qt.PointingHandCursor)
                 buttons_layout_2.addWidget(btn)
 
-            # buttons_layout.addWidget(button)
         # / reRender Data Analysis Color D
         value_input = self.analysis_data
         if len(value_input) > 0:
@@ -716,29 +734,32 @@ class TinhAndMauPage(QWidget):
                         QHeaderView.ResizeMode.Stretch
                     )
 
+    # TODO Handler Button PM
     def renderButton(self):
-        # / Jump fisrt Column
-        # JumpFisrtColumn = QPushButton("Trở Về")
-        # JumpFisrtColumn.setStyleSheet(css_button_submit)
-        # JumpFisrtColumn.setCursor(QCursor(Qt.PointingHandCursor))
-        # self.button_layout.addWidget(JumpFisrtColumn)
+        button_main_1_w = QWidget()
+        button_main_1_l = QHBoxLayout(button_main_1_w)
+        self.button_layout.addWidget(button_main_1_w)
+        button_main_2_w = QWidget()
+        button_main_2_l = QHBoxLayout(button_main_2_w)
+        self.button_layout.addWidget(button_main_2_w)
+
         # / Delete new row
         DeleteNewRow = QPushButton("Xóa Dòng Mới")
         DeleteNewRow.setStyleSheet(css_button_submit)
         DeleteNewRow.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(DeleteNewRow)
+        button_main_1_l.addWidget(DeleteNewRow)
 
         # / Delete from to
         DeleteFromTo = QPushButton("Xóa Từ Ngày")
         DeleteFromTo.setStyleSheet(css_button_submit)
         DeleteFromTo.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(DeleteFromTo)
+        button_main_1_l.addWidget(DeleteFromTo)
 
         # / Setting Table
         SettingTable = QPushButton("Cài Đặt Bảng")
         SettingTable.setStyleSheet(css_button_submit)
         SettingTable.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(SettingTable)
+        button_main_1_l.addWidget(SettingTable)
 
         # / Insert Data row
         InsertData = QPushButton("Nhập Liệu")
@@ -756,46 +777,66 @@ class TinhAndMauPage(QWidget):
 """
         )
         InsertData.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(InsertData)
+        button_main_1_l.addWidget(InsertData)
 
         # / Bảng Màu
         self.TableChange = QPushButton("Bảng Tính")
         self.TableChange.setStyleSheet(css_button_submit)
         self.TableChange.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.TableChange)
+        button_main_1_l.addWidget(self.TableChange)
 
         # / Bảng Màu 1
         self.TableM1 = QPushButton("BM M1")
         self.TableM1.setStyleSheet(css_button_submit)
         self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.TableM1)
+        button_main_2_l.addWidget(self.TableM1)
 
         # / BM 2
         self.TableM2 = QPushButton("BM M2")
         self.TableM2.setStyleSheet(css_button_submit)
         self.TableM2.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.TableM2)
+        button_main_2_l.addWidget(self.TableM2)
 
         # / BM 3
         self.TableM3 = QPushButton("BM M3")
         self.TableM3.setStyleSheet(css_button_submit)
         self.TableM3.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.TableM3)
+        button_main_2_l.addWidget(self.TableM3)
         # / BM 4
         self.TableM4 = QPushButton("BM M4")
         self.TableM4.setStyleSheet(css_button_submit)
         self.TableM4.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.TableM4)
+        button_main_2_l.addWidget(self.TableM4)
         # / BM 5
         self.TableM5 = QPushButton("BM M5")
         self.TableM5.setStyleSheet(css_button_submit)
         self.TableM5.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.TableM5)
+        button_main_2_l.addWidget(self.TableM5)
         # / BM 6
         self.TableM6 = QPushButton("BM M6")
         self.TableM6.setStyleSheet(css_button_submit)
         self.TableM6.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.TableM6)
+        button_main_2_l.addWidget(self.TableM6)
+        # / BM 7
+        self.TableM7 = QPushButton("BM M7")
+        self.TableM7.setStyleSheet(css_button_submit)
+        self.TableM7.setCursor(QCursor(Qt.PointingHandCursor))
+        button_main_2_l.addWidget(self.TableM7)
+        # / BM 8
+        self.TableM8 = QPushButton("BM M8")
+        self.TableM8.setStyleSheet(css_button_submit)
+        self.TableM8.setCursor(QCursor(Qt.PointingHandCursor))
+        button_main_2_l.addWidget(self.TableM8)
+        # / BM 9
+        self.TableM9 = QPushButton("BM M9")
+        self.TableM9.setStyleSheet(css_button_submit)
+        self.TableM9.setCursor(QCursor(Qt.PointingHandCursor))
+        button_main_2_l.addWidget(self.TableM9)
+        # / BM 10
+        self.TableM10 = QPushButton("BM M10")
+        self.TableM10.setStyleSheet(css_button_submit)
+        self.TableM10.setCursor(QCursor(Qt.PointingHandCursor))
+        button_main_2_l.addWidget(self.TableM10)
 
         def insertData_Click():
             data = self.ban_info["data"]
@@ -811,123 +852,279 @@ class TinhAndMauPage(QWidget):
 
         def changeTable():
             old_title = self.title.text()
-            new_title = old_title
             self.widget_main.setCurrentWidget(self.table_main_count)
-            for text in [
-                "Bảng Tính",
-                "Bảng Màu 1",
-                "Bảng Màu 2",
-                "Bảng Màu 3",
-                "Bảng Màu 4",
-                "Bảng Màu 5",
-                "Bảng Màu 6",
-            ]:
+            self.renderNavigation('m1')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
                 if text in old_title:
-                    new_title = new_title.replace(text, "Bảng Tính")
+                    new_title = old_title.replace(text, "Bảng Tính")
                     self.title.setText(new_title)
                     return
 
         def changeTableM1():
             old_title = self.title.text()
-            new_title = old_title
             self.widget_main.setCurrentWidget(self.table_main_color)
-            for text in [
-                "Bảng Tính",
-                "Bảng Màu 1",
-                "Bảng Màu 2",
-                "Bảng Màu 3",
-                "Bảng Màu 4",
-                "Bảng Màu 5",
-                "Bảng Màu 6",
-            ]:
+            self.renderNavigation('m1')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
                 if text in old_title:
-                    new_title = new_title.replace(text, "Bảng Màu 1")
+                    new_title = old_title.replace(text, "Bảng Màu 1")
                     self.title.setText(new_title)
                     return
 
         def changeTableM2():
             old_title = self.title.text()
-            new_title = old_title
             self.widget_main.setCurrentWidget(self.table_main_colorM2)
-            for text in [
-                "Bảng Tính",
-                "Bảng Màu 1",
-                "Bảng Màu 2",
-                "Bảng Màu 3",
-                "Bảng Màu 4",
-                "Bảng Màu 5",
-                "Bảng Màu 6",
-            ]:
-                if text in new_title:
-                    new_title = new_title.replace(text, "Bảng Màu 2")
+            self.renderNavigation('m2')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 2")
                     self.title.setText(new_title)
 
         def changeTableM3():
             old_title = self.title.text()
-            new_title = old_title
             self.widget_main.setCurrentWidget(self.table_main_colorM3)
-            for text in [
-                "Bảng Tính",
-                "Bảng Màu 1",
-                "Bảng Màu 2",
-                "Bảng Màu 3",
-                "Bảng Màu 4",
-                "Bảng Màu 5",
-                "Bảng Màu 6",
-            ]:
-                if text in new_title:
-                    new_title = new_title.replace(text, "Bảng Màu 3")
+            self.renderNavigation('m3')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 3")
                     self.title.setText(new_title)
 
         def changeTableM4():
             old_title = self.title.text()
-            new_title = old_title
             self.widget_main.setCurrentWidget(self.table_main_colorM4)
-            for text in [
-                "Bảng Tính",
-                "Bảng Màu 1",
-                "Bảng Màu 2",
-                "Bảng Màu 3",
-                "Bảng Màu 4",
-                "Bảng Màu 5",
-                "Bảng Màu 6",
-            ]:
-                if text in new_title:
-                    new_title = new_title.replace(text, "Bảng Màu 4")
+            self.renderNavigation('m4')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 4")
                     self.title.setText(new_title)
 
         def changeTableM5():
             old_title = self.title.text()
-            new_title = old_title
             self.widget_main.setCurrentWidget(self.table_main_colorM5)
-            for text in [
-                "Bảng Tính",
-                "Bảng Màu 1",
-                "Bảng Màu 2",
-                "Bảng Màu 3",
-                "Bảng Màu 4",
-                "Bảng Màu 5",
-                "Bảng Màu 6",
-            ]:
-                if text in new_title:
-                    new_title = new_title.replace(text, "Bảng Màu 5")
+            self.renderNavigation('m5')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 5")
                     self.title.setText(new_title)
 
         def changeTableM6():
             old_title = self.title.text()
-            new_title = old_title
             self.widget_main.setCurrentWidget(self.table_main_colorM6)
-            for text in [
-                "Bảng Tính",
-                "Bảng Màu 1",
-                "Bảng Màu 2",
-                "Bảng Màu 3",
-                "Bảng Màu 4",
-                "Bảng Màu 5",
-                "Bảng Màu 6",
-            ]:
-                if text in new_title:
-                    new_title = new_title.replace(text, "Bảng Màu 5")
+            self.renderNavigation('m6')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 6")
+                    self.title.setText(new_title)
+
+        def changeTableM7():
+            old_title = self.title.text()
+            self.widget_main.setCurrentWidget(self.table_main_colorM7)
+            self.renderNavigation('m7')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 7")
+                    self.title.setText(new_title)
+
+        def changeTableM8():
+            old_title = self.title.text()
+            self.widget_main.setCurrentWidget(self.table_main_colorM8)
+            self.renderNavigation('m8')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 8")
+                    self.title.setText(new_title)
+
+        def changeTableM9():
+            old_title = self.title.text()
+            self.widget_main.setCurrentWidget(self.table_main_colorM9)
+            self.renderNavigation('m9')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 9")
+                    self.title.setText(new_title)
+
+        def changeTableM10():
+            old_title = self.title.text()
+            self.widget_main.setCurrentWidget(self.table_main_colorM10)
+            self.renderNavigation('m10')
+            for text in sorted(
+                [
+                    "Bảng Màu 10",
+                    "Bảng Màu 9",
+                    "Bảng Màu 8",
+                    "Bảng Màu 7",
+                    "Bảng Màu 6",
+                    "Bảng Màu 5",
+                    "Bảng Màu 4",
+                    "Bảng Màu 3",
+                    "Bảng Màu 2",
+                    "Bảng Màu 1",
+                    "Bảng Tính",
+                ],
+                key=len,
+                reverse=True,
+            ):
+                if text in old_title:
+                    new_title = old_title.replace(text, "Bảng Màu 10")
                     self.title.setText(new_title)
 
         InsertData.clicked.connect(insertData_Click)
@@ -938,6 +1135,10 @@ class TinhAndMauPage(QWidget):
         self.TableM4.clicked.connect(changeTableM4)
         self.TableM5.clicked.connect(changeTableM5)
         self.TableM6.clicked.connect(changeTableM6)
+        self.TableM7.clicked.connect(changeTableM7)
+        self.TableM8.clicked.connect(changeTableM8)
+        self.TableM9.clicked.connect(changeTableM9)
+        self.TableM10.clicked.connect(changeTableM10)
         SettingTable.clicked.connect(self.changeSettingColor)
         DeleteNewRow.clicked.connect(self.deleteNewRow)
         DeleteFromTo.clicked.connect(self.deleteFromToRow)
@@ -1653,6 +1854,574 @@ class TinhAndMauPage(QWidget):
                         QHeaderView.ResizeMode.Stretch
                     )
 
+    # TODO Handle Table M7
+
+    def renderTableColorM7(self):
+        # / Create Widget table
+        self.table_main_colorM7 = QSplitter(Qt.Horizontal)
+        self.widget_main.addWidget(self.table_main_colorM7)
+
+        # / Table Create
+        # Create a vertical splitter
+        self.splitter_leftM7 = QSplitter(Qt.Vertical)
+        self.frozen_table_leftM7 = QTableWidget()
+        self.table_scroll_leftM7 = QTableWidget()
+        self.splitter_leftM7.addWidget(self.frozen_table_leftM7)
+        self.splitter_leftM7.addWidget(self.table_scroll_leftM7)
+
+        self.table_main_colorM7.addWidget(self.splitter_leftM7)
+
+        # Create a vertical splitter
+        self.splitter_rightM7 = QSplitter(Qt.Vertical)
+        self.frozen_table_colorM7 = QTableWidget()
+        self.table_scroll_colorM7 = QTableWidget()
+        self.splitter_rightM7.addWidget(self.frozen_table_colorM7)
+        self.splitter_rightM7.addWidget(self.table_scroll_colorM7)
+
+        self.table_main_colorM7.addWidget(self.splitter_rightM7)
+
+        # / Config table
+        self.frozen_table_colorM7.setRowCount(1)
+
+        self.frozen_table_leftM7.setRowCount(1)
+
+        self.frozen_table_leftM7.setColumnCount(1)
+        self.table_scroll_leftM7.setColumnCount(1)
+
+        # / Config Header col
+        self.updateHeaderColorM7()
+        # / config header Row
+        for i in range(self.frozen_table_leftM7.rowCount()):
+            item = QTableWidgetItem(f"Ngày")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_leftM7.setItem(i, 0, item)
+
+        # / Config Header
+        self.configheader_table_colorM7()
+
+        height_of_row = self.frozen_table_colorM7.verticalHeader().sectionSize(0)
+        width_of_row = self.frozen_table_colorM7.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM7.setMaximumHeight(height_of_row)
+        self.frozen_table_colorM7.setMinimumHeight(height_of_row)
+
+        self.frozen_table_leftM7.setMaximumSize(width_of_row + 90, height_of_row)
+        self.frozen_table_leftM7.setMinimumSize(width_of_row + 90, height_of_row)
+
+        self.frozen_table_leftM7.horizontalHeader().setStretchLastSection(True)
+        self.table_scroll_leftM7.horizontalHeader().setStretchLastSection(True)
+
+        self.frozen_table_colorM7.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.frozen_table_leftM7.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        # self.table_scroll_color.setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        # )
+        self.table_scroll_leftM7.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.table_scroll_leftM7.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+
+        def sync_horizontal_scrollM7(vale):
+            self.frozen_table_colorM7.horizontalScrollBar().setValue(vale)
+            self.table_scroll_colorM7.horizontalScrollBar().setValue(vale)
+
+        def sync_vertical_scrollM7(vale):
+            self.table_scroll_leftM7.verticalScrollBar().setValue(vale)
+            self.table_scroll_colorM7.verticalScrollBar().setValue(vale)
+
+        self.table_scroll_colorM7.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM7
+        )
+        self.frozen_table_colorM7.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM7
+        )
+        self.table_scroll_colorM7.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM7
+        )
+        self.table_scroll_leftM7.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM7
+        )
+
+        self.table_scroll_colorM7.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_colorM7.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
+
+        self.updateTableColorM7()
+
+    def configheader_table_colorM7(self):
+        for table in [
+            self.frozen_table_colorM7,
+            self.frozen_table_leftM7,
+            self.table_scroll_colorM7,
+            self.table_scroll_leftM7,
+        ]:
+
+            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            # / Font
+            table.setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+            )
+            # / Header
+            table.horizontalHeader().hide()
+            table.verticalHeader().hide()
+            if table not in [self.frozen_table_colorM7, self.frozen_table_leftM7]:
+                table.verticalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+                table.horizontalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+            else:
+                if table == self.frozen_table_colorM7:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.ResizeToContents
+                    )
+                else:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.Stretch
+                    )
+
+    # TODO Handle Table M8
+
+    def renderTableColorM8(self):
+        # / Create Widget table
+        self.table_main_colorM8 = QSplitter(Qt.Horizontal)
+        self.widget_main.addWidget(self.table_main_colorM8)
+
+        # / Table Create
+        # Create a vertical splitter
+        self.splitter_leftM8 = QSplitter(Qt.Vertical)
+        self.frozen_table_leftM8 = QTableWidget()
+        self.table_scroll_leftM8 = QTableWidget()
+        self.splitter_leftM8.addWidget(self.frozen_table_leftM8)
+        self.splitter_leftM8.addWidget(self.table_scroll_leftM8)
+
+        self.table_main_colorM8.addWidget(self.splitter_leftM8)
+
+        # Create a vertical splitter
+        self.splitter_rightM8 = QSplitter(Qt.Vertical)
+        self.frozen_table_colorM8 = QTableWidget()
+        self.table_scroll_colorM8 = QTableWidget()
+        self.splitter_rightM8.addWidget(self.frozen_table_colorM8)
+        self.splitter_rightM8.addWidget(self.table_scroll_colorM8)
+
+        self.table_main_colorM8.addWidget(self.splitter_rightM8)
+
+        # / Config table
+        self.frozen_table_colorM8.setRowCount(1)
+
+        self.frozen_table_leftM8.setRowCount(1)
+
+        self.frozen_table_leftM8.setColumnCount(1)
+        self.table_scroll_leftM8.setColumnCount(1)
+
+        # / Config Header col
+        self.updateHeaderColorM8()
+        # / config header Row
+        for i in range(self.frozen_table_leftM8.rowCount()):
+            item = QTableWidgetItem(f"Ngày")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_leftM8.setItem(i, 0, item)
+
+        # / Config Header
+        self.configheader_table_colorM8()
+
+        height_of_row = self.frozen_table_colorM8.verticalHeader().sectionSize(0)
+        width_of_row = self.frozen_table_colorM8.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM8.setMaximumHeight(height_of_row)
+        self.frozen_table_colorM8.setMinimumHeight(height_of_row)
+
+        self.frozen_table_leftM8.setMaximumSize(width_of_row + 90, height_of_row)
+        self.frozen_table_leftM8.setMinimumSize(width_of_row + 90, height_of_row)
+
+        self.frozen_table_leftM8.horizontalHeader().setStretchLastSection(True)
+        self.table_scroll_leftM8.horizontalHeader().setStretchLastSection(True)
+
+        self.frozen_table_colorM8.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.frozen_table_leftM8.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        # self.table_scroll_color.setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        # )
+        self.table_scroll_leftM8.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.table_scroll_leftM8.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+
+        def sync_horizontal_scrollM8(vale):
+            self.frozen_table_colorM8.horizontalScrollBar().setValue(vale)
+            self.table_scroll_colorM8.horizontalScrollBar().setValue(vale)
+
+        def sync_vertical_scrollM8(vale):
+            self.table_scroll_leftM8.verticalScrollBar().setValue(vale)
+            self.table_scroll_colorM8.verticalScrollBar().setValue(vale)
+
+        self.table_scroll_colorM8.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM8
+        )
+        self.frozen_table_colorM8.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM8
+        )
+        self.table_scroll_colorM8.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM8
+        )
+        self.table_scroll_leftM8.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM8
+        )
+
+        self.table_scroll_colorM8.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_colorM8.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
+
+        self.updateTableColorM8()
+
+    def configheader_table_colorM8(self):
+        for table in [
+            self.frozen_table_colorM8,
+            self.frozen_table_leftM8,
+            self.table_scroll_colorM8,
+            self.table_scroll_leftM8,
+        ]:
+
+            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            # / Font
+            table.setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+            )
+            # / Header
+            table.horizontalHeader().hide()
+            table.verticalHeader().hide()
+            if table not in [self.frozen_table_colorM8, self.frozen_table_leftM8]:
+                table.verticalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+                table.horizontalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+            else:
+                if table == self.frozen_table_colorM8:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.ResizeToContents
+                    )
+                else:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.Stretch
+                    )
+
+    # TODO Handle Table M9
+
+    def renderTableColorM9(self):
+        # / Create Widget table
+        self.table_main_colorM9 = QSplitter(Qt.Horizontal)
+        self.widget_main.addWidget(self.table_main_colorM9)
+
+        # / Table Create
+        # Create a vertical splitter
+        self.splitter_leftM9 = QSplitter(Qt.Vertical)
+        self.frozen_table_leftM9 = QTableWidget()
+        self.table_scroll_leftM9 = QTableWidget()
+        self.splitter_leftM9.addWidget(self.frozen_table_leftM9)
+        self.splitter_leftM9.addWidget(self.table_scroll_leftM9)
+
+        self.table_main_colorM9.addWidget(self.splitter_leftM9)
+
+        # Create a vertical splitter
+        self.splitter_rightM9 = QSplitter(Qt.Vertical)
+        self.frozen_table_colorM9 = QTableWidget()
+        self.table_scroll_colorM9 = QTableWidget()
+        self.splitter_rightM9.addWidget(self.frozen_table_colorM9)
+        self.splitter_rightM9.addWidget(self.table_scroll_colorM9)
+
+        self.table_main_colorM9.addWidget(self.splitter_rightM9)
+
+        # / Config table
+        self.frozen_table_colorM9.setRowCount(1)
+
+        self.frozen_table_leftM9.setRowCount(1)
+
+        self.frozen_table_leftM9.setColumnCount(1)
+        self.table_scroll_leftM9.setColumnCount(1)
+
+        # / Config Header col
+        self.updateHeaderColorM9()
+        # / config header Row
+        for i in range(self.frozen_table_leftM9.rowCount()):
+            item = QTableWidgetItem(f"Ngày")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_leftM9.setItem(i, 0, item)
+
+        # / Config Header
+        self.configheader_table_colorM9()
+
+        height_of_row = self.frozen_table_colorM9.verticalHeader().sectionSize(0)
+        width_of_row = self.frozen_table_colorM9.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM9.setMaximumHeight(height_of_row)
+        self.frozen_table_colorM9.setMinimumHeight(height_of_row)
+
+        self.frozen_table_leftM9.setMaximumSize(width_of_row + 90, height_of_row)
+        self.frozen_table_leftM9.setMinimumSize(width_of_row + 90, height_of_row)
+
+        self.frozen_table_leftM9.horizontalHeader().setStretchLastSection(True)
+        self.table_scroll_leftM9.horizontalHeader().setStretchLastSection(True)
+
+        self.frozen_table_colorM9.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.frozen_table_leftM9.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        # self.table_scroll_color.setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        # )
+        self.table_scroll_leftM9.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.table_scroll_leftM9.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+
+        def sync_horizontal_scrollM9(vale):
+            self.frozen_table_colorM9.horizontalScrollBar().setValue(vale)
+            self.table_scroll_colorM9.horizontalScrollBar().setValue(vale)
+
+        def sync_vertical_scrollM9(vale):
+            self.table_scroll_leftM9.verticalScrollBar().setValue(vale)
+            self.table_scroll_colorM9.verticalScrollBar().setValue(vale)
+
+        self.table_scroll_colorM9.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM9
+        )
+        self.frozen_table_colorM9.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM9
+        )
+        self.table_scroll_colorM9.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM9
+        )
+        self.table_scroll_leftM9.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM9
+        )
+
+        self.table_scroll_colorM9.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_colorM9.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
+
+        self.updateTableColorM9()
+
+    def configheader_table_colorM9(self):
+        for table in [
+            self.frozen_table_colorM9,
+            self.frozen_table_leftM9,
+            self.table_scroll_colorM9,
+            self.table_scroll_leftM9,
+        ]:
+
+            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            # / Font
+            table.setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+            )
+            # / Header
+            table.horizontalHeader().hide()
+            table.verticalHeader().hide()
+            if table not in [self.frozen_table_colorM9, self.frozen_table_leftM9]:
+                table.verticalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+                table.horizontalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+            else:
+                if table == self.frozen_table_colorM9:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.ResizeToContents
+                    )
+                else:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.Stretch
+                    )
+
+    # TODO Handle Table M10
+
+    def renderTableColorM10(self):
+        # / Create Widget table
+        self.table_main_colorM10 = QSplitter(Qt.Horizontal)
+        self.widget_main.addWidget(self.table_main_colorM10)
+
+        # / Table Create
+        # Create a vertical splitter
+        self.splitter_leftM10 = QSplitter(Qt.Vertical)
+        self.frozen_table_leftM10 = QTableWidget()
+        self.table_scroll_leftM10 = QTableWidget()
+        self.splitter_leftM10.addWidget(self.frozen_table_leftM10)
+        self.splitter_leftM10.addWidget(self.table_scroll_leftM10)
+
+        self.table_main_colorM10.addWidget(self.splitter_leftM10)
+
+        # Create a vertical splitter
+        self.splitter_rightM10 = QSplitter(Qt.Vertical)
+        self.frozen_table_colorM10 = QTableWidget()
+        self.table_scroll_colorM10 = QTableWidget()
+        self.splitter_rightM10.addWidget(self.frozen_table_colorM10)
+        self.splitter_rightM10.addWidget(self.table_scroll_colorM10)
+
+        self.table_main_colorM10.addWidget(self.splitter_rightM10)
+
+        # / Config table
+        self.frozen_table_colorM10.setRowCount(1)
+
+        self.frozen_table_leftM10.setRowCount(1)
+
+        self.frozen_table_leftM10.setColumnCount(1)
+        self.table_scroll_leftM10.setColumnCount(1)
+
+        # / Config Header col
+        self.updateHeaderColorM10()
+        # / config header Row
+        for i in range(self.frozen_table_leftM10.rowCount()):
+            item = QTableWidgetItem(f"Ngày")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_leftM10.setItem(i, 0, item)
+
+        # / Config Header
+        self.configheader_table_colorM10()
+
+        height_of_row = self.frozen_table_colorM10.verticalHeader().sectionSize(0)
+        width_of_row = self.frozen_table_colorM10.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM10.setMaximumHeight(height_of_row)
+        self.frozen_table_colorM10.setMinimumHeight(height_of_row)
+
+        self.frozen_table_leftM10.setMaximumSize(width_of_row + 90, height_of_row)
+        self.frozen_table_leftM10.setMinimumSize(width_of_row + 90, height_of_row)
+
+        self.frozen_table_leftM10.horizontalHeader().setStretchLastSection(True)
+        self.table_scroll_leftM10.horizontalHeader().setStretchLastSection(True)
+
+        self.frozen_table_colorM10.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.frozen_table_leftM10.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        # self.table_scroll_color.setVerticalScrollBarPolicy(
+        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        # )
+        self.table_scroll_leftM10.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.table_scroll_leftM10.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
+
+        def sync_horizontal_scrollM10(vale):
+            self.frozen_table_colorM10.horizontalScrollBar().setValue(vale)
+            self.table_scroll_colorM10.horizontalScrollBar().setValue(vale)
+
+        def sync_vertical_scrollM10(vale):
+            self.table_scroll_leftM10.verticalScrollBar().setValue(vale)
+            self.table_scroll_colorM10.verticalScrollBar().setValue(vale)
+
+        self.table_scroll_colorM10.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM10
+        )
+        self.frozen_table_colorM10.horizontalScrollBar().valueChanged.connect(
+            sync_horizontal_scrollM10
+        )
+        self.table_scroll_colorM10.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM10
+        )
+        self.table_scroll_leftM10.verticalScrollBar().valueChanged.connect(
+            sync_vertical_scrollM10
+        )
+
+        self.table_scroll_colorM10.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.table_scroll_colorM10.customContextMenuRequested.connect(
+            self.jumpTableWithRow
+        )
+
+        self.updateTableColorM10()
+
+    def configheader_table_colorM10(self):
+        for table in [
+            self.frozen_table_colorM10,
+            self.frozen_table_leftM10,
+            self.table_scroll_colorM10,
+            self.table_scroll_leftM10,
+        ]:
+
+            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            # / Font
+            table.setFont(self.font)
+            table.verticalHeader().setFont(self.font)
+            table.horizontalHeader().setFont(self.font)
+            table.setStyleSheet(
+                """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+            )
+            # / Header
+            table.horizontalHeader().hide()
+            table.verticalHeader().hide()
+            if table not in [self.frozen_table_colorM10, self.frozen_table_leftM10]:
+                table.verticalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+                table.horizontalHeader().setSectionResizeMode(
+                    QHeaderView.ResizeMode.ResizeToContents
+                )
+            else:
+                if table == self.frozen_table_colorM10:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.ResizeToContents
+                    )
+                else:
+                    table.verticalHeader().setSectionResizeMode(
+                        QHeaderView.ResizeMode.Stretch
+                    )
+
     # TODO Handler Button
 
     def clearLayout(self, layout):
@@ -1694,16 +2463,42 @@ class TinhAndMauPage(QWidget):
             self.table_scroll_colorM4.clearSelection()
             self.table_scroll_colorM5.clearSelection()
             self.table_scroll_colorM6.clearSelection()
+            self.table_scroll_colorM7.clearSelection()
+            self.table_scroll_colorM8.clearSelection()
+            self.table_scroll_colorM9.clearSelection()
+            self.table_scroll_colorM10.clearSelection()
             # / Get Value from Item
             localItem = matching_item["localItem"]
             row = localItem["row"]
             col = localItem["col"]
             button = matching_item["button"]
             notice = matching_item["notice"]
+            
+            if "_m1" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 1", "Bảng Màu 1")
+                if current_widget != self.table_main_color:
+                    self.widget_main.setCurrentWidget(self.table_main_color)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_color.item(row, col)
+                self.table_scroll_color.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
             if "_m2" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 2", "Bảng Màu 2")
                 if current_widget != self.table_main_colorM2:
                     self.widget_main.setCurrentWidget(self.table_main_colorM2)
-                    self.changeStatusBar("Bảng Màu M2", "Bảng Màu M2")
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM2.item(row, col)
                 self.table_scroll_colorM2.scrollToItem(
@@ -1720,10 +2515,74 @@ class TinhAndMauPage(QWidget):
                     },
                 }
                 self.setHighlight(new_data)
+
+            if "_m3" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 3", "Bảng Màu 3")
+                if current_widget != self.table_main_colorM3:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM3)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM3.item(row, col)
+                self.table_scroll_colorM3.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
+            if "_m4" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 4", "Bảng Màu 4")
+                if current_widget != self.table_main_colorM4:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM4)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM4.item(row, col)
+                self.table_scroll_colorM4.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
+            if "_m5" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 5", "Bảng Màu 5")
+                if current_widget != self.table_main_colorM5:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM5)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM5.item(row, col)
+                self.table_scroll_colorM5.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
             if "_m6" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 6", "Bảng Màu 6")
                 if current_widget != self.table_main_colorM6:
                     self.widget_main.setCurrentWidget(self.table_main_colorM6)
-                    self.changeStatusBar("Bảng Màu M6", "Bảng Màu M2")
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM6.item(row, col)
                 self.table_scroll_colorM6.scrollToItem(
@@ -1740,6 +2599,91 @@ class TinhAndMauPage(QWidget):
                     },
                 }
                 self.setHighlight(new_data)
+
+            if "_m7" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 7", "Bảng Màu 7")
+                if current_widget != self.table_main_colorM7:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM7)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM7.item(row, col)
+                self.table_scroll_colorM7.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
+            if "_m8" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 8", "Bảng Màu 8")
+                if current_widget != self.table_main_colorM8:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM8)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM8.item(row, col)
+                self.table_scroll_colorM8.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
+            if "_m9" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 9", "Bảng Màu 9")
+                if current_widget != self.table_main_colorM9:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM9)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM9.item(row, col)
+                self.table_scroll_colorM9.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
+            if "_m10" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 10", "Bảng Màu 10")
+                if current_widget != self.table_main_colorM10:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM10)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM10.item(row, col)
+                self.table_scroll_colorM10.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+
             return
 
     def signal_scrollbar(self, value):
@@ -1846,7 +2790,10 @@ class TinhAndMauPage(QWidget):
         insert_day_label.setStyleSheet(css_lable)
 
         insert_day_edit = QDateEdit()
-        insert_day_edit.setStyleSheet(f"{css_input}" + "background-color: #FAA0A0;")
+        font = QFont()
+        font.setPointSize(20)
+        insert_day_edit.setFont(font)
+        insert_day_edit.setWrapping(False)
         insert_day_edit.setCalendarPopup(True)
 
         insert_from_l.addWidget(insert_day_label, 1, 0)
@@ -2390,13 +3337,13 @@ class TinhAndMauPage(QWidget):
         setting_count_d_l = QGridLayout(setting_count_d_w)
 
         setting_count_d_edit_fisrt = QSpinBox()
-        setting_count_d_edit_fisrt.setMinimum(2)
+        setting_count_d_edit_fisrt.setMinimum(1)
         setting_count_d_edit_fisrt.setMaximum(120)
         setting_count_d_edit_fisrt.setStyleSheet(css_input)
         setting_count_d_edit_fisrt.setValue(col_e["col_e"][0])
 
         setting_count_d_edit_second = QSpinBox()
-        setting_count_d_edit_second.setMinimum(2)
+        setting_count_d_edit_second.setMinimum(1)
         setting_count_d_edit_second.setMaximum(120)
         setting_count_d_edit_second.setStyleSheet(css_input)
         setting_count_d_edit_second.setValue(col_e["col_e"][1])
@@ -2440,13 +3387,13 @@ class TinhAndMauPage(QWidget):
         setting_count_d_l_m2 = QGridLayout(setting_count_d_w_m2)
 
         setting_count_d_edit_fisrt_m2 = QSpinBox()
-        setting_count_d_edit_fisrt_m2.setMinimum(2)
+        setting_count_d_edit_fisrt_m2.setMinimum(1)
         setting_count_d_edit_fisrt_m2.setMaximum(120)
         setting_count_d_edit_fisrt_m2.setStyleSheet(css_input)
         setting_count_d_edit_fisrt_m2.setValue(col_e["col_e2"][0])
 
         setting_count_d_edit_second_m2 = QSpinBox()
-        setting_count_d_edit_second_m2.setMinimum(2)
+        setting_count_d_edit_second_m2.setMinimum(1)
         setting_count_d_edit_second_m2.setMaximum(120)
         setting_count_d_edit_second_m2.setStyleSheet(css_input)
         setting_count_d_edit_second_m2.setValue(col_e["col_e2"][1])
@@ -2490,13 +3437,13 @@ class TinhAndMauPage(QWidget):
         setting_count_d_l_m3 = QGridLayout(setting_count_d_w_m3)
 
         setting_count_d_edit_fisrt_m3 = QSpinBox()
-        setting_count_d_edit_fisrt_m3.setMinimum(2)
+        setting_count_d_edit_fisrt_m3.setMinimum(1)
         setting_count_d_edit_fisrt_m3.setMaximum(120)
         setting_count_d_edit_fisrt_m3.setStyleSheet(css_input)
         setting_count_d_edit_fisrt_m3.setValue(col_e["col_e3"][0])
 
         setting_count_d_edit_second_m3 = QSpinBox()
-        setting_count_d_edit_second_m3.setMinimum(2)
+        setting_count_d_edit_second_m3.setMinimum(1)
         setting_count_d_edit_second_m3.setMaximum(120)
         setting_count_d_edit_second_m3.setStyleSheet(css_input)
         setting_count_d_edit_second_m3.setValue(col_e["col_e3"][1])
@@ -2733,6 +3680,208 @@ class TinhAndMauPage(QWidget):
         layout_2.addWidget(setting_thong_change_label, 3, 1)
         layout_2.addWidget(setting_thong_change_edit_fisrt, 4, 1)
 
+        # / Setting Color Table Color M7
+        setting_color_color_w_m7 = QWidget()
+        setting_color_color_l_m7 = QGridLayout(setting_color_color_w_m7)
+
+        setting_color_color_label_m7 = QLabel("Báo Màu BM7")
+        setting_color_color_label_m7.setStyleSheet(css_lable)
+
+        setting_buttons_notice_edit_fisrt_m7 = QSpinBox()
+        setting_buttons_notice_edit_fisrt_m7.setMinimum(0)
+        setting_buttons_notice_edit_fisrt_m7.setMaximum(120)
+        setting_buttons_notice_edit_fisrt_m7.setStyleSheet(css_input)
+        setting_buttons_notice_edit_fisrt_m7.setValue(old_data["colorM7"][0])
+
+        setting_buttons_notice_edit_second_m7 = QSpinBox()
+        setting_buttons_notice_edit_second_m7.setMinimum(0)
+        setting_buttons_notice_edit_second_m7.setMaximum(120)
+        setting_buttons_notice_edit_second_m7.setStyleSheet(css_input)
+        setting_buttons_notice_edit_second_m7.setValue(old_data["colorM7"][1])
+
+        setting_color_color_l_m7.addWidget(setting_buttons_notice_edit_fisrt_m7, 0, 0)
+        setting_color_color_l_m7.addWidget(setting_buttons_notice_edit_second_m7, 0, 1)
+
+        layout_2.addWidget(setting_color_color_label_m7, 5, 0)
+        layout_2.addWidget(setting_color_color_w_m7, 6, 0)
+
+        # / Setting Thong Ke D M7
+        setting_count_d_label_m7 = QLabel("Thông Kê D M7")
+        setting_count_d_label_m7.setStyleSheet(css_lable)
+
+        setting_count_d_w_m7 = QWidget()
+        setting_count_d_l_m7 = QGridLayout(setting_count_d_w_m7)
+
+        setting_count_d_edit_fisrt_m7 = QSpinBox()
+        setting_count_d_edit_fisrt_m7.setMinimum(1)
+        setting_count_d_edit_fisrt_m7.setMaximum(120)
+        setting_count_d_edit_fisrt_m7.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt_m7.setValue(col_e["col_e7"][0])
+
+        setting_count_d_edit_second_m7 = QSpinBox()
+        setting_count_d_edit_second_m7.setMinimum(1)
+        setting_count_d_edit_second_m7.setMaximum(120)
+        setting_count_d_edit_second_m7.setStyleSheet(css_input)
+        setting_count_d_edit_second_m7.setValue(col_e["col_e7"][1])
+
+        setting_count_d_l_m7.addWidget(setting_count_d_edit_fisrt_m7, 0, 0)
+        setting_count_d_l_m7.addWidget(setting_count_d_edit_second_m7, 0, 1)
+
+        layout_2.addWidget(setting_count_d_label_m7, 5, 1)
+        layout_2.addWidget(setting_count_d_w_m7, 6, 1)
+
+        # / Setting Color Table Color M8
+        setting_color_color_w_m8 = QWidget()
+        setting_color_color_l_m8 = QGridLayout(setting_color_color_w_m8)
+
+        setting_color_color_label_m8 = QLabel("Báo Màu BM8")
+        setting_color_color_label_m8.setStyleSheet(css_lable)
+
+        setting_buttons_notice_edit_fisrt_m8 = QSpinBox()
+        setting_buttons_notice_edit_fisrt_m8.setMinimum(0)
+        setting_buttons_notice_edit_fisrt_m8.setMaximum(120)
+        setting_buttons_notice_edit_fisrt_m8.setStyleSheet(css_input)
+        setting_buttons_notice_edit_fisrt_m8.setValue(old_data["colorM8"][0])
+
+        setting_buttons_notice_edit_second_m8 = QSpinBox()
+        setting_buttons_notice_edit_second_m8.setMinimum(0)
+        setting_buttons_notice_edit_second_m8.setMaximum(120)
+        setting_buttons_notice_edit_second_m8.setStyleSheet(css_input)
+        setting_buttons_notice_edit_second_m8.setValue(old_data["colorM8"][1])
+
+        setting_color_color_l_m8.addWidget(setting_buttons_notice_edit_fisrt_m8, 0, 0)
+        setting_color_color_l_m8.addWidget(setting_buttons_notice_edit_second_m8, 0, 1)
+
+        layout_2.addWidget(setting_color_color_label_m8, 7, 0)
+        layout_2.addWidget(setting_color_color_w_m8, 8, 0)
+
+        # / Setting Thong Ke D M8
+        setting_count_d_label_m8 = QLabel("Thông Kê D M8")
+        setting_count_d_label_m8.setStyleSheet(css_lable)
+
+        setting_count_d_w_m8 = QWidget()
+        setting_count_d_l_m8 = QGridLayout(setting_count_d_w_m8)
+
+        setting_count_d_edit_fisrt_m8 = QSpinBox()
+        setting_count_d_edit_fisrt_m8.setMinimum(1)
+        setting_count_d_edit_fisrt_m8.setMaximum(120)
+        setting_count_d_edit_fisrt_m8.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt_m8.setValue(col_e["col_e8"][0])
+
+        setting_count_d_edit_second_m8 = QSpinBox()
+        setting_count_d_edit_second_m8.setMinimum(1)
+        setting_count_d_edit_second_m8.setMaximum(120)
+        setting_count_d_edit_second_m8.setStyleSheet(css_input)
+        setting_count_d_edit_second_m8.setValue(col_e["col_e8"][1])
+
+        setting_count_d_l_m8.addWidget(setting_count_d_edit_fisrt_m8, 0, 0)
+        setting_count_d_l_m8.addWidget(setting_count_d_edit_second_m8, 0, 1)
+
+        layout_2.addWidget(setting_count_d_label_m8, 7, 1)
+        layout_2.addWidget(setting_count_d_w_m8, 8, 1)
+
+        # / Setting Color Table Color M9
+        setting_color_color_w_m9 = QWidget()
+        setting_color_color_l_m9 = QGridLayout(setting_color_color_w_m9)
+
+        setting_color_color_label_m9 = QLabel("Báo Màu BM9")
+        setting_color_color_label_m9.setStyleSheet(css_lable)
+
+        setting_buttons_notice_edit_fisrt_m9 = QSpinBox()
+        setting_buttons_notice_edit_fisrt_m9.setMinimum(0)
+        setting_buttons_notice_edit_fisrt_m9.setMaximum(120)
+        setting_buttons_notice_edit_fisrt_m9.setStyleSheet(css_input)
+        setting_buttons_notice_edit_fisrt_m9.setValue(old_data["colorM9"][0])
+
+        setting_buttons_notice_edit_second_m9 = QSpinBox()
+        setting_buttons_notice_edit_second_m9.setMinimum(0)
+        setting_buttons_notice_edit_second_m9.setMaximum(120)
+        setting_buttons_notice_edit_second_m9.setStyleSheet(css_input)
+        setting_buttons_notice_edit_second_m9.setValue(old_data["colorM9"][1])
+
+        setting_color_color_l_m9.addWidget(setting_buttons_notice_edit_fisrt_m9, 0, 0)
+        setting_color_color_l_m9.addWidget(setting_buttons_notice_edit_second_m9, 0, 1)
+
+        layout_2.addWidget(setting_color_color_label_m9, 9, 0)
+        layout_2.addWidget(setting_color_color_w_m9, 10, 0)
+
+        # / Setting Thong Ke D M9
+        setting_count_d_label_m9 = QLabel("Thông Kê D M9")
+        setting_count_d_label_m9.setStyleSheet(css_lable)
+
+        setting_count_d_w_m9 = QWidget()
+        setting_count_d_l_m9 = QGridLayout(setting_count_d_w_m9)
+
+        setting_count_d_edit_fisrt_m9 = QSpinBox()
+        setting_count_d_edit_fisrt_m9.setMinimum(1)
+        setting_count_d_edit_fisrt_m9.setMaximum(120)
+        setting_count_d_edit_fisrt_m9.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt_m9.setValue(col_e["col_e9"][0])
+
+        setting_count_d_edit_second_m9 = QSpinBox()
+        setting_count_d_edit_second_m9.setMinimum(1)
+        setting_count_d_edit_second_m9.setMaximum(120)
+        setting_count_d_edit_second_m9.setStyleSheet(css_input)
+        setting_count_d_edit_second_m9.setValue(col_e["col_e9"][1])
+
+        setting_count_d_l_m9.addWidget(setting_count_d_edit_fisrt_m9, 0, 0)
+        setting_count_d_l_m9.addWidget(setting_count_d_edit_second_m9, 0, 1)
+
+        layout_2.addWidget(setting_count_d_label_m9, 9, 1)
+        layout_2.addWidget(setting_count_d_w_m9, 10, 1)
+
+        # / Setting Color Table Color M10
+        setting_color_color_w_m10 = QWidget()
+        setting_color_color_l_m10 = QGridLayout(setting_color_color_w_m10)
+
+        setting_color_color_label_m10 = QLabel("Báo Màu BM10")
+        setting_color_color_label_m10.setStyleSheet(css_lable)
+
+        setting_buttons_notice_edit_fisrt_m10 = QSpinBox()
+        setting_buttons_notice_edit_fisrt_m10.setMinimum(0)
+        setting_buttons_notice_edit_fisrt_m10.setMaximum(120)
+        setting_buttons_notice_edit_fisrt_m10.setStyleSheet(css_input)
+        setting_buttons_notice_edit_fisrt_m10.setValue(old_data["colorM10"][0])
+
+        setting_buttons_notice_edit_second_m10 = QSpinBox()
+        setting_buttons_notice_edit_second_m10.setMinimum(0)
+        setting_buttons_notice_edit_second_m10.setMaximum(120)
+        setting_buttons_notice_edit_second_m10.setStyleSheet(css_input)
+        setting_buttons_notice_edit_second_m10.setValue(old_data["colorM10"][1])
+
+        setting_color_color_l_m10.addWidget(setting_buttons_notice_edit_fisrt_m10, 0, 0)
+        setting_color_color_l_m10.addWidget(
+            setting_buttons_notice_edit_second_m10, 0, 1
+        )
+
+        layout_2.addWidget(setting_color_color_label_m10, 11, 0)
+        layout_2.addWidget(setting_color_color_w_m10, 12, 0)
+
+        # / Setting Thong Ke D M10
+        setting_count_d_label_m10 = QLabel("Thông Kê D M10")
+        setting_count_d_label_m10.setStyleSheet(css_lable)
+
+        setting_count_d_w_m10 = QWidget()
+        setting_count_d_l_m10 = QGridLayout(setting_count_d_w_m10)
+
+        setting_count_d_edit_fisrt_m10 = QSpinBox()
+        setting_count_d_edit_fisrt_m10.setMinimum(1)
+        setting_count_d_edit_fisrt_m10.setMaximum(120)
+        setting_count_d_edit_fisrt_m10.setStyleSheet(css_input)
+        setting_count_d_edit_fisrt_m10.setValue(col_e["col_e10"][0])
+
+        setting_count_d_edit_second_m10 = QSpinBox()
+        setting_count_d_edit_second_m10.setMinimum(1)
+        setting_count_d_edit_second_m10.setMaximum(120)
+        setting_count_d_edit_second_m10.setStyleSheet(css_input)
+        setting_count_d_edit_second_m10.setValue(col_e["col_e10"][1])
+
+        setting_count_d_l_m10.addWidget(setting_count_d_edit_fisrt_m10, 0, 0)
+        setting_count_d_l_m10.addWidget(setting_count_d_edit_second_m10, 0, 1)
+
+        layout_2.addWidget(setting_count_d_label_m10, 11, 1)
+        layout_2.addWidget(setting_count_d_w_m10, 12, 1)
+
         # / Button Save And Exit
         submit_w = QWidget()
         submit_l = QVBoxLayout(submit_w)
@@ -2809,6 +3958,26 @@ class TinhAndMauPage(QWidget):
             value2 = setting_count_d_edit_second_m6.value()
             col_e["col_e6"] = [value1, value2]
 
+        def changeColunmEM7():
+            value1 = setting_count_d_edit_fisrt_m7.value()
+            value2 = setting_count_d_edit_second_m7.value()
+            col_e["col_e7"] = [value1, value2]
+
+        def changeColunmEM8():
+            value1 = setting_count_d_edit_fisrt_m8.value()
+            value2 = setting_count_d_edit_second_m8.value()
+            col_e["col_e8"] = [value1, value2]
+
+        def changeColunmEM9():
+            value1 = setting_count_d_edit_fisrt_m9.value()
+            value2 = setting_count_d_edit_second_m9.value()
+            col_e["col_e9"] = [value1, value2]
+
+        def changeColunmEM10():
+            value1 = setting_count_d_edit_fisrt_m10.value()
+            value2 = setting_count_d_edit_second_m10.value()
+            col_e["col_e10"] = [value1, value2]
+
         def changeMaxRow():
             value = setting_max_row_edit_fisrt.value()
             maxRow["maxRow"] = value
@@ -2823,6 +3992,10 @@ class TinhAndMauPage(QWidget):
                 "col_e4": col_e["col_e4"],
                 "col_e5": col_e["col_e5"],
                 "col_e6": col_e["col_e6"],
+                "col_e7": col_e["col_e7"],
+                "col_e8": col_e["col_e8"],
+                "col_e9": col_e["col_e9"],
+                "col_e10": col_e["col_e10"],
                 "number": self.ban_info["meta"]["number"],
                 "col": col_ngang["col"],
                 "thong": col_thong,
@@ -2869,6 +4042,26 @@ class TinhAndMauPage(QWidget):
             value2 = setting_buttons_notice_edit_second_m6.value()
             old_data["colorM6"] = [value1, value2]
 
+        def changeButtonNoticeM7():
+            value1 = setting_buttons_notice_edit_fisrt_m7.value()
+            value2 = setting_buttons_notice_edit_second_m7.value()
+            old_data["colorM7"] = [value1, value2]
+
+        def changeButtonNoticeM8():
+            value1 = setting_buttons_notice_edit_fisrt_m8.value()
+            value2 = setting_buttons_notice_edit_second_m8.value()
+            old_data["colorM8"] = [value1, value2]
+
+        def changeButtonNoticeM9():
+            value1 = setting_buttons_notice_edit_fisrt_m9.value()
+            value2 = setting_buttons_notice_edit_second_m9.value()
+            old_data["colorM9"] = [value1, value2]
+
+        def changeButtonNoticeM10():
+            value1 = setting_buttons_notice_edit_fisrt_m10.value()
+            value2 = setting_buttons_notice_edit_second_m10.value()
+            old_data["colorM10"] = [value1, value2]
+
         # / Buttons tpye 1 change (Color)
         setting_color_color_edit_fisrt.valueChanged.connect(changeColorColor)
         setting_color_color_edit_second.valueChanged.connect(changeColorColor)
@@ -2901,6 +4094,18 @@ class TinhAndMauPage(QWidget):
         # / Change value of Column Table M6 Color
         setting_count_d_edit_fisrt_m6.valueChanged.connect(changeColunmEM6)
         setting_count_d_edit_second_m6.valueChanged.connect(changeColunmEM6)
+        # / Change value of Column Table M7 Color
+        setting_count_d_edit_fisrt_m7.valueChanged.connect(changeColunmEM7)
+        setting_count_d_edit_second_m7.valueChanged.connect(changeColunmEM7)
+        # / Change value of Column Table M8 Color
+        setting_count_d_edit_fisrt_m8.valueChanged.connect(changeColunmEM8)
+        setting_count_d_edit_second_m8.valueChanged.connect(changeColunmEM8)
+        # / Change value of Column Table M9 Color
+        setting_count_d_edit_fisrt_m9.valueChanged.connect(changeColunmEM9)
+        setting_count_d_edit_second_m9.valueChanged.connect(changeColunmEM9)
+        # / Change value of Column Table M10 Color
+        setting_count_d_edit_fisrt_m10.valueChanged.connect(changeColunmEM10)
+        setting_count_d_edit_second_m10.valueChanged.connect(changeColunmEM10)
         # / Change MaxRow for All Table
         setting_max_row_edit_fisrt.valueChanged.connect(changeMaxRow)
         # / Buttons Type 2 change (Color)
@@ -2925,6 +4130,26 @@ class TinhAndMauPage(QWidget):
         # / Buttons Type 2 change (ColorM6)
         setting_buttons_notice_edit_fisrt_m6.valueChanged.connect(changeButtonNoticeM6)
         setting_buttons_notice_edit_second_m6.valueChanged.connect(changeButtonNoticeM6)
+
+        # / Buttons Type 2 change (ColorM7)
+        setting_buttons_notice_edit_fisrt_m7.valueChanged.connect(changeButtonNoticeM7)
+        setting_buttons_notice_edit_second_m7.valueChanged.connect(changeButtonNoticeM7)
+
+        # / Buttons Type 2 change (ColorM8)
+        setting_buttons_notice_edit_fisrt_m8.valueChanged.connect(changeButtonNoticeM8)
+        setting_buttons_notice_edit_second_m8.valueChanged.connect(changeButtonNoticeM8)
+
+        # / Buttons Type 2 change (ColorM9)
+        setting_buttons_notice_edit_fisrt_m9.valueChanged.connect(changeButtonNoticeM9)
+        setting_buttons_notice_edit_second_m9.valueChanged.connect(changeButtonNoticeM9)
+
+        # / Buttons Type 2 change (ColorM10)
+        setting_buttons_notice_edit_fisrt_m10.valueChanged.connect(
+            changeButtonNoticeM10
+        )
+        setting_buttons_notice_edit_second_m10.valueChanged.connect(
+            changeButtonNoticeM10
+        )
 
         # / Button Color Type
         # setting_buttons_notice_label.stateChanged.connect(changeButtonsColorTypeTwo)
@@ -3149,12 +4374,20 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_colorM4.clearSelection()
         self.table_scroll_colorM5.clearSelection()
         self.table_scroll_colorM6.clearSelection()
+        self.table_scroll_colorM7.clearSelection()
+        self.table_scroll_colorM8.clearSelection()
+        self.table_scroll_colorM9.clearSelection()
+        self.table_scroll_colorM10.clearSelection()
         current_widget = self.widget_main.currentWidget()
         color_widgetM2 = self.table_main_colorM2
         color_widgetM3 = self.table_main_colorM3
         color_widgetM4 = self.table_main_colorM4
         color_widgetM5 = self.table_main_colorM5
         color_widgetM6 = self.table_main_colorM6
+        color_widgetM7 = self.table_main_colorM7
+        color_widgetM8 = self.table_main_colorM8
+        color_widgetM9 = self.table_main_colorM9
+        color_widgetM10 = self.table_main_colorM10
         color_widget = self.table_main_color
         count_widget = self.table_main_count
 
@@ -3208,6 +4441,38 @@ class TinhAndMauPage(QWidget):
                         partial(self.moveTableWithAction, item_count_data, "vbm6")
                     )
                     menu.addAction(moveTable6)
+
+                if item_count_data["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_count_data, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_count_data["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_count_data, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_count_data["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_count_data, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_count_data["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_count_data, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
 
                 moveTable_thong = QAction("VBThong")
                 moveTable_thong.setFont(self.font_action)
@@ -3270,6 +4535,39 @@ class TinhAndMauPage(QWidget):
                         partial(self.moveTableWithAction, item_color_data, "vbm6")
                     )
                     menu.addAction(moveTable6)
+
+                if item_color_data["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_data, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_data["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_data, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_data["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_data, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_color_data["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_data, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
                 moveTable_thong = QAction("VBThong")
                 moveTable_thong.setFont(self.font_action)
                 moveTable_thong.triggered.connect(
@@ -3330,6 +4628,38 @@ class TinhAndMauPage(QWidget):
                     )
                     menu.addAction(moveTable6)
 
+                if item_color_dataM2["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM2, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM2["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM2, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM2["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM2, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_color_dataM2["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM2, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
                 moveTable_thong = QAction("VBThong")
                 moveTable_thong.setFont(self.font_action)
                 moveTable_thong.triggered.connect(
@@ -3388,6 +4718,38 @@ class TinhAndMauPage(QWidget):
                         partial(self.moveTableWithAction, item_color_dataM3, "vbm6")
                     )
                     menu.addAction(moveTable6)
+
+                if item_color_dataM3["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM3, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM3["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM3, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM3["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM3, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_color_dataM3["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM3, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
 
                 moveTable_thong = QAction("VBThong")
                 moveTable_thong.setFont(self.font_action)
@@ -3449,6 +4811,38 @@ class TinhAndMauPage(QWidget):
                     )
                     menu.addAction(moveTable6)
 
+                if item_color_dataM4["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM4, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM4["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM4, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM4["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM4, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_color_dataM4["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM4, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
                 moveTable_thong = QAction("VBThong")
                 moveTable_thong.setFont(self.font_action)
                 moveTable_thong.triggered.connect(
@@ -3509,6 +4903,38 @@ class TinhAndMauPage(QWidget):
                     )
                     menu.addAction(moveTable6)
 
+                if item_color_dataM5["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM5, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM5["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM5, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM5["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM5, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_color_dataM5["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM5, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
                 moveTable_thong = QAction("VBThong")
                 moveTable_thong.setFont(self.font_action)
                 moveTable_thong.triggered.connect(
@@ -3521,6 +4947,7 @@ class TinhAndMauPage(QWidget):
                 menu.addAction(moveTable_thong)
                 menu.exec(self.table_scroll_colorM5.mapToGlobal(pos))
                 return
+
         if current_widget == color_widgetM6:
             item_color = self.table_scroll_colorM6.itemAt(pos)
             item_color_dataM6 = item_color.data(Qt.ItemDataRole.UserRole)
@@ -3568,6 +4995,38 @@ class TinhAndMauPage(QWidget):
                     )
                     menu.addAction(moveTable5)
 
+                if item_color_dataM6["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM6, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM6["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM6, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM6["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM6, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_color_dataM6["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM6, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
                 moveTable_thong = QAction("VBThong")
                 moveTable_thong.setFont(self.font_action)
                 moveTable_thong.triggered.connect(
@@ -3579,6 +5038,374 @@ class TinhAndMauPage(QWidget):
                 menu.addAction(moveTable2)
                 menu.addAction(moveTable_thong)
                 menu.exec(self.table_scroll_colorM6.mapToGlobal(pos))
+                return
+
+        if current_widget == color_widgetM7:
+            item_color = self.table_scroll_colorM7.itemAt(pos)
+            item_color_dataM7 = item_color.data(Qt.ItemDataRole.UserRole)
+            if item_color_dataM7:
+                menu = QMenu()
+                moveTable = QAction("VBT")
+                moveTable.setFont(self.font_action)
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM7, "vbt")
+                )
+
+                moveTable1 = QAction("VBM1")
+                moveTable1.setFont(self.font_action)
+                moveTable1.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM7, "vbm1")
+                )
+
+                moveTable2 = QAction("VBM2")
+                moveTable2.setFont(self.font_action)
+                moveTable2.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM7, "vbm2")
+                )
+
+                if item_color_dataM7["actionM3"] is not None:
+                    moveTable3 = QAction("VBM3")
+                    moveTable3.setFont(self.font_action)
+                    moveTable3.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM7, "vbm3")
+                    )
+                    menu.addAction(moveTable3)
+
+                if item_color_dataM7["actionM4"] is not None:
+                    moveTable4 = QAction("VBM4")
+                    moveTable4.setFont(self.font_action)
+                    moveTable4.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM7, "vbm4")
+                    )
+                    menu.addAction(moveTable4)
+
+                if item_color_dataM7["actionM5"] is not None:
+                    moveTable5 = QAction("VBM5")
+                    moveTable5.setFont(self.font_action)
+                    moveTable5.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM7, "vbm5")
+                    )
+                    menu.addAction(moveTable5)
+
+                if item_color_dataM7["actionM6"] is not None:
+                    moveTable6 = QAction("VBM6")
+                    moveTable6.setFont(self.font_action)
+                    moveTable6.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM7, "vbm6")
+                    )
+                    menu.addAction(moveTable6)
+
+                if item_color_dataM7["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM7, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM7["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM7, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                if item_color_dataM7["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM7, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM7, "vbthong")
+                )
+
+                menu.addAction(moveTable)
+                menu.addAction(moveTable1)
+                menu.addAction(moveTable2)
+                menu.addAction(moveTable_thong)
+                menu.exec(self.table_scroll_colorM7.mapToGlobal(pos))
+                return
+
+        if current_widget == color_widgetM8:
+            item_color = self.table_scroll_colorM8.itemAt(pos)
+            item_color_dataM8 = item_color.data(Qt.ItemDataRole.UserRole)
+            if item_color_dataM8:
+                menu = QMenu()
+                moveTable = QAction("VBT")
+                moveTable.setFont(self.font_action)
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM8, "vbt")
+                )
+
+                moveTable1 = QAction("VBM1")
+                moveTable1.setFont(self.font_action)
+                moveTable1.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM8, "vbm1")
+                )
+
+                moveTable2 = QAction("VBM2")
+                moveTable2.setFont(self.font_action)
+                moveTable2.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM8, "vbm2")
+                )
+
+                if item_color_dataM8["actionM3"] is not None:
+                    moveTable3 = QAction("VBM3")
+                    moveTable3.setFont(self.font_action)
+                    moveTable3.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM8, "vbm3")
+                    )
+                    menu.addAction(moveTable3)
+
+                if item_color_dataM8["actionM4"] is not None:
+                    moveTable4 = QAction("VBM4")
+                    moveTable4.setFont(self.font_action)
+                    moveTable4.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM8, "vbm4")
+                    )
+                    menu.addAction(moveTable4)
+
+                if item_color_dataM8["actionM5"] is not None:
+                    moveTable5 = QAction("VBM5")
+                    moveTable5.setFont(self.font_action)
+                    moveTable5.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM8, "vbm5")
+                    )
+                    menu.addAction(moveTable5)
+
+                if item_color_dataM8["actionM6"] is not None:
+                    moveTable6 = QAction("VBM6")
+                    moveTable6.setFont(self.font_action)
+                    moveTable6.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM8, "vbm6")
+                    )
+                    menu.addAction(moveTable6)
+
+                if item_color_dataM8["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM8, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM8["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM8, "vbm9")
+                    )
+                    menu.addAction(moveTable5)
+
+                if item_color_dataM8["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM8, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM8, "vbthong")
+                )
+
+                menu.addAction(moveTable)
+                menu.addAction(moveTable1)
+                menu.addAction(moveTable2)
+                menu.addAction(moveTable_thong)
+                menu.exec(self.table_scroll_colorM8.mapToGlobal(pos))
+                return
+
+        if current_widget == color_widgetM9:
+            item_color = self.table_scroll_colorM9.itemAt(pos)
+            item_color_dataM9 = item_color.data(Qt.ItemDataRole.UserRole)
+            if item_color_dataM9:
+                menu = QMenu()
+                moveTable = QAction("VBT")
+                moveTable.setFont(self.font_action)
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM9, "vbt")
+                )
+
+                moveTable1 = QAction("VBM1")
+                moveTable1.setFont(self.font_action)
+                moveTable1.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM9, "vbm1")
+                )
+
+                moveTable2 = QAction("VBM2")
+                moveTable2.setFont(self.font_action)
+                moveTable2.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM9, "vbm2")
+                )
+
+                if item_color_dataM9["actionM3"] is not None:
+                    moveTable3 = QAction("VBM3")
+                    moveTable3.setFont(self.font_action)
+                    moveTable3.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM9, "vbm3")
+                    )
+                    menu.addAction(moveTable3)
+
+                if item_color_dataM9["actionM4"] is not None:
+                    moveTable4 = QAction("VBM4")
+                    moveTable4.setFont(self.font_action)
+                    moveTable4.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM9, "vbm4")
+                    )
+                    menu.addAction(moveTable4)
+
+                if item_color_dataM9["actionM5"] is not None:
+                    moveTable5 = QAction("VBM5")
+                    moveTable5.setFont(self.font_action)
+                    moveTable5.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM9, "vbm5")
+                    )
+                    menu.addAction(moveTable5)
+
+                if item_color_dataM9["actionM6"] is not None:
+                    moveTable6 = QAction("VBM6")
+                    moveTable6.setFont(self.font_action)
+                    moveTable6.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM9, "vbm6")
+                    )
+                    menu.addAction(moveTable6)
+
+                if item_color_dataM9["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM9, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM9["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM9, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM9["actionM10"] is not None:
+                    moveTable10 = QAction("VBM10")
+                    moveTable10.setFont(self.font_action)
+                    moveTable10.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM9, "vbm10")
+                    )
+                    menu.addAction(moveTable10)
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM9, "vbthong")
+                )
+
+                menu.addAction(moveTable)
+                menu.addAction(moveTable1)
+                menu.addAction(moveTable2)
+                menu.addAction(moveTable_thong)
+                menu.exec(self.table_scroll_colorM9.mapToGlobal(pos))
+                return
+
+        if current_widget == color_widgetM10:
+            item_color = self.table_scroll_colorM10.itemAt(pos)
+            item_color_dataM10 = item_color.data(Qt.ItemDataRole.UserRole)
+            if item_color_dataM10:
+                menu = QMenu()
+                moveTable = QAction("VBT")
+                moveTable.setFont(self.font_action)
+                moveTable.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM10, "vbt")
+                )
+
+                moveTable1 = QAction("VBM1")
+                moveTable1.setFont(self.font_action)
+                moveTable1.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM10, "vbm1")
+                )
+
+                moveTable2 = QAction("VBM2")
+                moveTable2.setFont(self.font_action)
+                moveTable2.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM10, "vbm2")
+                )
+
+                if item_color_dataM10["actionM3"] is not None:
+                    moveTable3 = QAction("VBM3")
+                    moveTable3.setFont(self.font_action)
+                    moveTable3.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM10, "vbm3")
+                    )
+                    menu.addAction(moveTable3)
+
+                if item_color_dataM10["actionM4"] is not None:
+                    moveTable4 = QAction("VBM4")
+                    moveTable4.setFont(self.font_action)
+                    moveTable4.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM10, "vbm4")
+                    )
+                    menu.addAction(moveTable4)
+
+                if item_color_dataM10["actionM5"] is not None:
+                    moveTable5 = QAction("VBM5")
+                    moveTable5.setFont(self.font_action)
+                    moveTable5.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM10, "vbm5")
+                    )
+                    menu.addAction(moveTable5)
+
+                if item_color_dataM10["actionM6"] is not None:
+                    moveTable6 = QAction("VBM6")
+                    moveTable6.setFont(self.font_action)
+                    moveTable6.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM10, "vbm6")
+                    )
+                    menu.addAction(moveTable6)
+
+                if item_color_dataM10["actionM7"] is not None:
+                    moveTable7 = QAction("VBM7")
+                    moveTable7.setFont(self.font_action)
+                    moveTable7.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM10, "vbm7")
+                    )
+                    menu.addAction(moveTable7)
+
+                if item_color_dataM10["actionM8"] is not None:
+                    moveTable8 = QAction("VBM8")
+                    moveTable8.setFont(self.font_action)
+                    moveTable8.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM10, "vbm8")
+                    )
+                    menu.addAction(moveTable8)
+
+                if item_color_dataM10["actionM9"] is not None:
+                    moveTable9 = QAction("VBM9")
+                    moveTable9.setFont(self.font_action)
+                    moveTable9.triggered.connect(
+                        partial(self.moveTableWithAction, item_color_dataM10, "vbm9")
+                    )
+                    menu.addAction(moveTable9)
+
+                moveTable_thong = QAction("VBThong")
+                moveTable_thong.setFont(self.font_action)
+                moveTable_thong.triggered.connect(
+                    partial(self.moveTableWithAction, item_color_dataM10, "vbthong")
+                )
+
+                menu.addAction(moveTable)
+                menu.addAction(moveTable1)
+                menu.addAction(moveTable2)
+                menu.addAction(moveTable_thong)
+                menu.exec(self.table_scroll_colorM10.mapToGlobal(pos))
                 return
 
     # TODO Handler Data Table
@@ -3630,6 +5457,10 @@ class TinhAndMauPage(QWidget):
                         "actionM4": (item["actionM4"] if "actionM4" in item else None),
                         "actionM5": (item["actionM5"] if "actionM5" in item else None),
                         "actionM6": (item["actionM6"] if "actionM6" in item else None),
+                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (item["actionM10"] if "actionM10" in item else None),
                         "isColor": notice_item,
                         "thong": item["thong"],
                         "item": item_table,
@@ -3706,6 +5537,7 @@ class TinhAndMauPage(QWidget):
         for i, item in enumerate(cols_arr):
             self.table_scroll_count.setHorizontalHeaderItem(i, item)
 
+    # / Table Bang M1
     def updateTableColor(self):
         # / Set RowCount = 0
         self.table_scroll_color.setRowCount(0)
@@ -3734,7 +5566,7 @@ class TinhAndMauPage(QWidget):
         for i in range(rowCount):
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
-            for c in range(value1 - 2, value2 - 1):
+            for c in range(value1 - 1, value2):
                 num_cols = 3  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
@@ -3774,6 +5606,12 @@ class TinhAndMauPage(QWidget):
                         "actionM4": (item["actionM4"] if "actionM4" in item else None),
                         "actionM5": (item["actionM5"] if "actionM5" in item else None),
                         "actionM6": (item["actionM6"] if "actionM6" in item else None),
+                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
                         "isColor": notice_item,
                         "thong": item["thong"],
                         "item": item_insert,
@@ -3806,7 +5644,7 @@ class TinhAndMauPage(QWidget):
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
-        for i in range(value1 - 2, value2 - 1):
+        for i in range(value1 - 1, value2):
             current_column += 4  # Số cột tạo cho mỗi lần là 3 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
@@ -3814,12 +5652,12 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_color.setColumnCount(current_column)
 
         # Tạo cột từ 0 đến 83
-        for i in range(value1 - 2, value2 - 1):
+        for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = 3  # Số lượng cột tối đa có thể thêm
 
             # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 2}/M1")
+            header_item = QTableWidgetItem(f"D {i + 1}/M1")
             header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.frozen_table_color.setItem(0, total_columns, header_item)
             self.frozen_table_color.setSpan(0, total_columns, 1, num_cols)
@@ -3874,7 +5712,7 @@ class TinhAndMauPage(QWidget):
         for i in range(rowCount):
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
-            for c in range(value1 - 2, value2 - 1):
+            for c in range(value1 - 1, value2):
                 num_cols = 2  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
@@ -3914,6 +5752,12 @@ class TinhAndMauPage(QWidget):
                         "actionM4": (item["actionM4"] if "actionM4" in item else None),
                         "actionM5": (item["actionM5"] if "actionM5" in item else None),
                         "actionM6": (item["actionM6"] if "actionM6" in item else None),
+                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
                         "isColor": notice_item,
                         "thong": item["thong"],
                         "item": item_insert,
@@ -3947,7 +5791,7 @@ class TinhAndMauPage(QWidget):
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
-        for i in range(value1 - 2, value2 - 1):
+        for i in range(value1 - 1, value2):
             current_column += 3  # Số cột tạo cho mỗi lần là 2 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
@@ -3955,12 +5799,12 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_colorM2.setColumnCount(current_column)
 
         # Tạo cột từ 0 đến 83
-        for i in range(value1 - 2, value2 - 1):
+        for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = 2  # Số lượng cột tối đa có thể thêm
 
             # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 2}/M2")
+            header_item = QTableWidgetItem(f"D {i + 1}/M2")
             header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.frozen_table_colorM2.setItem(0, total_columns, header_item)
             self.frozen_table_colorM2.setSpan(0, total_columns, 1, num_cols)
@@ -4015,7 +5859,7 @@ class TinhAndMauPage(QWidget):
         for i in range(rowCount):
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
-            for c in range(value1 - 2, value2 - 1):
+            for c in range(value1 - 1, value2):
                 num_cols = 1  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
@@ -4055,6 +5899,12 @@ class TinhAndMauPage(QWidget):
                         "actionM4": (item["actionM4"] if "actionM4" in item else None),
                         "actionM5": (item["actionM5"] if "actionM5" in item else None),
                         "actionM6": (item["actionM6"] if "actionM6" in item else None),
+                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
                         "isColor": notice_item,
                         "thong": item["thong"],
                         "item": item_insert,
@@ -4088,7 +5938,7 @@ class TinhAndMauPage(QWidget):
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
-        for i in range(value1 - 2, value2 - 1):
+        for i in range(value1 - 1, value2):
             current_column += 2  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
@@ -4096,12 +5946,12 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_colorM3.setColumnCount(current_column)
 
         # Tạo cột từ 0 đến 83
-        for i in range(value1 - 2, value2 - 1):
+        for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = 1  # Số lượng cột tối đa có thể thêm
 
             # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 2}/M3")
+            header_item = QTableWidgetItem(f"D {i + 1}/M3")
             header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.frozen_table_colorM3.setItem(0, total_columns, header_item)
             # self.frozen_table_colorM3.setSpan(0, total_columns, 1, num_cols)
@@ -4196,6 +6046,12 @@ class TinhAndMauPage(QWidget):
                         "actionM3": item["actionM3"],
                         "actionM5": (item["actionM5"] if "actionM5" in item else None),
                         "actionM6": (item["actionM6"] if "actionM6" in item else None),
+                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
                         "isColor": notice_item,
                         "thong": item["thong"],
                         "item": item_insert,
@@ -4337,6 +6193,12 @@ class TinhAndMauPage(QWidget):
                         "actionM3": item["actionM3"],
                         "actionM4": item["actionM4"],
                         "actionM6": (item["actionM6"] if "actionM6" in item else None),
+                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
                         "isColor": notice_item,
                         "thong": item["thong"],
                         "item": item_insert,
@@ -4478,6 +6340,12 @@ class TinhAndMauPage(QWidget):
                         "actionM3": item["actionM3"],
                         "actionM4": item["actionM4"],
                         "actionM5": item["actionM5"],
+                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
                         "isColor": notice_item,
                         "thong": item["thong"],
                         "item": item_insert,
@@ -4550,6 +6418,595 @@ class TinhAndMauPage(QWidget):
             total_columns += num_cols + 1
             step_count += 1
 
+    # / Table Bang M7
+    def updateTableColorM7(self):
+        # / Set RowCount = 0
+        self.table_scroll_colorM7.setRowCount(0)
+        self.table_scroll_leftM7.setRowCount(0)
+        # / Config rowCount With data
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        rowCount = len(filter_data)
+        self.table_scroll_colorM7.setRowCount(rowCount)
+        self.table_scroll_leftM7.setRowCount(rowCount)
+        for i in range(rowCount):
+            # date = filter_data[i]["date"].split("/")
+            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            date = filter_data[i]["date"]
+            item = QTableWidgetItem(f"{date}")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_scroll_leftM7.setItem(i, 0, item)
+        self.table_scroll_leftM7.setHorizontalHeaderItem(0, QTableWidgetItem())
+
+        # / render row defalut
+        col_e = self.ban_info["meta"]["setting"]["col_e7"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(rowCount):
+            # Khởi tạo biến để theo dõi tổng số cột
+            total_columns = 0
+            for c in range(value1 - 1, value2):
+                num_cols = 1  # Số lượng cột tối đa có thể thêm
+                # Thêm tên cột cho hàng header
+                for j in range(num_cols):
+                    col_header = QTableWidgetItem(f"*")
+                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.table_scroll_colorM7.setItem(i, total_columns + j, col_header)
+                # Tạo ô trống ở cột cuối cùng
+                col_null = QTableWidgetItem()
+                col_null.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Đặt màu nền là màu trắng
+                self.table_scroll_colorM7.setItem(i, total_columns + num_cols, col_null)
+                # Cập nhật tổng số cột
+                total_columns += num_cols + 1
+
+        # / render row color table
+        for item in self.dataColor7:
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            action_item = item["action"]
+            item_insert = QTableWidgetItem(f"{data_item}")
+            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if color_item:
+                item_insert.setForeground(color_item)
+            if notice_item:
+                item_insert.setBackground(notice_item)
+            if action_item:
+                item_insert.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "action": action_item,
+                        "actionM1": item["actionM1"],
+                        "actionM2": item["actionM2"],
+                        "actionM3": item["actionM3"],
+                        "actionM4": item["actionM4"],
+                        "actionM5": item["actionM5"],
+                        "actionM6": item["actionM6"],
+                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_insert,
+                    },
+                )
+            self.table_scroll_colorM7.setItem(row_item, col_item, item_insert)
+
+        for i in range(self.table_scroll_colorM7.columnCount()):
+            width = self.table_scroll_colorM7.columnWidth(i)
+            self.frozen_table_colorM7.setColumnWidth(i, width)
+
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.table_scroll_colorM7.viewport().update()
+        # self.table_scroll_leftM7.viewport().update()
+
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_leftM7.scrollToBottom)
+        QTimer.singleShot(0, self.table_scroll_colorM7.scrollToBottom)
+
+        # sleep(0.5)
+        # self.table_scroll_leftM7.scrollToBottom()
+        # self.table_scroll_colorM7.scrollToBottom()
+
+    def updateHeaderColorM7(self):
+        current_column = 0
+        # Khởi tạo biến để theo dõi tổng số cột
+        total_columns = 0
+        step_count = 0
+
+        col_e = self.ban_info["meta"]["setting"]["col_e7"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 1, value2):
+            current_column += 2  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+
+        # Thiết lập số lượng cột cho bảng
+        self.frozen_table_colorM7.setColumnCount(current_column)
+        self.table_scroll_colorM7.setColumnCount(current_column)
+
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 1, value2):
+            # Xác định số lượng cột cho mỗi lần tạo
+            num_cols = 1  # Số lượng cột tối đa có thể thêm
+
+            # Tạo hàng header cho mỗi lần tạo cột
+            header_item = QTableWidgetItem(f"D {i + 1}/M7")
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_colorM7.setItem(0, total_columns, header_item)
+            # self.frozen_table_colorM7.setSpan(0, total_columns, 1, num_cols)
+
+            # Thêm tên cột cho hàng header
+            for j in range(num_cols):
+                col_header = QTableWidgetItem(f"{j + 1}")
+                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_scroll_colorM7.setHorizontalHeaderItem(
+                    total_columns + j, col_header
+                )
+
+            # Tạo ô trống ở cột cuối cùng
+            col_null = QTableWidgetItem()
+            col_null.setBackground(
+                QColor(Qt.GlobalColor.white)
+            )  # Đặt màu nền là màu trắng
+            self.table_scroll_colorM7.setHorizontalHeaderItem(
+                total_columns + num_cols, col_null
+            )
+
+            # Cập nhật tổng số cột
+            total_columns += num_cols + 1
+            step_count += 1
+
+    # / Table Bang M8
+    def updateTableColorM8(self):
+        # / Set RowCount = 0
+        self.table_scroll_colorM8.setRowCount(0)
+        self.table_scroll_leftM8.setRowCount(0)
+        # / Config rowCount With data
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        rowCount = len(filter_data)
+        self.table_scroll_colorM8.setRowCount(rowCount)
+        self.table_scroll_leftM8.setRowCount(rowCount)
+        for i in range(rowCount):
+            # date = filter_data[i]["date"].split("/")
+            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            date = filter_data[i]["date"]
+            item = QTableWidgetItem(f"{date}")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_scroll_leftM8.setItem(i, 0, item)
+        self.table_scroll_leftM8.setHorizontalHeaderItem(0, QTableWidgetItem())
+
+        # / render row defalut
+        col_e = self.ban_info["meta"]["setting"]["col_e8"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(rowCount):
+            # Khởi tạo biến để theo dõi tổng số cột
+            total_columns = 0
+            for c in range(value1 - 1, value2):
+                num_cols = 1  # Số lượng cột tối đa có thể thêm
+                # Thêm tên cột cho hàng header
+                for j in range(num_cols):
+                    col_header = QTableWidgetItem(f"*")
+                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.table_scroll_colorM8.setItem(i, total_columns + j, col_header)
+                # Tạo ô trống ở cột cuối cùng
+                col_null = QTableWidgetItem()
+                col_null.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Đặt màu nền là màu trắng
+                self.table_scroll_colorM8.setItem(i, total_columns + num_cols, col_null)
+                # Cập nhật tổng số cột
+                total_columns += num_cols + 1
+
+        # / render row color table
+        for item in self.dataColor8:
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            action_item = item["action"]
+            item_insert = QTableWidgetItem(f"{data_item}")
+            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if color_item:
+                item_insert.setForeground(color_item)
+            if notice_item:
+                item_insert.setBackground(notice_item)
+            if action_item:
+                item_insert.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "action": action_item,
+                        "actionM1": item["actionM1"],
+                        "actionM2": item["actionM2"],
+                        "actionM3": item["actionM3"],
+                        "actionM4": item["actionM4"],
+                        "actionM5": item["actionM5"],
+                        "actionM6": item["actionM6"],
+                        "actionM7": item["actionM7"],
+                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_insert,
+                    },
+                )
+            self.table_scroll_colorM8.setItem(row_item, col_item, item_insert)
+
+        for i in range(self.table_scroll_colorM8.columnCount()):
+            width = self.table_scroll_colorM8.columnWidth(i)
+            self.frozen_table_colorM8.setColumnWidth(i, width)
+
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.table_scroll_colorM8.viewport().update()
+        # self.table_scroll_leftM8.viewport().update()
+
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_leftM8.scrollToBottom)
+        QTimer.singleShot(0, self.table_scroll_colorM8.scrollToBottom)
+
+        # sleep(0.5)
+        # self.table_scroll_leftM8.scrollToBottom()
+        # self.table_scroll_colorM8.scrollToBottom()
+
+    def updateHeaderColorM8(self):
+        current_column = 0
+        # Khởi tạo biến để theo dõi tổng số cột
+        total_columns = 0
+        step_count = 0
+
+        col_e = self.ban_info["meta"]["setting"]["col_e8"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 1, value2):
+            current_column += 2  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+
+        # Thiết lập số lượng cột cho bảng
+        self.frozen_table_colorM8.setColumnCount(current_column)
+        self.table_scroll_colorM8.setColumnCount(current_column)
+
+        # Tạo cột từ 0 đến 83
+        for i in range(value1 - 1, value2):
+            # Xác định số lượng cột cho mỗi lần tạo
+            num_cols = 1  # Số lượng cột tối đa có thể thêm
+
+            # Tạo hàng header cho mỗi lần tạo cột
+            header_item = QTableWidgetItem(f"D {i + 1}/M8")
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_colorM8.setItem(0, total_columns, header_item)
+            # self.frozen_table_colorM8.setSpan(0, total_columns, 1, num_cols)
+
+            # Thêm tên cột cho hàng header
+            for j in range(num_cols):
+                col_header = QTableWidgetItem(f"{j + 1}")
+                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_scroll_colorM8.setHorizontalHeaderItem(
+                    total_columns + j, col_header
+                )
+
+            # Tạo ô trống ở cột cuối cùng
+            col_null = QTableWidgetItem()
+            col_null.setBackground(
+                QColor(Qt.GlobalColor.white)
+            )  # Đặt màu nền là màu trắng
+            self.table_scroll_colorM8.setHorizontalHeaderItem(
+                total_columns + num_cols, col_null
+            )
+
+            # Cập nhật tổng số cột
+            total_columns += num_cols + 1
+            step_count += 1
+
+    # / Table Bang M9
+    def updateTableColorM9(self):
+        # / Set RowCount = 0
+        self.table_scroll_colorM9.setRowCount(0)
+        self.table_scroll_leftM9.setRowCount(0)
+        # / Config rowCount With data
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        rowCount = len(filter_data)
+        self.table_scroll_colorM9.setRowCount(rowCount)
+        self.table_scroll_leftM9.setRowCount(rowCount)
+        for i in range(rowCount):
+            # date = filter_data[i]["date"].split("/")
+            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            date = filter_data[i]["date"]
+            item = QTableWidgetItem(f"{date}")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_scroll_leftM9.setItem(i, 0, item)
+        self.table_scroll_leftM9.setHorizontalHeaderItem(0, QTableWidgetItem())
+
+        # / render row defalut
+        col_e = self.ban_info["meta"]["setting"]["col_e9"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 93
+        for i in range(rowCount):
+            # Khởi tạo biến để theo dõi tổng số cột
+            total_columns = 0
+            for c in range(value1 - 1, value2):
+                num_cols = 1  # Số lượng cột tối đa có thể thêm
+                # Thêm tên cột cho hàng header
+                for j in range(num_cols):
+                    col_header = QTableWidgetItem(f"*")
+                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.table_scroll_colorM9.setItem(i, total_columns + j, col_header)
+                # Tạo ô trống ở cột cuối cùng
+                col_null = QTableWidgetItem()
+                col_null.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Đặt màu nền là màu trắng
+                self.table_scroll_colorM9.setItem(i, total_columns + num_cols, col_null)
+                # Cập nhật tổng số cột
+                total_columns += num_cols + 1
+
+        # / render row color table
+        for item in self.dataColor9:
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            action_item = item["action"]
+            item_insert = QTableWidgetItem(f"{data_item}")
+            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if color_item:
+                item_insert.setForeground(color_item)
+            if notice_item:
+                item_insert.setBackground(notice_item)
+            if action_item:
+                item_insert.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "action": action_item,
+                        "actionM1": item["actionM1"],
+                        "actionM2": item["actionM2"],
+                        "actionM3": item["actionM3"],
+                        "actionM4": item["actionM4"],
+                        "actionM5": item["actionM5"],
+                        "actionM6": item["actionM6"],
+                        "actionM7": item["actionM7"],
+                        "actionM8": item["actionM8"],
+                        "actionM10": (
+                            item["actionM10"] if "actionM10" in item else None
+                        ),
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_insert,
+                    },
+                )
+            self.table_scroll_colorM9.setItem(row_item, col_item, item_insert)
+
+        for i in range(self.table_scroll_colorM9.columnCount()):
+            width = self.table_scroll_colorM9.columnWidth(i)
+            self.frozen_table_colorM9.setColumnWidth(i, width)
+
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.table_scroll_colorM9.viewport().update()
+        # self.table_scroll_leftM9.viewport().update()
+
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_leftM9.scrollToBottom)
+        QTimer.singleShot(0, self.table_scroll_colorM9.scrollToBottom)
+
+        # sleep(0.5)
+        # self.table_scroll_leftM9.scrollToBottom()
+        # self.table_scroll_colorM9.scrollToBottom()
+
+    def updateHeaderColorM9(self):
+        current_column = 0
+        # Khởi tạo biến để theo dõi tổng số cột
+        total_columns = 0
+        step_count = 0
+
+        col_e = self.ban_info["meta"]["setting"]["col_e9"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 93
+        for i in range(value1 - 1, value2):
+            current_column += 2  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+
+        # Thiết lập số lượng cột cho bảng
+        self.frozen_table_colorM9.setColumnCount(current_column)
+        self.table_scroll_colorM9.setColumnCount(current_column)
+
+        # Tạo cột từ 0 đến 93
+        for i in range(value1 - 1, value2):
+            # Xác định số lượng cột cho mỗi lần tạo
+            num_cols = 1  # Số lượng cột tối đa có thể thêm
+
+            # Tạo hàng header cho mỗi lần tạo cột
+            header_item = QTableWidgetItem(f"D {i + 1}/M9")
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_colorM9.setItem(0, total_columns, header_item)
+            # self.frozen_table_colorM9.setSpan(0, total_columns, 1, num_cols)
+
+            # Thêm tên cột cho hàng header
+            for j in range(num_cols):
+                col_header = QTableWidgetItem(f"{j + 1}")
+                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_scroll_colorM9.setHorizontalHeaderItem(
+                    total_columns + j, col_header
+                )
+
+            # Tạo ô trống ở cột cuối cùng
+            col_null = QTableWidgetItem()
+            col_null.setBackground(
+                QColor(Qt.GlobalColor.white)
+            )  # Đặt màu nền là màu trắng
+            self.table_scroll_colorM9.setHorizontalHeaderItem(
+                total_columns + num_cols, col_null
+            )
+
+            # Cập nhật tổng số cột
+            total_columns += num_cols + 1
+            step_count += 1
+
+    # / Table Bang M10
+    def updateTableColorM10(self):
+        # / Set RowCount = 0
+        self.table_scroll_colorM10.setRowCount(0)
+        self.table_scroll_leftM10.setRowCount(0)
+        # / Config rowCount With data
+        filter_data = [
+            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
+        ]
+        rowCount = len(filter_data)
+        self.table_scroll_colorM10.setRowCount(rowCount)
+        self.table_scroll_leftM10.setRowCount(rowCount)
+        for i in range(rowCount):
+            # date = filter_data[i]["date"].split("/")
+            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
+            date = filter_data[i]["date"]
+            item = QTableWidgetItem(f"{date}")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table_scroll_leftM10.setItem(i, 0, item)
+        self.table_scroll_leftM10.setHorizontalHeaderItem(0, QTableWidgetItem())
+
+        # / render row defalut
+        col_e = self.ban_info["meta"]["setting"]["col_e10"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 103
+        for i in range(rowCount):
+            # Khởi tạo biến để theo dõi tổng số cột
+            total_columns = 0
+            for c in range(value1 - 1, value2):
+                num_cols = 1  # Số lượng cột tối đa có thể thêm
+                # Thêm tên cột cho hàng header
+                for j in range(num_cols):
+                    col_header = QTableWidgetItem(f"*")
+                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    self.table_scroll_colorM10.setItem(i, total_columns + j, col_header)
+                # Tạo ô trống ở cột cuối cùng
+                col_null = QTableWidgetItem()
+                col_null.setBackground(
+                    QColor(Qt.GlobalColor.white)
+                )  # Đặt màu nền là màu trắng
+                self.table_scroll_colorM10.setItem(
+                    i, total_columns + num_cols, col_null
+                )
+                # Cập nhật tổng số cột
+                total_columns += num_cols + 1
+
+        # / render row color table
+        for item in self.dataColor10:
+            row_item = item["row"]
+            col_item = item["col"]
+            data_item = item["data"]
+            color_item = item["color"]
+            notice_item = item["notice"]
+            action_item = item["action"]
+            item_insert = QTableWidgetItem(f"{data_item}")
+            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            if color_item:
+                item_insert.setForeground(color_item)
+            if notice_item:
+                item_insert.setBackground(notice_item)
+            if action_item:
+                item_insert.setData(
+                    Qt.ItemDataRole.UserRole,
+                    {
+                        "action": action_item,
+                        "actionM1": item["actionM1"],
+                        "actionM2": item["actionM2"],
+                        "actionM3": item["actionM3"],
+                        "actionM4": item["actionM4"],
+                        "actionM5": item["actionM5"],
+                        "actionM6": item["actionM6"],
+                        "actionM7": item["actionM7"],
+                        "actionM8": item["actionM8"],
+                        "actionM9": item["actionM9"],
+                        "isColor": notice_item,
+                        "thong": item["thong"],
+                        "item": item_insert,
+                    },
+                )
+            self.table_scroll_colorM10.setItem(row_item, col_item, item_insert)
+
+        for i in range(self.table_scroll_colorM10.columnCount()):
+            width = self.table_scroll_colorM10.columnWidth(i)
+            self.frozen_table_colorM10.setColumnWidth(i, width)
+
+        # Đảm bảo cập nhật giao diện của bảng
+        # self.table_scroll_colorM10.viewport().update()
+        # self.table_scroll_leftM10.viewport().update()
+
+        # Thêm nđộ trễ nhỏ trước khi cuộn
+        QTimer.singleShot(0, self.table_scroll_leftM10.scrollToBottom)
+        QTimer.singleShot(0, self.table_scroll_colorM10.scrollToBottom)
+
+        # sleep(0.5)
+        # self.table_scroll_leftM10.scrollToBottom()
+        # self.table_scroll_colorM10.scrollToBottom()
+
+    def updateHeaderColorM10(self):
+        current_column = 0
+        # Khởi tạo biến để theo dõi tổng số cột
+        total_columns = 0
+        step_count = 0
+
+        col_e = self.ban_info["meta"]["setting"]["col_e10"]
+        value1 = col_e[0]
+        value2 = col_e[1]
+        # Tạo cột từ 0 đến 103
+        for i in range(value1 - 1, value2):
+            current_column += 2  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+
+        # Thiết lập số lượng cột cho bảng
+        self.frozen_table_colorM10.setColumnCount(current_column)
+        self.table_scroll_colorM10.setColumnCount(current_column)
+
+        # Tạo cột từ 0 đến 103
+        for i in range(value1 - 1, value2):
+            # Xác định số lượng cột cho mỗi lần tạo
+            num_cols = 1  # Số lượng cột tối đa có thể thêm
+
+            # Tạo hàng header cho mỗi lần tạo cột
+            header_item = QTableWidgetItem(f"D {i + 1}/M10")
+            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.frozen_table_colorM10.setItem(0, total_columns, header_item)
+            # self.frozen_table_colorM10.setSpan(0, total_columns, 1, num_cols)
+
+            # Thêm tên cột cho hàng header
+            for j in range(num_cols):
+                col_header = QTableWidgetItem(f"{j + 1}")
+                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_scroll_colorM10.setHorizontalHeaderItem(
+                    total_columns + j, col_header
+                )
+
+            # Tạo ô trống ở cột cuối cùng
+            col_null = QTableWidgetItem()
+            col_null.setBackground(
+                QColor(Qt.GlobalColor.white)
+            )  # Đặt màu nền là màu trắng
+            self.table_scroll_colorM10.setHorizontalHeaderItem(
+                total_columns + num_cols, col_null
+            )
+
+            # Cập nhật tổng số cột
+            total_columns += num_cols + 1
+            step_count += 1
+
+    # / Handler Data
     def handlerData(self):
         # / Config Data
         ban_info = self.ban_info
@@ -4570,6 +7027,10 @@ class TinhAndMauPage(QWidget):
         notice_colorM4 = meta["colorM4"]
         notice_colorM5 = meta["colorM5"]
         notice_colorM6 = meta["colorM6"]
+        notice_colorM7 = meta["colorM7"]
+        notice_colorM8 = meta["colorM8"]
+        notice_colorM9 = meta["colorM9"]
+        notice_colorM10 = meta["colorM10"]
         notice_color = []
         buttons = ban_info["meta"]["buttons"]
         if buttons[0]:
@@ -4601,6 +7062,22 @@ class TinhAndMauPage(QWidget):
         value1_6 = col_e6[0]
         value2_6 = col_e6[1]
 
+        col_e7 = ban_info["meta"]["setting"]["col_e7"]
+        value1_7 = col_e7[0]
+        value2_7 = col_e7[1]
+
+        col_e8 = ban_info["meta"]["setting"]["col_e8"]
+        value1_8 = col_e8[0]
+        value2_8 = col_e8[1]
+
+        col_e9 = ban_info["meta"]["setting"]["col_e9"]
+        value1_9 = col_e9[0]
+        value2_9 = col_e9[1]
+
+        col_e10 = ban_info["meta"]["setting"]["col_e10"]
+        value1_10 = col_e10[0]
+        value2_10 = col_e10[1]
+
         # / Setup Variable
         self.count_handler = {}  # data so dem (d = Bang tinh, e = Bang mau)
         self.math_isFirst = (
@@ -4614,6 +7091,10 @@ class TinhAndMauPage(QWidget):
         self.dataColor4 = []  # Data Bang Mau M4
         self.dataColor5 = []  # Data Bang Mau M5
         self.dataColor6 = []  # Data Bang Mau M6
+        self.dataColor7 = []  # Data Bang Mau M7
+        self.dataColor8 = []  # Data Bang Mau M8
+        self.dataColor9 = []  # Data Bang Mau M9
+        self.dataColor10 = []  # Data Bang Mau M10
         countRow = 0
         isCountRow = 0
         # / Start Render data
@@ -4745,6 +7226,7 @@ class TinhAndMauPage(QWidget):
                                         },
                                         "isDeleted": isDeleted,
                                     }
+
                                     dataColorM1 = {
                                         "row": countRow,
                                         "col": col_color,
@@ -4778,6 +7260,14 @@ class TinhAndMauPage(QWidget):
                                     dataColorM5 = None
 
                                     dataColorM6 = None
+
+                                    dataColorM7 = None
+
+                                    dataColorM8 = None
+
+                                    dataColorM9 = None
+
+                                    dataColorM10 = None
 
                                     # / M2 Start
                                     if value1_2 <= col_e <= value2_2:
@@ -5121,14 +7611,543 @@ class TinhAndMauPage(QWidget):
                                                                             isDeleted,
                                                                         )
                                                                         if data_m6:
-                                                                            m6 = (
+                                                                            (
+                                                                                m6,
+                                                                                object_m6,
+                                                                            ) = (
                                                                                 data_m6[
                                                                                     "m6"
-                                                                                ]
+                                                                                ],
+                                                                                data_m6[
+                                                                                    "object"
+                                                                                ],
                                                                             )
                                                                             dataColorM6 = (
                                                                                 m6
                                                                             )
+
+                                                                            (
+                                                                                col_e_m6,
+                                                                                isNoticeColor_m6,
+                                                                                col_color_m6,
+                                                                            ) = (
+                                                                                object_m6[
+                                                                                    "col_e_m6"
+                                                                                ],
+                                                                                object_m6[
+                                                                                    "isNoticeColor_m6"
+                                                                                ],
+                                                                                object_m6[
+                                                                                    "col_color_m6"
+                                                                                ],
+                                                                            )
+                                                                            # / M7 Start
+                                                                            if (
+                                                                                value1_7
+                                                                                <= col_e_m6
+                                                                                <= value2_7
+                                                                            ):
+                                                                                data_m7 = self.handler_data_m7(
+                                                                                    i,
+                                                                                    t,
+                                                                                    notice_colorM7,
+                                                                                    value1_7,
+                                                                                    countRow,
+                                                                                    col_a,
+                                                                                    thong_range_1,
+                                                                                    stt_cot,
+                                                                                    col_d,
+                                                                                    col_t,
+                                                                                    col_e,
+                                                                                    col_e_m2,
+                                                                                    col_e_m3,
+                                                                                    col_e_m4,
+                                                                                    col_e_m5,
+                                                                                    col_e_m6,
+                                                                                    isEqual,
+                                                                                    total_column,
+                                                                                    isNoticeCount,
+                                                                                    col_color,
+                                                                                    col_color_m2,
+                                                                                    col_color_m3,
+                                                                                    col_color_m4,
+                                                                                    col_color_m5,
+                                                                                    col_color_m6,
+                                                                                    isNoticeColor,
+                                                                                    isNoticeColor_m2,
+                                                                                    isNoticeColor_m3,
+                                                                                    isNoticeColor_m4,
+                                                                                    isNoticeColor_m5,
+                                                                                    isNoticeColor_m6,
+                                                                                    item_date,
+                                                                                    col_e7,
+                                                                                    row_thong,
+                                                                                    isDeleted,
+                                                                                )
+                                                                                if data_m7:
+                                                                                    (
+                                                                                        m7,
+                                                                                        object_m7,
+                                                                                    ) = (
+                                                                                        data_m7[
+                                                                                            "m7"
+                                                                                        ],
+                                                                                        data_m7[
+                                                                                            "object"
+                                                                                        ],
+                                                                                    )
+                                                                                    dataColorM7 = m7
+
+                                                                                    (
+                                                                                        col_e_m7,
+                                                                                        isNoticeColor_m7,
+                                                                                        col_color_m7,
+                                                                                    ) = (
+                                                                                        object_m7[
+                                                                                            "col_e_m7"
+                                                                                        ],
+                                                                                        object_m7[
+                                                                                            "isNoticeColor_m7"
+                                                                                        ],
+                                                                                        object_m7[
+                                                                                            "col_color_m7"
+                                                                                        ],
+                                                                                    )
+                                                                                    # / M8 Start
+                                                                                    if (
+                                                                                        value1_8
+                                                                                        <= col_e_m7
+                                                                                        <= value2_8
+                                                                                    ):
+                                                                                        data_m8 = self.handler_data_m8(
+                                                                                            i,
+                                                                                            t,
+                                                                                            col_e_m3,
+                                                                                            notice_colorM8,
+                                                                                            value1_8,
+                                                                                            countRow,
+                                                                                            col_a,
+                                                                                            thong_range_1,
+                                                                                            stt_cot,
+                                                                                            col_d,
+                                                                                            col_t,
+                                                                                            col_e,
+                                                                                            col_e_m2,
+                                                                                            col_e_m4,
+                                                                                            col_e_m5,
+                                                                                            col_e_m6,
+                                                                                            col_e_m7,
+                                                                                            isEqual,
+                                                                                            total_column,
+                                                                                            isNoticeCount,
+                                                                                            col_color,
+                                                                                            col_color_m2,
+                                                                                            col_color_m3,
+                                                                                            col_color_m4,
+                                                                                            col_color_m5,
+                                                                                            col_color_m6,
+                                                                                            col_color_m7,
+                                                                                            isNoticeColor,
+                                                                                            isNoticeColor_m2,
+                                                                                            isNoticeColor_m3,
+                                                                                            isNoticeColor_m4,
+                                                                                            isNoticeColor_m5,
+                                                                                            isNoticeColor_m6,
+                                                                                            isNoticeColor_m7,
+                                                                                            item_date,
+                                                                                            col_e8,
+                                                                                            row_thong,
+                                                                                            isDeleted,
+                                                                                        )
+                                                                                        if data_m8:
+                                                                                            (
+                                                                                                m8,
+                                                                                                object_m8,
+                                                                                            ) = (
+                                                                                                data_m8[
+                                                                                                    "m8"
+                                                                                                ],
+                                                                                                data_m8[
+                                                                                                    "object"
+                                                                                                ],
+                                                                                            )
+                                                                                            dataColorM8 = m8
+
+                                                                                            (
+                                                                                                col_e_m8,
+                                                                                                isNoticeColor_m8,
+                                                                                                col_color_m8,
+                                                                                            ) = (
+                                                                                                object_m8[
+                                                                                                    "col_e_m8"
+                                                                                                ],
+                                                                                                object_m8[
+                                                                                                    "isNoticeColor_m8"
+                                                                                                ],
+                                                                                                object_m8[
+                                                                                                    "col_color_m8"
+                                                                                                ],
+                                                                                            )
+                                                                                            # / M9 start;
+                                                                                            if (
+                                                                                                value1_9
+                                                                                                <= col_e_m8
+                                                                                                <= value2_9
+                                                                                            ):
+                                                                                                data_m9 = self.handler_data_m9(
+                                                                                                    i,
+                                                                                                    t,
+                                                                                                    col_e_m3,
+                                                                                                    notice_colorM9,
+                                                                                                    value1_9,
+                                                                                                    countRow,
+                                                                                                    col_a,
+                                                                                                    thong_range_1,
+                                                                                                    stt_cot,
+                                                                                                    col_d,
+                                                                                                    col_t,
+                                                                                                    col_e,
+                                                                                                    col_e_m2,
+                                                                                                    col_e_m4,
+                                                                                                    col_e_m5,
+                                                                                                    col_e_m6,
+                                                                                                    col_e_m7,
+                                                                                                    col_e_m8,
+                                                                                                    isEqual,
+                                                                                                    total_column,
+                                                                                                    isNoticeCount,
+                                                                                                    col_color,
+                                                                                                    col_color_m2,
+                                                                                                    col_color_m3,
+                                                                                                    col_color_m4,
+                                                                                                    col_color_m5,
+                                                                                                    col_color_m6,
+                                                                                                    col_color_m7,
+                                                                                                    col_color_m8,
+                                                                                                    isNoticeColor,
+                                                                                                    isNoticeColor_m2,
+                                                                                                    isNoticeColor_m3,
+                                                                                                    isNoticeColor_m4,
+                                                                                                    isNoticeColor_m5,
+                                                                                                    isNoticeColor_m6,
+                                                                                                    isNoticeColor_m7,
+                                                                                                    isNoticeColor_m8,
+                                                                                                    item_date,
+                                                                                                    col_e9,
+                                                                                                    row_thong,
+                                                                                                    isDeleted,
+                                                                                                )
+                                                                                                if data_m9:
+                                                                                                    (
+                                                                                                        m9,
+                                                                                                        object_m9,
+                                                                                                    ) = (
+                                                                                                        data_m9[
+                                                                                                            "m9"
+                                                                                                        ],
+                                                                                                        data_m9[
+                                                                                                            "object"
+                                                                                                        ],
+                                                                                                    )
+                                                                                                    dataColorM9 = m9
+
+                                                                                                    (
+                                                                                                        col_e_m9,
+                                                                                                        isNoticeColor_m9,
+                                                                                                        col_color_m9,
+                                                                                                    ) = (
+                                                                                                        object_m9[
+                                                                                                            "col_e_m9"
+                                                                                                        ],
+                                                                                                        object_m9[
+                                                                                                            "isNoticeColor_m9"
+                                                                                                        ],
+                                                                                                        object_m9[
+                                                                                                            "col_color_m9"
+                                                                                                        ],
+                                                                                                    )
+                                                                                                    # / M10 Start;
+                                                                                                    if (
+                                                                                                        value1_10
+                                                                                                        <= col_e_m9
+                                                                                                        <= value2_10
+                                                                                                    ):
+                                                                                                        data_m10 = self.handler_data_m10(
+                                                                                                            i,
+                                                                                                            t,
+                                                                                                            col_e_m3,
+                                                                                                            notice_colorM10,
+                                                                                                            value1_10,
+                                                                                                            countRow,
+                                                                                                            col_a,
+                                                                                                            thong_range_1,
+                                                                                                            stt_cot,
+                                                                                                            col_d,
+                                                                                                            col_t,
+                                                                                                            col_e,
+                                                                                                            col_e_m2,
+                                                                                                            col_e_m4,
+                                                                                                            col_e_m5,
+                                                                                                            col_e_m6,
+                                                                                                            col_e_m7,
+                                                                                                            col_e_m8,
+                                                                                                            col_e_m9,
+                                                                                                            isEqual,
+                                                                                                            total_column,
+                                                                                                            isNoticeCount,
+                                                                                                            col_color,
+                                                                                                            col_color_m2,
+                                                                                                            col_color_m3,
+                                                                                                            col_color_m4,
+                                                                                                            col_color_m5,
+                                                                                                            col_color_m6,
+                                                                                                            col_color_m7,
+                                                                                                            col_color_m8,
+                                                                                                            col_color_m9,
+                                                                                                            isNoticeColor,
+                                                                                                            isNoticeColor_m2,
+                                                                                                            isNoticeColor_m3,
+                                                                                                            isNoticeColor_m4,
+                                                                                                            isNoticeColor_m5,
+                                                                                                            isNoticeColor_m6,
+                                                                                                            isNoticeColor_m7,
+                                                                                                            isNoticeColor_m8,
+                                                                                                            isNoticeColor_m9,
+                                                                                                            item_date,
+                                                                                                            col_e10,
+                                                                                                            row_thong,
+                                                                                                            isDeleted,
+                                                                                                        )
+                                                                                                        if data_m10:
+                                                                                                            m10 = data_m10['m10']
+                                                                                                            dataColorM10 = m10
+
+                                    if dataColorM10:
+                                        self.dataColor10.append(dataColorM10)
+                                        dataCount["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+                                        dataColorM1["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+                                        dataColorM2["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+                                        dataColorM3["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+                                        dataColorM4["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+                                        dataColorM5["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+
+                                        dataColorM6["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+
+                                        dataColorM7["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+
+                                        dataColorM8["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+
+                                        dataColorM9["actionM10"] = {
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+
+                                    if dataColorM9:
+                                        self.dataColor9.append(dataColorM9)
+                                        dataCount["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+                                        dataColorM1["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+                                        dataColorM2["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+                                        dataColorM3["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+                                        dataColorM4["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+                                        dataColorM5["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+
+                                        dataColorM6["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+
+                                        dataColorM7["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+
+                                        dataColorM8["actionM9"] = {
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+
+                                    if dataColorM8:
+                                        self.dataColor8.append(dataColorM8)
+                                        dataCount["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+                                        dataColorM1["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+                                        dataColorM2["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+                                        dataColorM3["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+                                        dataColorM4["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+                                        dataColorM5["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+
+                                        dataColorM6["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+
+                                        dataColorM7["actionM8"] = {
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
+
+                                    if dataColorM7:
+                                        self.dataColor7.append(dataColorM7)
+                                        dataCount["actionM7"] = {
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
+                                        dataColorM1["actionM7"] = {
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
+                                        dataColorM2["actionM7"] = {
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
+                                        dataColorM3["actionM7"] = {
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
+                                        dataColorM4["actionM7"] = {
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
+                                        dataColorM5["actionM7"] = {
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
+
+                                        dataColorM6["actionM7"] = {
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
+
                                     if dataColorM6:
                                         self.dataColor6.append(dataColorM6)
                                         dataCount["actionM6"] = {
@@ -5351,6 +8370,24 @@ class TinhAndMauPage(QWidget):
         new_dataColorM6 = [entry for entry in old_dataColorM6 if not entry["isDeleted"]]
         self.dataColor6 = new_dataColorM6
 
+        old_dataColorM7 = self.dataColor7
+        new_dataColorM7 = [entry for entry in old_dataColorM7 if not entry["isDeleted"]]
+        self.dataColor7 = new_dataColorM7
+
+        old_dataColorM8 = self.dataColor8
+        new_dataColorM8 = [entry for entry in old_dataColorM8 if not entry["isDeleted"]]
+        self.dataColor8 = new_dataColorM8
+
+        old_dataColorM9 = self.dataColor9
+        new_dataColorM9 = [entry for entry in old_dataColorM9 if not entry["isDeleted"]]
+        self.dataColor9 = new_dataColorM9
+
+        old_dataColorM10 = self.dataColor10
+        new_dataColorM10 = [
+            entry for entry in old_dataColorM10 if not entry["isDeleted"]
+        ]
+        self.dataColor10 = new_dataColorM10
+
     def checkColor(self, value1, value2):
         for char in value1:
             if char in value2:
@@ -5396,8 +8433,9 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Màu 1", "Bảng Màu 2")
-            # self.note_color_label.setText(self.note_color)
+            self.renderNavigation('m1')
+            self.changeStatusBar("Bảng Màu 1", "Bảng Màu 1")
+            return
         elif ac == "vbm2":
             action = data["actionM2"]
             row = action["row"]
@@ -5422,7 +8460,8 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Màu 2", "Bảng Tính")
+            self.renderNavigation('m2')
+            self.changeStatusBar("Bảng Màu 2", "Bảng Màu 2")
             # self.note_color_label.setText(self.note_color)
         elif ac == "vbm3":
             action = data["actionM3"]
@@ -5448,7 +8487,8 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Màu 3", "Bảng Tính")
+            self.renderNavigation('m3')
+            self.changeStatusBar("Bảng Màu 3", "Bảng Màu 3")
         elif ac == "vbm4":
             action = data["actionM4"]
             row = action["row"]
@@ -5473,7 +8513,8 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Màu 4", "Bảng Tính")
+            self.renderNavigation('m4')
+            self.changeStatusBar("Bảng Màu 4", "Bảng Màu 4")
         elif ac == "vbm5":
             action = data["actionM5"]
             row = action["row"]
@@ -5498,7 +8539,8 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Màu 5", "Bảng Tính")
+            self.renderNavigation('m5')
+            self.changeStatusBar("Bảng Màu 5", "Bảng Màu 5")
         elif ac == "vbm6":
             action = data["actionM6"]
             row = action["row"]
@@ -5523,7 +8565,112 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Màu 6", "Bảng Tính")
+            self.renderNavigation('m6')
+            self.changeStatusBar("Bảng Màu 6", "Bảng Màu 6")
+        elif ac == "vbm7":
+            action = data["actionM7"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
+            self.widget_main.setCurrentWidget(self.table_main_colorM7)
+            item = self.table_scroll_colorM7.item(row, col)
+            self.table_scroll_colorM7.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.renderNavigation('m7')
+            self.changeStatusBar("Bảng Màu 7", "Bảng Màu 7")
+        elif ac == "vbm8":
+            action = data["actionM8"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
+            self.widget_main.setCurrentWidget(self.table_main_colorM8)
+            item = self.table_scroll_colorM8.item(row, col)
+            self.table_scroll_colorM8.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.renderNavigation('m8')
+            self.changeStatusBar("Bảng Màu 8", "Bảng Màu 8")
+        elif ac == "vbm9":
+            action = data["actionM9"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
+            self.widget_main.setCurrentWidget(self.table_main_colorM9)
+            item = self.table_scroll_colorM9.item(row, col)
+            self.table_scroll_colorM9.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.renderNavigation('m9')
+            self.changeStatusBar("Bảng Màu 9", "Bảng Màu 9")
+        elif ac == "vbm10":
+            action = data["actionM10"]
+            row = action["row"]
+            col = action["col"]
+            isColor = action["isColor"]
+            self.widget_main.setCurrentWidget(self.table_main_colorM10)
+            item = self.table_scroll_colorM10.item(row, col)
+            self.table_scroll_colorM10.scrollToItem(
+                item, hint=QTableWidget.ScrollHint.PositionAtCenter
+            )
+            new_data = {
+                "current": {
+                    "item": data["item"],
+                    "color": (
+                        data["isColor"] if data["isColor"] is not None else self.normal
+                    ),
+                },
+                "next": {
+                    "item": item,
+                    "color": isColor if isColor is not None else self.normal,
+                },
+            }
+            self.setHighlight(new_data)
+            # / Config status bar
+            self.renderNavigation('m10')
+            self.changeStatusBar("Bảng Màu 10", "Bảng Màu 10")
         elif ac == "vbt":
 
             action = data["action"]
@@ -5549,7 +8696,8 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Tính", "Bảng Mau M1")
+            self.renderNavigation('m1')
+            self.changeStatusBar("Bảng Tính", "Bảng Tính")
             # self.note_color_label.setText("")
         else:
             thong = data["thong"]
@@ -5567,7 +8715,9 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight_Thong(new_data)
             # / Config status bar
-            self.changeStatusBar("Bảng Thông", "Bảng Tính")
+            self.renderNavigation('m1')
+            self.changeStatusBar("Bảng Thông", "Bảng Thông")
+        return
 
     # TODO Add-on: GUI Thong Table
 
@@ -5711,16 +8861,23 @@ class TinhAndMauPage(QWidget):
 
     def changeStatusBar(self, status, next):
         old_title = self.title.text()
-        new_title = old_title
-        for text in [
-            "Bảng Tính",
-            "Bảng Màu 1",
-            "Bảng Màu 2",
-            "Bảng Màu 3",
-            "Bảng Màu 4",
-            "Bảng Màu 5",
-            "Bảng Màu 6",
-        ]:
+        for text in sorted(
+            [
+                "Bảng Màu 10",
+                "Bảng Màu 9",
+                "Bảng Màu 8",
+                "Bảng Màu 7",
+                "Bảng Màu 6",
+                "Bảng Màu 5",
+                "Bảng Màu 4",
+                "Bảng Màu 3",
+                "Bảng Màu 2",
+                "Bảng Màu 1",
+                "Bảng Tính",
+            ],
+            key=len,
+            reverse=True,
+        ):
             if text in old_title:
                 new_title = old_title.replace(text, status)
                 self.title.setText(new_title)
@@ -5736,6 +8893,10 @@ class TinhAndMauPage(QWidget):
         self.updateTableColorM4()
         self.updateTableColorM5()
         self.updateTableColorM6()
+        self.updateTableColorM7()
+        self.updateTableColorM8()
+        self.updateTableColorM9()
+        self.updateTableColorM10()
 
     def find_row_thong_with_col_a(self, col_a, thong_data):
         for i in range(len(thong_data)):
@@ -6164,5 +9325,627 @@ class TinhAndMauPage(QWidget):
                     "col_e_m6": col_e_m6,
                     "isNoticeColor_m6": isNoticeColor_m6,
                     "col_color_m6": col_color_m6,
+                },
+            }
+
+    # / M7 start
+    def handler_data_m7(
+        self,
+        i,
+        t,
+        notice_colorM7,
+        value1_7,
+        countRow,
+        col_a,
+        thong_range_1,
+        stt_cot,
+        col_d,
+        col_t,
+        col_e,
+        col_e_m2,
+        col_e_m3,
+        col_e_m4,
+        col_e_m5,
+        col_e_m6,
+        isEqual,
+        total_column,
+        isNoticeCount,
+        col_color,
+        col_color_m2,
+        col_color_m3,
+        col_color_m4,
+        col_color_m5,
+        col_color_m6,
+        isNoticeColor,
+        isNoticeColor_m2,
+        isNoticeColor_m3,
+        isNoticeColor_m4,
+        isNoticeColor_m5,
+        isNoticeColor_m6,
+        item_date,
+        col_e7,
+        row_thong,
+        isDeleted,
+    ):
+        math_count_handler_m7 = f"{col_e_m6}:{i}:_color_m7"
+        if not math_count_handler_m7 in self.count_handler:
+            self.count_handler[math_count_handler_m7] = 1
+        else:
+            self.count_handler[math_count_handler_m7] += 1
+
+        # / End check col_stt table count
+        stt_count_with_d_m7 = self.count_handler[
+            math_count_handler_m7
+        ]  # So thu tu cua so dem
+        if stt_count_with_d_m7 <= 1:
+            # / Start count color with col_e
+            col_e_count_m7 = f"{col_e_m6}:{stt_count_with_d_m7}:col_e_m7"
+            if not col_e_count_m7 in self.count_handler:
+                self.count_handler[col_e_count_m7] = 1
+            else:
+                self.count_handler[col_e_count_m7] += 1
+            col_e_m7 = self.count_handler[col_e_count_m7]  # so dem bang mau
+            isNoticeColor_m7 = self.checkNotice(
+                col_e_m7,
+                notice_colorM7[0],
+                notice_colorM7[1],
+            )
+            find_null_color_m7 = (1 if col_e_m6 - value1_7 > 0 else 0) * (
+                col_e_m6 - value1_7
+            )
+            find_stt_color_m7 = stt_count_with_d_m7 - 1
+            find_next_color_m7 = (col_e_m6 - value1_7) * 1
+            col_color_m7 = (
+                find_next_color_m7 + find_null_color_m7 + find_stt_color_m7
+            )  # vi tri col cua item bang mau
+
+            if isEqual:
+                self.count_handler[col_e_count_m7] = 0
+            # / Add data to table color 6
+            dataColorM7 = {
+                "row": countRow,
+                "col": col_color_m7,
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}",
+                "color": isEqual,
+                "action": {
+                    "name": "count",
+                    "row": countRow,
+                    "col": total_column,
+                    "isColor": isNoticeCount,
+                },
+                "actionM1": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color,
+                    "isColor": isNoticeColor,
+                },
+                "actionM2": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m2,
+                    "isColor": isNoticeColor_m2,
+                },
+                "actionM3": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m3,
+                    "isColor": isNoticeColor_m3,
+                },
+                "actionM4": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m4,
+                    "isColor": isNoticeColor_m4,
+                },
+                "actionM5": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m5,
+                    "isColor": isNoticeColor_m5,
+                },
+                "actionM6": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m6,
+                    "isColor": isNoticeColor_m6,
+                },
+                "notice": isNoticeColor_m7,
+                "date": item_date,
+                "color_value": col_e7,
+                "col_d": col_e_m6,
+                "thong": {
+                    "row": row_thong,
+                    "col": t + 6,
+                    "col_a": (col_t if col_t != "?" else col_a),
+                    "isCol_a": (False if col_t != "?" else True),
+                },
+                "isDeleted": isDeleted,
+            }
+            return {
+                "m7": dataColorM7,
+                "object": {
+                    "col_e_m7": col_e_m7,
+                    "isNoticeColor_m7": isNoticeColor_m7,
+                    "col_color_m7": col_color_m7,
+                },
+            }
+
+    # / M8 start
+    def handler_data_m8(
+        self,
+        i,
+        t,
+        col_e_m3,
+        notice_colorM8,
+        value1_8,
+        countRow,
+        col_a,
+        thong_range_1,
+        stt_cot,
+        col_d,
+        col_t,
+        col_e,
+        col_e_m2,
+        col_e_m4,
+        col_e_m5,
+        col_e_m6,
+        col_e_m7,
+        isEqual,
+        total_column,
+        isNoticeCount,
+        col_color,
+        col_color_m2,
+        col_color_m3,
+        col_color_m4,
+        col_color_m5,
+        col_color_m6,
+        col_color_m7,
+        isNoticeColor,
+        isNoticeColor_m2,
+        isNoticeColor_m3,
+        isNoticeColor_m4,
+        isNoticeColor_m5,
+        isNoticeColor_m6,
+        isNoticeColor_m7,
+        item_date,
+        col_e8,
+        row_thong,
+        isDeleted,
+    ):
+        math_count_handler_m8 = f"{col_e_m7}:{i}:_color_m8"
+        if not math_count_handler_m8 in self.count_handler:
+            self.count_handler[math_count_handler_m8] = 1
+        else:
+            self.count_handler[math_count_handler_m8] += 1
+
+        # / End check col_stt table count
+        stt_count_with_d_m8 = self.count_handler[
+            math_count_handler_m8
+        ]  # So thu tu cua so dem
+        if stt_count_with_d_m8 <= 1:
+            # / Start count color with col_e
+            col_e_count_m8 = f"{col_e_m7}:{stt_count_with_d_m8}:col_e_m8"
+            if not col_e_count_m8 in self.count_handler:
+                self.count_handler[col_e_count_m8] = 1
+            else:
+                self.count_handler[col_e_count_m8] += 1
+            col_e_m8 = self.count_handler[col_e_count_m8]  # so dem bang mau
+            isNoticeColor_m8 = self.checkNotice(
+                col_e_m8,
+                notice_colorM8[0],
+                notice_colorM8[1],
+            )
+            find_null_color_m8 = (1 if col_e_m7 - value1_8 > 0 else 0) * (
+                col_e_m7 - value1_8
+            )
+            find_stt_color_m8 = stt_count_with_d_m8 - 1
+            find_next_color_m8 = (col_e_m7 - value1_8) * 1
+            col_color_m8 = (
+                find_next_color_m8 + find_null_color_m8 + find_stt_color_m8
+            )  # vi tri col cua item bang mau
+
+            if isEqual:
+                self.count_handler[col_e_count_m8] = 0
+            # / Add data to table color 6
+            dataColorM8 = {
+                "row": countRow,
+                "col": col_color_m8,
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}",
+                "color": isEqual,
+                "action": {
+                    "name": "count",
+                    "row": countRow,
+                    "col": total_column,
+                    "isColor": isNoticeCount,
+                },
+                "actionM1": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color,
+                    "isColor": isNoticeColor,
+                },
+                "actionM2": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m2,
+                    "isColor": isNoticeColor_m2,
+                },
+                "actionM3": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m3,
+                    "isColor": isNoticeColor_m3,
+                },
+                "actionM4": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m4,
+                    "isColor": isNoticeColor_m4,
+                },
+                "actionM5": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m5,
+                    "isColor": isNoticeColor_m5,
+                },
+                "actionM6": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m6,
+                    "isColor": isNoticeColor_m6,
+                },
+                "actionM7": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m7,
+                    "isColor": isNoticeColor_m7,
+                },
+                "notice": isNoticeColor_m8,
+                "date": item_date,
+                "color_value": col_e8,
+                "col_d": col_e_m7,
+                "thong": {
+                    "row": row_thong,
+                    "col": t + 6,
+                    "col_a": (col_t if col_t != "?" else col_a),
+                    "isCol_a": (False if col_t != "?" else True),
+                },
+                "isDeleted": isDeleted,
+            }
+            return {
+                "m8": dataColorM8,
+                "object": {
+                    "col_e_m8": col_e_m8,
+                    "isNoticeColor_m8": isNoticeColor_m8,
+                    "col_color_m8": col_color_m8,
+                },
+            }
+
+    # / M9 start
+    def handler_data_m9(
+        self,
+        i,
+        t,
+        col_e_m3,
+        notice_colorM9,
+        value1_9,
+        countRow,
+        col_a,
+        thong_range_1,
+        stt_cot,
+        col_d,
+        col_t,
+        col_e,
+        col_e_m2,
+        col_e_m4,
+        col_e_m5,
+        col_e_m6,
+        col_e_m7,
+        col_e_m8,
+        isEqual,
+        total_column,
+        isNoticeCount,
+        col_color,
+        col_color_m2,
+        col_color_m3,
+        col_color_m4,
+        col_color_m5,
+        col_color_m6,
+        col_color_m7,
+        col_color_m8,
+        isNoticeColor,
+        isNoticeColor_m2,
+        isNoticeColor_m3,
+        isNoticeColor_m4,
+        isNoticeColor_m5,
+        isNoticeColor_m6,
+        isNoticeColor_m7,
+        isNoticeColor_m8,
+        item_date,
+        col_e9,
+        row_thong,
+        isDeleted,
+    ):
+        math_count_handler_m9 = f"{col_e_m8}:{i}:_color_m9"
+        if not math_count_handler_m9 in self.count_handler:
+            self.count_handler[math_count_handler_m9] = 1
+        else:
+            self.count_handler[math_count_handler_m9] += 1
+
+        # / End check col_stt table count
+        stt_count_with_d_m9 = self.count_handler[
+            math_count_handler_m9
+        ]  # So thu tu cua so dem
+        if stt_count_with_d_m9 <= 1:
+            # / Start count color with col_e
+            col_e_count_m9 = f"{col_e_m8}:{stt_count_with_d_m9}:col_e_m9"
+            if not col_e_count_m9 in self.count_handler:
+                self.count_handler[col_e_count_m9] = 1
+            else:
+                self.count_handler[col_e_count_m9] += 1
+            col_e_m9 = self.count_handler[col_e_count_m9]  # so dem bang mau
+            isNoticeColor_m9 = self.checkNotice(
+                col_e_m9,
+                notice_colorM9[0],
+                notice_colorM9[1],
+            )
+            find_null_color_m9 = (1 if col_e_m8 - value1_9 > 0 else 0) * (
+                col_e_m8 - value1_9
+            )
+            find_stt_color_m9 = stt_count_with_d_m9 - 1
+            find_next_color_m9 = (col_e_m8 - value1_9) * 1
+            col_color_m9 = (
+                find_next_color_m9 + find_null_color_m9 + find_stt_color_m9
+            )  # vi tri col cua item bang mau
+
+            if isEqual:
+                self.count_handler[col_e_count_m9] = 0
+            # / Add data to table color 6
+            dataColorM9 = {
+                "row": countRow,
+                "col": col_color_m9,
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}/{col_e_m9}",
+                "color": isEqual,
+                "action": {
+                    "name": "count",
+                    "row": countRow,
+                    "col": total_column,
+                    "isColor": isNoticeCount,
+                },
+                "actionM1": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color,
+                    "isColor": isNoticeColor,
+                },
+                "actionM2": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m2,
+                    "isColor": isNoticeColor_m2,
+                },
+                "actionM3": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m3,
+                    "isColor": isNoticeColor_m3,
+                },
+                "actionM4": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m4,
+                    "isColor": isNoticeColor_m4,
+                },
+                "actionM5": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m5,
+                    "isColor": isNoticeColor_m5,
+                },
+                "actionM6": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m6,
+                    "isColor": isNoticeColor_m6,
+                },
+                "actionM7": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m7,
+                    "isColor": isNoticeColor_m7,
+                },
+                "actionM8": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m8,
+                    "isColor": isNoticeColor_m8,
+                },
+                "notice": isNoticeColor_m9,
+                "date": item_date,
+                "color_value": col_e9,
+                "col_d": col_e_m8,
+                "thong": {
+                    "row": row_thong,
+                    "col": t + 6,
+                    "col_a": (col_t if col_t != "?" else col_a),
+                    "isCol_a": (False if col_t != "?" else True),
+                },
+                "isDeleted": isDeleted,
+            }
+            return {
+                "m9": dataColorM9,
+                "object": {
+                    "col_e_m9": col_e_m9,
+                    "isNoticeColor_m9": isNoticeColor_m9,
+                    "col_color_m9": col_color_m9,
+                },
+            }
+
+    # / M10 start
+    def handler_data_m10(
+        self,
+        i,
+        t,
+        col_e_m3,
+        notice_colorM10,
+        value1_10,
+        countRow,
+        col_a,
+        thong_range_1,
+        stt_cot,
+        col_d,
+        col_t,
+        col_e,
+        col_e_m2,
+        col_e_m4,
+        col_e_m5,
+        col_e_m6,
+        col_e_m7,
+        col_e_m8,
+        col_e_m9,
+        isEqual,
+        total_column,
+        isNoticeCount,
+        col_color,
+        col_color_m2,
+        col_color_m3,
+        col_color_m4,
+        col_color_m5,
+        col_color_m6,
+        col_color_m7,
+        col_color_m8,
+        col_color_m9,
+        isNoticeColor,
+        isNoticeColor_m2,
+        isNoticeColor_m3,
+        isNoticeColor_m4,
+        isNoticeColor_m5,
+        isNoticeColor_m6,
+        isNoticeColor_m7,
+        isNoticeColor_m8,
+        isNoticeColor_m9,
+        item_date,
+        col_e10,
+        row_thong,
+        isDeleted,
+    ):
+        math_count_handler_m10 = f"{col_e_m9}:{i}:_color_m10"
+        if not math_count_handler_m10 in self.count_handler:
+            self.count_handler[math_count_handler_m10] = 1
+        else:
+            self.count_handler[math_count_handler_m10] += 1
+
+        # / End check col_stt table count
+        stt_count_with_d_m10 = self.count_handler[
+            math_count_handler_m10
+        ]  # So thu tu cua so dem
+        if stt_count_with_d_m10 <= 1:
+            # / Start count color with col_e
+            col_e_count_m10 = f"{col_e_m9}:{stt_count_with_d_m10}:col_e_m10"
+            if not col_e_count_m10 in self.count_handler:
+                self.count_handler[col_e_count_m10] = 1
+            else:
+                self.count_handler[col_e_count_m10] += 1
+            col_e_m10 = self.count_handler[col_e_count_m10]  # so dem bang mau
+            isNoticeColor_m10 = self.checkNotice(
+                col_e_m10,
+                notice_colorM10[0],
+                notice_colorM10[1],
+            )
+            find_null_color_m10 = (1 if col_e_m9 - value1_10 > 0 else 0) * (
+                col_e_m9 - value1_10
+            )
+            find_stt_color_m10 = stt_count_with_d_m10 - 1
+            find_next_color_m10 = (col_e_m9 - value1_10) * 1
+            col_color_m10 = (
+                find_next_color_m10 + find_null_color_m10 + find_stt_color_m10
+            )  # vi tri col cua item bang mau
+
+            if isEqual:
+                self.count_handler[col_e_count_m10] = 0
+            # / Add data to table color 6
+            dataColorM10 = {
+                "row": countRow,
+                "col": col_color_m10,
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}/{col_e_m9}/{col_e_m10}",
+                "color": isEqual,
+                "action": {
+                    "name": "count",
+                    "row": countRow,
+                    "col": total_column,
+                    "isColor": isNoticeCount,
+                },
+                "actionM1": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color,
+                    "isColor": isNoticeColor,
+                },
+                "actionM2": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m2,
+                    "isColor": isNoticeColor_m2,
+                },
+                "actionM3": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m3,
+                    "isColor": isNoticeColor_m3,
+                },
+                "actionM4": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m4,
+                    "isColor": isNoticeColor_m4,
+                },
+                "actionM5": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m5,
+                    "isColor": isNoticeColor_m5,
+                },
+                "actionM6": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m6,
+                    "isColor": isNoticeColor_m6,
+                },
+                "actionM7": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m7,
+                    "isColor": isNoticeColor_m7,
+                },
+                "actionM8": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m8,
+                    "isColor": isNoticeColor_m8,
+                },
+                "actionM9": {
+                    "name": "color",
+                    "row": countRow,
+                    "col": col_color_m9,
+                    "isColor": isNoticeColor_m9,
+                },
+                "notice": isNoticeColor_m10,
+                "date": item_date,
+                "color_value": col_e10,
+                "col_d": col_e_m9,
+                "thong": {
+                    "row": row_thong,
+                    "col": t + 6,
+                    "col_a": (col_t if col_t != "?" else col_a),
+                    "isCol_a": (False if col_t != "?" else True),
+                },
+                "isDeleted": isDeleted,
+            }
+            return {
+                "m10": dataColorM10,
+                "object": {
+                    "col_e_m10": col_e_m10,
+                    "isNoticeColor_m10": isNoticeColor_m10,
+                    "col_color_m10": col_color_m10,
                 },
             }
