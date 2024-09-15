@@ -2474,194 +2474,6 @@ class TinhAndMauPage(QWidget):
             button = matching_item["button"]
             notice = matching_item["notice"]
             
-            if "_m1" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 1", "Bảng Màu 1")
-                if current_widget != self.table_main_color:
-                    self.widget_main.setCurrentWidget(self.table_main_color)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_color.item(row, col)
-                self.table_scroll_color.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m2" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 2", "Bảng Màu 2")
-                if current_widget != self.table_main_colorM2:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM2)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM2.item(row, col)
-                self.table_scroll_colorM2.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m3" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 3", "Bảng Màu 3")
-                if current_widget != self.table_main_colorM3:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM3)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM3.item(row, col)
-                self.table_scroll_colorM3.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m4" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 4", "Bảng Màu 4")
-                if current_widget != self.table_main_colorM4:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM4)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM4.item(row, col)
-                self.table_scroll_colorM4.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m5" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 5", "Bảng Màu 5")
-                if current_widget != self.table_main_colorM5:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM5)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM5.item(row, col)
-                self.table_scroll_colorM5.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m6" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 6", "Bảng Màu 6")
-                if current_widget != self.table_main_colorM6:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM6)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM6.item(row, col)
-                self.table_scroll_colorM6.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m7" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 7", "Bảng Màu 7")
-                if current_widget != self.table_main_colorM7:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM7)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM7.item(row, col)
-                self.table_scroll_colorM7.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m8" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 8", "Bảng Màu 8")
-                if current_widget != self.table_main_colorM8:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM8)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM8.item(row, col)
-                self.table_scroll_colorM8.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
-
-            if "_m9" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 9", "Bảng Màu 9")
-                if current_widget != self.table_main_colorM9:
-                    self.widget_main.setCurrentWidget(self.table_main_colorM9)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM9.item(row, col)
-                self.table_scroll_colorM9.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
 
             if "_m10" in matching_item["label"]:
                 self.changeStatusBar("Bảng Màu 10", "Bảng Màu 10")
@@ -2683,6 +2495,205 @@ class TinhAndMauPage(QWidget):
                     },
                 }
                 self.setHighlight(new_data)
+                return
+            
+            if "_m1" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 1", "Bảng Màu 1")
+                if current_widget != self.table_main_color:
+                    self.widget_main.setCurrentWidget(self.table_main_color)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_color.item(row, col)
+                self.table_scroll_color.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m2" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 2", "Bảng Màu 2")
+                if current_widget != self.table_main_colorM2:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM2)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM2.item(row, col)
+                self.table_scroll_colorM2.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m3" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 3", "Bảng Màu 3")
+                if current_widget != self.table_main_colorM3:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM3)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM3.item(row, col)
+                self.table_scroll_colorM3.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m4" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 4", "Bảng Màu 4")
+                if current_widget != self.table_main_colorM4:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM4)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM4.item(row, col)
+                self.table_scroll_colorM4.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m5" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 5", "Bảng Màu 5")
+                if current_widget != self.table_main_colorM5:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM5)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM5.item(row, col)
+                self.table_scroll_colorM5.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m6" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 6", "Bảng Màu 6")
+                if current_widget != self.table_main_colorM6:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM6)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM6.item(row, col)
+                self.table_scroll_colorM6.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m7" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 7", "Bảng Màu 7")
+                if current_widget != self.table_main_colorM7:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM7)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM7.item(row, col)
+                self.table_scroll_colorM7.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m8" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 8", "Bảng Màu 8")
+                if current_widget != self.table_main_colorM8:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM8)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM8.item(row, col)
+                self.table_scroll_colorM8.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
+
+            if "_m9" in matching_item["label"]:
+                self.changeStatusBar("Bảng Màu 9", "Bảng Màu 9")
+                if current_widget != self.table_main_colorM9:
+                    self.widget_main.setCurrentWidget(self.table_main_colorM9)
+                button.setStyleSheet(css_button_view)
+                item_target = self.table_scroll_colorM9.item(row, col)
+                self.table_scroll_colorM9.scrollToItem(
+                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
+                )
+                new_data = {
+                    "current": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                    "next": {
+                        "item": item_target,
+                        "color": (notice if notice is not None else self.normal),
+                    },
+                }
+                self.setHighlight(new_data)
+                return
 
             return
 
