@@ -235,17 +235,23 @@ class TinhAndMauPage(QWidget):
         self.renderNavigation()
         self.renderTableCount()
         for i in range(10):
-            data = self.ban_info['meta']['tables'][i]
-            if data['enable']:
+            data = self.ban_info["meta"]["tables"][i]
+            if data["enable"]:
                 self.start_render_tables(i)
         self.renderButton()
         self.render_table_thong()
         self.widget_main.setCurrentWidget(self.table_main_count)
         return
 
-    def renderNavigation(self, type="m1"):
+    def renderNavigation(self, type=None):
         # Clear previous widgets in the layout
         self.clearLayout(self.navbar_layout)
+        if type is None:
+            table_enabel = [
+                i for i, x in enumerate(self.ban_info["meta"]["tables"]) if x["enable"]
+            ]
+            last_index = table_enabel[-1] if table_enabel else None
+            type = f"m{last_index + 1}"
 
         # / Config Ban info
         ban_info = self.ban_info
@@ -352,7 +358,7 @@ class TinhAndMauPage(QWidget):
         self.scroll_area_2.setWidget(buttons_container_2)
 
         self.navbar_layout.addWidget(self.scroll_area_2)
-        
+
         data_color = None
         if type == "m1":
             data_color = self.dataColor
@@ -1036,8 +1042,8 @@ class TinhAndMauPage(QWidget):
                     self.title.setText(new_title)
 
         for i in range(10):
-            info_data = self.ban_info['meta']['tables'][i]
-            if info_data['enable']:
+            info_data = self.ban_info["meta"]["tables"][i]
+            if info_data["enable"]:
                 match i:
                     case 0:
                         # / Bảng Màu 1
@@ -1068,14 +1074,14 @@ class TinhAndMauPage(QWidget):
                         self.TableM4.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM4)
                         self.TableM4.clicked.connect(changeTableM4)
-                    case 4: 
+                    case 4:
                         # / BM 5
                         self.TableM5 = QPushButton("BM M5")
                         self.TableM5.setStyleSheet(css_button_submit)
                         self.TableM5.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM5)
                         self.TableM5.clicked.connect(changeTableM5)
-                    case 5:   
+                    case 5:
                         # / BM 6
                         self.TableM6 = QPushButton("BM M6")
                         self.TableM6.setStyleSheet(css_button_submit)
@@ -1112,7 +1118,6 @@ class TinhAndMauPage(QWidget):
                         self.TableM10.clicked.connect(changeTableM10)
                     case _:
                         pass
-
 
         InsertData.clicked.connect(insertData_Click)
         self.TableChange.clicked.connect(changeTable)
@@ -2434,16 +2439,10 @@ class TinhAndMauPage(QWidget):
         current_widget = self.widget_main.currentWidget()
         if matching_item:
             self.table_scroll_count.clearSelection()
-            self.table_scroll_color.clearSelection()
-            self.table_scroll_colorM2.clearSelection()
-            self.table_scroll_colorM3.clearSelection()
-            self.table_scroll_colorM4.clearSelection()
-            self.table_scroll_colorM5.clearSelection()
-            self.table_scroll_colorM6.clearSelection()
-            self.table_scroll_colorM7.clearSelection()
-            self.table_scroll_colorM8.clearSelection()
-            self.table_scroll_colorM9.clearSelection()
-            self.table_scroll_colorM10.clearSelection()
+            for i in range(10):
+                data = self.ban_info["meta"]["tables"][i]
+                if data["enable"]:
+                    self.start_clear_tables_row(i)
             # / Get Value from Item
             localItem = matching_item["localItem"]
             row = localItem["row"]
@@ -3443,31 +3442,9 @@ class TinhAndMauPage(QWidget):
     def jumpTableWithRow(self, pos):
         self.table_scroll_count.clearSelection()
         for i in range(10):
-            info_data = self.ban_info['meta']['tables'][i]
-            if info_data['enable']:
-                match i:
-                    case 0:
-                        self.table_scroll_color.clearSelection()
-                    case 1:
-                        self.table_scroll_colorM2.clearSelection()
-                    case 2:
-                        self.table_scroll_colorM3.clearSelection()
-                    case 3:   
-                        self.table_scroll_colorM4.clearSelection()
-                    case 4: 
-                        self.table_scroll_colorM5.clearSelection()
-                    case 5:   
-                        self.table_scroll_colorM6.clearSelection()
-                    case 6:
-                        self.table_scroll_colorM7.clearSelection()
-                    case 7:                        
-                        self.table_scroll_colorM8.clearSelection()
-                    case 8:
-                        self.table_scroll_colorM9.clearSelection()
-                    case 9:
-                        self.table_scroll_colorM10.clearSelection()
-                    case _:
-                        pass
+            data = self.ban_info["meta"]["tables"][i]
+            if data["enable"]:
+                self.start_clear_tables_row(i)
         current_widget = self.widget_main.currentWidget()
         color_widgetM2 = self.table_main_colorM2
         color_widgetM3 = self.table_main_colorM3
@@ -4652,7 +4629,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e"]
-        col_d = self.ban_info['meta']['tables'][0]['col_d']
+        col_d = self.ban_info["meta"]["tables"][0]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         for i in range(rowCount):
@@ -4726,7 +4703,7 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e"]
-        col_d = self.ban_info['meta']['tables'][0]['col_d']
+        col_d = self.ban_info["meta"]["tables"][0]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -4793,7 +4770,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e2"]
-        col_d = self.ban_info['meta']['tables'][1]['col_d']
+        col_d = self.ban_info["meta"]["tables"][1]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -4876,7 +4853,7 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e2"]
-        col_d = self.ban_info['meta']['tables'][1]['col_d']
+        col_d = self.ban_info["meta"]["tables"][1]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -4943,7 +4920,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e3"]
-        col_d = self.ban_info['meta']['tables'][2]['col_d']
+        col_d = self.ban_info["meta"]["tables"][2]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -5026,12 +5003,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e3"]
-        col_d = self.ban_info['meta']['tables'][2]['col_d']
+        col_d = self.ban_info["meta"]["tables"][2]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM3.setColumnCount(current_column)
@@ -5093,7 +5072,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e4"]
-        col_d = self.ban_info['meta']['tables'][3]['col_d']
+        col_d = self.ban_info["meta"]["tables"][3]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -5176,12 +5155,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e4"]
-        col_d = self.ban_info['meta']['tables'][3]['col_d']
+        col_d = self.ban_info["meta"]["tables"][3]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM4.setColumnCount(current_column)
@@ -5243,7 +5224,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e5"]
-        col_d = self.ban_info['meta']['tables'][4]['col_d']
+        col_d = self.ban_info["meta"]["tables"][4]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -5326,12 +5307,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e5"]
-        col_d = self.ban_info['meta']['tables'][4]['col_d']
+        col_d = self.ban_info["meta"]["tables"][4]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM5.setColumnCount(current_column)
@@ -5393,7 +5376,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e6"]
-        col_d = self.ban_info['meta']['tables'][5]['col_d']
+        col_d = self.ban_info["meta"]["tables"][5]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -5476,12 +5459,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e6"]
-        col_d = self.ban_info['meta']['tables'][5]['col_d']
+        col_d = self.ban_info["meta"]["tables"][5]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM6.setColumnCount(current_column)
@@ -5543,7 +5528,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e7"]
-        col_d = self.ban_info['meta']['tables'][6]['col_d']
+        col_d = self.ban_info["meta"]["tables"][6]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -5626,12 +5611,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e7"]
-        col_d = self.ban_info['meta']['tables'][6]['col_d']
+        col_d = self.ban_info["meta"]["tables"][6]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM7.setColumnCount(current_column)
@@ -5693,7 +5680,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e8"]
-        col_d = self.ban_info['meta']['tables'][7]['col_d']
+        col_d = self.ban_info["meta"]["tables"][7]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
@@ -5776,12 +5763,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e8"]
-        col_d = self.ban_info['meta']['tables'][7]['col_d']
+        col_d = self.ban_info["meta"]["tables"][7]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += col_d[i]+1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM8.setColumnCount(current_column)
@@ -5843,7 +5832,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e9"]
-        col_d = self.ban_info['meta']['tables'][8]['col_d']
+        col_d = self.ban_info["meta"]["tables"][8]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 93
@@ -5926,12 +5915,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e9"]
-        col_d = self.ban_info['meta']['tables'][8]['col_d']
+        col_d = self.ban_info["meta"]["tables"][8]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 93
         for i in range(value1 - 1, value2):
-            current_column += col_d[i]+1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM9.setColumnCount(current_column)
@@ -5946,7 +5937,7 @@ class TinhAndMauPage(QWidget):
             header_item = QTableWidgetItem(f"D {i + 1}/M9")
             header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.frozen_table_colorM9.setItem(0, total_columns, header_item)
-            if num_cols>1:
+            if num_cols > 1:
                 self.frozen_table_colorM9.setSpan(0, total_columns, 1, num_cols)
 
             # Thêm tên cột cho hàng header
@@ -5993,7 +5984,7 @@ class TinhAndMauPage(QWidget):
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e10"]
-        col_d = self.ban_info['meta']['tables'][9]['col_d']
+        col_d = self.ban_info["meta"]["tables"][9]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 103
@@ -6076,12 +6067,14 @@ class TinhAndMauPage(QWidget):
         step_count = 0
 
         col_e = self.ban_info["meta"]["setting"]["col_e10"]
-        col_d = self.ban_info['meta']['tables'][9]['col_d']
+        col_d = self.ban_info["meta"]["tables"][9]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
         # Tạo cột từ 0 đến 103
         for i in range(value1 - 1, value2):
-            current_column += col_d[i]+1  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += (
+                col_d[i] + 1
+            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
         self.frozen_table_colorM10.setColumnCount(current_column)
@@ -6193,7 +6186,7 @@ class TinhAndMauPage(QWidget):
         value2_10 = col_e10[1]
 
         # / Setup tables
-        tables = self.ban_info['meta']['tables']
+        tables = self.ban_info["meta"]["tables"]
 
         # / Setup Variable
         self.count_handler = {}  # data so dem (d = Bang tinh, e = Bang mau)
@@ -6291,7 +6284,7 @@ class TinhAndMauPage(QWidget):
                                 ]  # So thu tu cua so dem
 
                                 # / Config number col_d M1
-                                number_col_d_m1 = tables[0]['col_d'][col_d - 1]
+                                number_col_d_m1 = tables[0]["col_d"][col_d - 1]
 
                                 # / Start Check count handler with if and else
                                 if stt_count_with_d <= number_col_d_m1:
@@ -6312,11 +6305,14 @@ class TinhAndMauPage(QWidget):
                                     #             1 if col_d - value1 > 0 else 0
                                     #         ) * (col_d - value1)
                                     find_stt_color = stt_count_with_d - 1
-                                    find_next_color = self.find_column_by_index(tables[0]['col_d'], col_d - value1, value1 - 1, value2)
+                                    find_next_color = self.find_column_by_index(
+                                        tables[0]["col_d"],
+                                        col_d - value1,
+                                        value1 - 1,
+                                        value2,
+                                    )
                                     col_color = (
-                                        find_next_color
-                                        + 0
-                                        + find_stt_color
+                                        find_next_color + 0 + find_stt_color
                                     )  # vi tri col cua item bang mau
                                     row_thong = item_thong
                                     if row_thong < 0:
@@ -6410,7 +6406,7 @@ class TinhAndMauPage(QWidget):
                                         ]  # So thu tu cua so dem
 
                                         # / Config number col_d M1
-                                        number_col_d_m2 = tables[1]['col_d'][col_e - 1]
+                                        number_col_d_m2 = tables[1]["col_d"][col_e - 1]
 
                                         if stt_count_with_d_m2 <= number_col_d_m2:
                                             # / Start count color with col_e
@@ -6429,7 +6425,14 @@ class TinhAndMauPage(QWidget):
                                             )
                                             find_null_color_m2 = 0
                                             find_stt_color_m2 = stt_count_with_d_m2 - 1
-                                            find_next_color_m2 = self.find_column_by_index(tables[1]['col_d'], col_e - value1_2, value1_2 - 1, value2_2)
+                                            find_next_color_m2 = (
+                                                self.find_column_by_index(
+                                                    tables[1]["col_d"],
+                                                    col_e - value1_2,
+                                                    value1_2 - 1,
+                                                    value2_2,
+                                                )
+                                            )
                                             col_color_m2 = (
                                                 find_next_color_m2
                                                 + find_null_color_m2
@@ -6496,9 +6499,14 @@ class TinhAndMauPage(QWidget):
                                                         math_count_handler_m3
                                                     ]
                                                 )  # So thu tu cua so dem
-                                                number_col_d_m3 = tables[2]['col_d'][col_e_m2 - 1]
+                                                number_col_d_m3 = tables[2]["col_d"][
+                                                    col_e_m2 - 1
+                                                ]
 
-                                                if stt_count_with_d_m3 <= number_col_d_m3:
+                                                if (
+                                                    stt_count_with_d_m3
+                                                    <= number_col_d_m3
+                                                ):
                                                     # / Start count color with col_e
                                                     col_e_count_m3 = f"{col_e_m2}:{stt_count_with_d_m3}:col_e_m3"
                                                     if (
@@ -6524,7 +6532,14 @@ class TinhAndMauPage(QWidget):
                                                     find_stt_color_m3 = (
                                                         stt_count_with_d_m3 - 1
                                                     )
-                                                    find_next_color_m3 = self.find_column_by_index(tables[2]['col_d'], col_e_m2 - value1_3, value1_3 - 1, value2_3)
+                                                    find_next_color_m3 = (
+                                                        self.find_column_by_index(
+                                                            tables[2]["col_d"],
+                                                            col_e_m2 - value1_3,
+                                                            value1_3 - 1,
+                                                            value2_3,
+                                                        )
+                                                    )
                                                     col_color_m3 = (
                                                         find_next_color_m3
                                                         + find_null_color_m3
@@ -7058,71 +7073,91 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM10["notice"],
                                         }
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 2:
                                                         dataColorM3["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 3:
                                                         dataColorM4["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 4:
                                                         dataColorM5["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 5:
                                                         dataColorM6["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 6:
                                                         dataColorM7["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 7:
                                                         dataColorM8["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 8:
                                                         dataColorM9["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10["notice"],
+                                                            "isColor": dataColorM10[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
@@ -7136,64 +7171,82 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM9["notice"],
                                         }
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 2:
                                                         dataColorM3["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 3:
                                                         dataColorM4["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 4:
                                                         dataColorM5["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 5:
                                                         dataColorM6["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 6:
                                                         dataColorM7["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 7:
                                                         dataColorM8["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9["notice"],
+                                                            "isColor": dataColorM9[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
@@ -7207,57 +7260,73 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM8["notice"],
                                         }
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8["notice"],
+                                                            "isColor": dataColorM8[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8["notice"],
+                                                            "isColor": dataColorM8[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 2:
                                                         dataColorM3["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8["notice"],
+                                                            "isColor": dataColorM8[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 3:
                                                         dataColorM4["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8["notice"],
+                                                            "isColor": dataColorM8[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 4:
                                                         dataColorM5["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8["notice"],
+                                                            "isColor": dataColorM8[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 5:
                                                         dataColorM6["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8["notice"],
+                                                            "isColor": dataColorM8[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 6:
                                                         dataColorM7["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8["notice"],
+                                                            "isColor": dataColorM8[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
@@ -7271,54 +7340,67 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM7["notice"],
                                         }
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7["notice"],
+                                                            "isColor": dataColorM7[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7["notice"],
+                                                            "isColor": dataColorM7[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 2:
                                                         dataColorM3["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7["notice"],
+                                                            "isColor": dataColorM7[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 3:
                                                         dataColorM4["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7["notice"],
+                                                            "isColor": dataColorM7[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 4:
                                                         dataColorM5["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7["notice"],
+                                                            "isColor": dataColorM7[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 5:
                                                         dataColorM6["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7["notice"],
+                                                            "isColor": dataColorM7[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
-
 
                                     if dataColorM6:
                                         self.dataColor6.append(dataColorM6)
@@ -7329,43 +7411,55 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM6["notice"],
                                         }
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6["notice"],
+                                                            "isColor": dataColorM6[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6["notice"],
+                                                            "isColor": dataColorM6[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 2:
                                                         dataColorM3["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6["notice"],
+                                                            "isColor": dataColorM6[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 3:
                                                         dataColorM4["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6["notice"],
+                                                            "isColor": dataColorM6[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 4:
                                                         dataColorM5["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6["notice"],
+                                                            "isColor": dataColorM6[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
@@ -7379,36 +7473,46 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM5["notice"],
                                         }
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5["notice"],
+                                                            "isColor": dataColorM5[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5["notice"],
+                                                            "isColor": dataColorM5[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 2:
                                                         dataColorM3["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5["notice"],
+                                                            "isColor": dataColorM5[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 3:
                                                         dataColorM4["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5["notice"],
+                                                            "isColor": dataColorM5[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
@@ -7422,29 +7526,37 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM4["notice"],
                                         }
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM4"] = {
                                                             "name": "colorM4",
                                                             "row": countRow,
                                                             "col": dataColorM4["col"],
-                                                            "isColor": dataColorM4["notice"],
+                                                            "isColor": dataColorM4[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM4"] = {
                                                             "name": "colorM4",
                                                             "row": countRow,
                                                             "col": dataColorM4["col"],
-                                                            "isColor": dataColorM4["notice"],
+                                                            "isColor": dataColorM4[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 2:
                                                         dataColorM3["actionM4"] = {
                                                             "name": "colorM4",
                                                             "row": countRow,
                                                             "col": dataColorM4["col"],
-                                                            "isColor": dataColorM4["notice"],
+                                                            "isColor": dataColorM4[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
@@ -7459,22 +7571,28 @@ class TinhAndMauPage(QWidget):
                                         }
 
                                         for i in range(10):
-                                            info_data = self.ban_info['meta']['tables'][i]
-                                            if info_data['enable']:
+                                            info_data = self.ban_info["meta"]["tables"][
+                                                i
+                                            ]
+                                            if info_data["enable"]:
                                                 match i:
                                                     case 0:
                                                         dataColorM1["actionM3"] = {
                                                             "name": "colorM3",
                                                             "row": countRow,
                                                             "col": dataColorM3["col"],
-                                                            "isColor": dataColorM3["notice"],
+                                                            "isColor": dataColorM3[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case 1:
                                                         dataColorM2["actionM3"] = {
                                                             "name": "colorM3",
                                                             "row": countRow,
                                                             "col": dataColorM3["col"],
-                                                            "isColor": dataColorM3["notice"],
+                                                            "isColor": dataColorM3[
+                                                                "notice"
+                                                            ],
                                                         }
                                                     case _:
                                                         pass
@@ -7487,7 +7605,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM2["col"],
                                             "isColor": dataColorM2["notice"],
                                         }
-                                        if self.ban_info['meta']['tables'][0]['enable']:
+                                        if self.ban_info["meta"]["tables"][0]["enable"]:
                                             dataColorM1["actionM2"] = {
                                                 "name": "colorM2",
                                                 "row": countRow,
@@ -8100,8 +8218,8 @@ class TinhAndMauPage(QWidget):
         self.renderNavigation()
         self.updateTableCount()
         for i in range(10):
-            data = self.ban_info['meta']['tables'][i]
-            if data['enable']:
+            data = self.ban_info["meta"]["tables"][i]
+            if data["enable"]:
                 self.start_render_tables_row(i)
 
     def find_row_thong_with_col_a(self, col_a, thong_data):
@@ -8169,7 +8287,8 @@ class TinhAndMauPage(QWidget):
         t,
         col_e_m3,
         notice_colorM4,
-        value1_4,value2_4,
+        value1_4,
+        value2_4,
         countRow,
         col_a,
         thong_range_1,
@@ -8202,7 +8321,7 @@ class TinhAndMauPage(QWidget):
         stt_count_with_d_m4 = self.count_handler[
             math_count_handler_m4
         ]  # So thu tu cua so dem
-        number_of_col_d = self.ban_info['meta']['tables'][3]['col_d'][col_e_m3 - 1]
+        number_of_col_d = self.ban_info["meta"]["tables"][3]["col_d"][col_e_m3 - 1]
         if stt_count_with_d_m4 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m4 = f"{col_e_m3}:{stt_count_with_d_m4}:col_e_m4"
@@ -8218,7 +8337,12 @@ class TinhAndMauPage(QWidget):
             )
             find_null_color_m4 = 0
             find_stt_color_m4 = stt_count_with_d_m4 - 1
-            find_next_color_m4 = self.find_column_by_index(self.ban_info['meta']['tables'][3]['col_d'], col_e_m3 - value1_4, value1_4 - 1, value2_4)
+            find_next_color_m4 = self.find_column_by_index(
+                self.ban_info["meta"]["tables"][3]["col_d"],
+                col_e_m3 - value1_4,
+                value1_4 - 1,
+                value2_4,
+            )
             col_color_m4 = (
                 find_next_color_m4 + find_null_color_m4 + find_stt_color_m4
             )  # vi tri col cua item bang mau
@@ -8320,7 +8444,7 @@ class TinhAndMauPage(QWidget):
         stt_count_with_d_m5 = self.count_handler[
             math_count_handler_m5
         ]  # So thu tu cua so dem
-        number_of_col_d = self.ban_info['meta']['tables'][4]['col_d'][col_e_m4 - 1]
+        number_of_col_d = self.ban_info["meta"]["tables"][4]["col_d"][col_e_m4 - 1]
         if stt_count_with_d_m5 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m5 = f"{col_e_m4}:{stt_count_with_d_m5}:col_e_m5"
@@ -8336,7 +8460,12 @@ class TinhAndMauPage(QWidget):
             )
             find_null_color_m5 = 0
             find_stt_color_m5 = stt_count_with_d_m5 - 1
-            find_next_color_m5 = self.find_column_by_index(self.ban_info['meta']['tables'][4]['col_d'], col_e_m4 - value1_5, value1_5 - 1, value2_5)
+            find_next_color_m5 = self.find_column_by_index(
+                self.ban_info["meta"]["tables"][4]["col_d"],
+                col_e_m4 - value1_5,
+                value1_5 - 1,
+                value2_5,
+            )
             col_color_m5 = (
                 find_next_color_m5 + find_null_color_m5 + find_stt_color_m5
             )  # vi tri col cua item bang mau
@@ -8407,7 +8536,8 @@ class TinhAndMauPage(QWidget):
         t,
         col_e_m3,
         notice_colorM6,
-        value1_6,value2_6,
+        value1_6,
+        value2_6,
         countRow,
         col_a,
         thong_range_1,
@@ -8446,7 +8576,7 @@ class TinhAndMauPage(QWidget):
         stt_count_with_d_m6 = self.count_handler[
             math_count_handler_m6
         ]  # So thu tu cua so dem
-        number_of_col_d = self.ban_info['meta']['tables'][5]['col_d'][col_e_m5 - 1]
+        number_of_col_d = self.ban_info["meta"]["tables"][5]["col_d"][col_e_m5 - 1]
         if stt_count_with_d_m6 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m6 = f"{col_e_m5}:{stt_count_with_d_m6}:col_e_m6"
@@ -8462,7 +8592,12 @@ class TinhAndMauPage(QWidget):
             )
             find_null_color_m6 = 0
             find_stt_color_m6 = stt_count_with_d_m6 - 1
-            find_next_color_m6 = self.find_column_by_index(self.ban_info['meta']['tables'][5]['col_d'], col_e_m5 - value1_6, value1_6 - 1, value2_6)
+            find_next_color_m6 = self.find_column_by_index(
+                self.ban_info["meta"]["tables"][5]["col_d"],
+                col_e_m5 - value1_6,
+                value1_6 - 1,
+                value2_6,
+            )
             col_color_m6 = (
                 find_next_color_m6 + find_null_color_m6 + find_stt_color_m6
             )  # vi tri col cua item bang mau
@@ -8538,7 +8673,8 @@ class TinhAndMauPage(QWidget):
         i,
         t,
         notice_colorM7,
-        value1_7,value2_7,
+        value1_7,
+        value2_7,
         countRow,
         col_a,
         thong_range_1,
@@ -8581,7 +8717,7 @@ class TinhAndMauPage(QWidget):
         stt_count_with_d_m7 = self.count_handler[
             math_count_handler_m7
         ]  # So thu tu cua so dem
-        number_of_col_d = self.ban_info['meta']['tables'][6]['col_d'][col_e_m6 - 1]
+        number_of_col_d = self.ban_info["meta"]["tables"][6]["col_d"][col_e_m6 - 1]
         if stt_count_with_d_m7 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m7 = f"{col_e_m6}:{stt_count_with_d_m7}:col_e_m7"
@@ -8597,7 +8733,12 @@ class TinhAndMauPage(QWidget):
             )
             find_null_color_m7 = 0
             find_stt_color_m7 = stt_count_with_d_m7 - 1
-            find_next_color_m7 = self.find_column_by_index(self.ban_info['meta']['tables'][6]['col_d'], col_e_m6 - value1_7, value1_7 - 1, value2_7)
+            find_next_color_m7 = self.find_column_by_index(
+                self.ban_info["meta"]["tables"][6]["col_d"],
+                col_e_m6 - value1_7,
+                value1_7 - 1,
+                value2_7,
+            )
             col_color_m7 = (
                 find_next_color_m7 + find_null_color_m7 + find_stt_color_m7
             )  # vi tri col cua item bang mau
@@ -8680,7 +8821,8 @@ class TinhAndMauPage(QWidget):
         t,
         col_e_m3,
         notice_colorM8,
-        value1_8,value2_8,
+        value1_8,
+        value2_8,
         countRow,
         col_a,
         thong_range_1,
@@ -8725,7 +8867,7 @@ class TinhAndMauPage(QWidget):
         stt_count_with_d_m8 = self.count_handler[
             math_count_handler_m8
         ]  # So thu tu cua so dem
-        number_of_col_d = self.ban_info['meta']['tables'][7]['col_d'][col_e_m7 - 1]
+        number_of_col_d = self.ban_info["meta"]["tables"][7]["col_d"][col_e_m7 - 1]
         if stt_count_with_d_m8 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m8 = f"{col_e_m7}:{stt_count_with_d_m8}:col_e_m8"
@@ -8741,7 +8883,12 @@ class TinhAndMauPage(QWidget):
             )
             find_null_color_m8 = 0
             find_stt_color_m8 = stt_count_with_d_m8 - 1
-            find_next_color_m8 = self.find_column_by_index(self.ban_info['meta']['tables'][7]['col_d'], col_e_m7 - value1_8, value1_8 - 1, value2_8)
+            find_next_color_m8 = self.find_column_by_index(
+                self.ban_info["meta"]["tables"][7]["col_d"],
+                col_e_m7 - value1_8,
+                value1_8 - 1,
+                value2_8,
+            )
             col_color_m8 = (
                 find_next_color_m8 + find_null_color_m8 + find_stt_color_m8
             )  # vi tri col cua item bang mau
@@ -8830,7 +8977,8 @@ class TinhAndMauPage(QWidget):
         t,
         col_e_m3,
         notice_colorM9,
-        value1_9,value2_9,
+        value1_9,
+        value2_9,
         countRow,
         col_a,
         thong_range_1,
@@ -8878,7 +9026,7 @@ class TinhAndMauPage(QWidget):
         stt_count_with_d_m9 = self.count_handler[
             math_count_handler_m9
         ]  # So thu tu cua so dem
-        number_of_col_d = self.ban_info['meta']['tables'][8]['col_d'][col_e_m8 - 1]
+        number_of_col_d = self.ban_info["meta"]["tables"][8]["col_d"][col_e_m8 - 1]
         if stt_count_with_d_m9 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m9 = f"{col_e_m8}:{stt_count_with_d_m9}:col_e_m9"
@@ -8894,7 +9042,12 @@ class TinhAndMauPage(QWidget):
             )
             find_null_color_m9 = 0
             find_stt_color_m9 = stt_count_with_d_m9 - 1
-            find_next_color_m9 = self.find_column_by_index(self.ban_info['meta']['tables'][8]['col_d'], col_e_m8 - value1_9, value1_9 - 1, value2_9)
+            find_next_color_m9 = self.find_column_by_index(
+                self.ban_info["meta"]["tables"][8]["col_d"],
+                col_e_m8 - value1_9,
+                value1_9 - 1,
+                value2_9,
+            )
             col_color_m9 = (
                 find_next_color_m9 + find_null_color_m9 + find_stt_color_m9
             )  # vi tri col cua item bang mau
@@ -8989,7 +9142,8 @@ class TinhAndMauPage(QWidget):
         t,
         col_e_m3,
         notice_colorM10,
-        value1_10,value2_10,
+        value1_10,
+        value2_10,
         countRow,
         col_a,
         thong_range_1,
@@ -9040,7 +9194,7 @@ class TinhAndMauPage(QWidget):
         stt_count_with_d_m10 = self.count_handler[
             math_count_handler_m10
         ]  # So thu tu cua so dem
-        number_of_col_d = self.ban_info['meta']['tables'][9]['col_d'][col_e_m9 - 1]
+        number_of_col_d = self.ban_info["meta"]["tables"][9]["col_d"][col_e_m9 - 1]
         if stt_count_with_d_m10 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m10 = f"{col_e_m9}:{stt_count_with_d_m10}:col_e_m10"
@@ -9056,7 +9210,12 @@ class TinhAndMauPage(QWidget):
             )
             find_null_color_m10 = 0
             find_stt_color_m10 = stt_count_with_d_m10 - 1
-            find_next_color_m10 = self.find_column_by_index(self.ban_info['meta']['tables'][9]['col_d'], col_e_m8 - value1_10, value1_10 - 1, value2_10)
+            find_next_color_m10 = self.find_column_by_index(
+                self.ban_info["meta"]["tables"][9]["col_d"],
+                col_e_m8 - value1_10,
+                value1_10 - 1,
+                value2_10,
+            )
             col_color_m10 = (
                 find_next_color_m10 + find_null_color_m10 + find_stt_color_m10
             )  # vi tri col cua item bang mau
@@ -9175,7 +9334,7 @@ class TinhAndMauPage(QWidget):
             case _:
                 pass
 
-    def find_column_by_index(self, arr, target_index,start, end):
+    def find_column_by_index(self, arr, target_index, start, end):
         total_columns = 0
 
         # Iterate through the array and calculate the column placement
@@ -9183,10 +9342,10 @@ class TinhAndMauPage(QWidget):
             # Check if we've reached the target index
             if i == target_index:
                 return total_columns
-            
+
             # Add the value to the total columns
             total_columns += value
-            
+
             # After each value, add 1 (except for the last index)
             if i != len(arr[start:end]) - 1:
                 total_columns += 1
@@ -9216,5 +9375,30 @@ class TinhAndMauPage(QWidget):
                 self.updateTableColorM9()
             case 9:
                 self.updateTableColorM10()
+            case _:
+                pass
+
+    def start_clear_tables_row(self, index):
+        match index:
+            case 0:
+                self.table_scroll_color.clearSelection()
+            case 1:
+                self.table_scroll_colorM2.clearSelection()
+            case 2:
+                self.table_scroll_colorM3.clearSelection()
+            case 3:
+                self.table_scroll_colorM4.clearSelection()
+            case 4:
+                self.table_scroll_colorM5.clearSelection()
+            case 5:
+                self.table_scroll_colorM6.clearSelection()
+            case 6:
+                self.table_scroll_colorM7.clearSelection()
+            case 7:
+                self.table_scroll_colorM8.clearSelection()
+            case 8:
+                self.table_scroll_colorM9.clearSelection()
+            case 9:
+                self.table_scroll_colorM10.clearSelection()
             case _:
                 pass
