@@ -296,6 +296,18 @@ def updateBanInsert(data):
 
     return {"status": True, "msg": "Đã nhập liệu thành công!", "data": data_db}
 
+def enableTables(data):
+    path_db = Path().path_db()
+    with open(path_db, "r") as file:
+        data_db = json.load(file)
+    data_db['meta']['tables'] = data
+
+    # / Write File JSON
+    with open(path_db, "w") as file:
+        json.dump(data_db, file)
+
+    return {"status": True, "msg": "Đã cật nhập cài đặt thành công!", "data": data_db}
+
 
 def updateThongInsert(data):
     path_db = Path().path_db()
@@ -331,6 +343,7 @@ def updateColorInsert(data):
     thong = data["thong"]
     maxRow = data["maxRow"]
     buttons = data["buttons"]
+    tables = data["tables"]
     # / Save insert date
     data_db["meta"]["notice"] = update
     data_db["meta"]["setting"]["col_e"] = col_e
@@ -348,6 +361,7 @@ def updateColorInsert(data):
     data_db["thong"] = thong
     data_db["meta"]["maxRow"] = maxRow
     data_db["meta"]["buttons"] = buttons
+    data_db["meta"]["tables"] = tables
     # / Write File JSON
     with open(path_db, "w") as file:
         json.dump(data_db, file)
