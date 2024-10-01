@@ -113,7 +113,7 @@ class TinhAndMauPage(QWidget):
         self.navbar_layout = QVBoxLayout(self.navbar_wid_main)
         self.navbar_layout.setSpacing(6)
         self.navbar_layout.setContentsMargins(0, 0, 0, 0)
-        self.navbar_wid_main.setMaximumHeight(220)
+        self.navbar_wid_main.setMaximumHeight(120)
         self.layout.addWidget(self.navbar_wid_main)
 
         self.note_w = QWidget()
@@ -259,69 +259,15 @@ class TinhAndMauPage(QWidget):
         filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
         row_count = len(filter_data)
         max_row = ban_info["meta"]["maxRow"]
-        notice = ban_info["meta"]["notice"]
-        btn_color = ban_info["meta"]["buttons"]
-        count = notice["count"]
-        colorM2 = notice["colorM2"]
-        colorM3 = notice["colorM3"]
-        colorM4 = notice["colorM4"]
-        colorM5 = notice["colorM5"]
-        colorM6 = notice["colorM6"]
-        colorM7 = notice["colorM7"]
-        colorM8 = notice["colorM8"]
-        colorM9 = notice["colorM9"]
-        colorM10 = notice["colorM10"]
-        color = notice["color"] if btn_color[0] else notice["color2"]
-        text_color = "BM" if btn_color[0] else "BM2"
         change_number = ban_info["meta"]["number"]
         ban_col = ban_info["col"]
         ban_thong_value = ban_info["thong"]["value"]
         ban_thong_name = ban_info["thong"]["name"]
-        col_e = ban_info["meta"]["setting"]["col_e"]
-        col_e2 = ban_info["meta"]["setting"]["col_e2"]
-        col_e3 = ban_info["meta"]["setting"]["col_e3"]
-        col_e4 = ban_info["meta"]["setting"]["col_e4"]
-        col_e5 = ban_info["meta"]["setting"]["col_e5"]
-        col_e6 = ban_info["meta"]["setting"]["col_e6"]
-        col_e7 = ban_info["meta"]["setting"]["col_e7"]
-        col_e8 = ban_info["meta"]["setting"]["col_e8"]
-        col_e9 = ban_info["meta"]["setting"]["col_e9"]
-        col_e10 = ban_info["meta"]["setting"]["col_e10"]
 
         title_text = (
-            f"{ban_thong_name}/30 / Bảng Tính / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
-            + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
-            + f"Số dòng: {row_count}/{max_row} / "
-            + f"MBT: {count[0]} đến {count[1]} / "
-            + f"Thống Kê M1 D: {col_e[0]} đến {col_e[1]} / "
-            + f"M{text_color}1: {color[0]} đến {color[1]}"
-        )
-
-        title_text_2 = (
-            f"Thống Kê M2 D: {col_e2[0]} đến {col_e2[1]} / "
-            + f"MBM2: {colorM2[0]} đến {colorM2[1]} / "
-            + f"Thống Kê M3 D: {col_e3[0]} đến {col_e3[1]} / "
-            + f"MBM3: {colorM3[0]} đến {colorM3[1]} / "
-            + f"Thống Kê M4 D: {col_e4[0]} đến {col_e4[1]} / "
-            + f"MBM4: {colorM4[0]} đến {colorM4[1]}"
-        )
-
-        title_text_3 = (
-            f"Thống Kê M5 D: {col_e5[0]} đến {col_e5[1]} / "
-            + f"MBM5: {colorM5[0]} đến {colorM5[1]}"
-            + f"Thống Kê M6 D: {col_e6[0]} đến {col_e6[1]} / "
-            + f"MBM6: {colorM6[0]} đến {colorM6[1]} / "
-            + f"Thống Kê M7 D: {col_e7[0]} đến {col_e7[1]} / "
-            + f"MBM7: {colorM7[0]} đến {colorM7[1]}"
-        )
-
-        title_text_4 = (
-            f"Thống Kê M8 D: {col_e8[0]} đến {col_e8[1]} / "
-            + f"MBM8: {colorM8[0]} đến {colorM8[1]} / "
-            + f"Thống Kê M9 D: {col_e9[0]} đến {col_e9[1]} / "
-            + f"MBM9: {colorM9[0]} đến {colorM9[1]} / "
-            + f"Thống Kê M10 D: {col_e10[0]} đến {col_e10[1]} / "
-            + f"MBM10: {colorM10[0]} đến {colorM10[1]}"
+            f"{ban_thong_name}/30 ** Bảng Tính ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
+            + f"T{ban_thong_value[1]} **  Bộ Chuyển Đổi: {change_number} ** "
+            + f"Số dòng: {row_count}/{max_row}"
         )
 
         self.status_w = QWidget()
@@ -330,18 +276,6 @@ class TinhAndMauPage(QWidget):
         self.title = QLabel(title_text)
         self.title.setStyleSheet(css_title)
         self.status_l.addWidget(self.title)
-
-        self.title_2 = QLabel(title_text_2)
-        self.title_2.setStyleSheet(css_title)
-        self.status_l.addWidget(self.title_2)
-
-        self.title_3 = QLabel(title_text_3)
-        self.title_3.setStyleSheet(css_title)
-        self.status_l.addWidget(self.title_3)
-
-        self.title_4 = QLabel(title_text_4)
-        self.title_4.setStyleSheet(css_title)
-        self.status_l.addWidget(self.title_4)
 
         self.navbar_layout.addWidget(self.status_w)
 
@@ -767,7 +701,7 @@ class TinhAndMauPage(QWidget):
         def changeTable():
             old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_count)
-            self.renderNavigation("m1")
+            self.renderNavigation()
             for text in sorted(
                 [
                     "Bảng Màu 10",
@@ -7064,7 +6998,7 @@ class TinhAndMauPage(QWidget):
                                                                                                             ]
                                                                                                             dataColorM10 = m10
 
-                                    if dataColorM10:
+                                    if dataColorM10 and self.ban_info["meta"]["tables"][9]["enable"] == True:
                                         self.dataColor10.append(dataColorM10)
                                         dataCount["actionM10"] = {
                                             "name": "colorM10",
@@ -7072,14 +7006,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM10["col"],
                                             "isColor": dataColorM10["notice"],
                                         }
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM10"] = {
+                                        dataColorM1["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7087,8 +7014,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM10"] = {
+                                        dataColorM2["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7096,8 +7022,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 2:
-                                                        dataColorM3["actionM10"] = {
+                                        dataColorM3["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7105,8 +7030,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 3:
-                                                        dataColorM4["actionM10"] = {
+                                        dataColorM4["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7114,8 +7038,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 4:
-                                                        dataColorM5["actionM10"] = {
+                                        dataColorM5["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7123,8 +7046,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 5:
-                                                        dataColorM6["actionM10"] = {
+                                        dataColorM6["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7132,8 +7054,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 6:
-                                                        dataColorM7["actionM10"] = {
+                                        dataColorM7["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7141,8 +7062,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 7:
-                                                        dataColorM8["actionM10"] = {
+                                        dataColorM8["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7150,8 +7070,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 8:
-                                                        dataColorM9["actionM10"] = {
+                                        dataColorM9["actionM10"] = {
                                                             "name": "colorM10",
                                                             "row": countRow,
                                                             "col": dataColorM10["col"],
@@ -7159,10 +7078,8 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case _:
-                                                        pass
-
-                                    if dataColorM9:
+  
+                                    if dataColorM9 and self.ban_info["meta"]["tables"][8]["enable"] == True:
                                         self.dataColor9.append(dataColorM9)
                                         dataCount["actionM9"] = {
                                             "name": "colorM9",
@@ -7170,14 +7087,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM9["col"],
                                             "isColor": dataColorM9["notice"],
                                         }
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM9"] = {
+                                        dataColorM1["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7185,8 +7095,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM9"] = {
+                                        dataColorM2["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7194,8 +7103,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 2:
-                                                        dataColorM3["actionM9"] = {
+                                        dataColorM3["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7203,8 +7111,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 3:
-                                                        dataColorM4["actionM9"] = {
+                                        dataColorM4["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7212,8 +7119,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 4:
-                                                        dataColorM5["actionM9"] = {
+                                        dataColorM5["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7221,8 +7127,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 5:
-                                                        dataColorM6["actionM9"] = {
+                                        dataColorM6["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7230,8 +7135,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 6:
-                                                        dataColorM7["actionM9"] = {
+                                        dataColorM7["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7239,8 +7143,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 7:
-                                                        dataColorM8["actionM9"] = {
+                                        dataColorM8["actionM9"] = {
                                                             "name": "colorM9",
                                                             "row": countRow,
                                                             "col": dataColorM9["col"],
@@ -7248,10 +7151,8 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case _:
-                                                        pass
-
-                                    if dataColorM8:
+                                        
+                                    if dataColorM8 and self.ban_info["meta"]["tables"][7]["enable"] == True:
                                         self.dataColor8.append(dataColorM8)
                                         dataCount["actionM8"] = {
                                             "name": "colorM8",
@@ -7259,14 +7160,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM8["col"],
                                             "isColor": dataColorM8["notice"],
                                         }
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM8"] = {
+                                        dataColorM1["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
@@ -7274,8 +7168,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM8"] = {
+                                        dataColorM2["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
@@ -7283,8 +7176,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 2:
-                                                        dataColorM3["actionM8"] = {
+                                        dataColorM3["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
@@ -7292,8 +7184,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 3:
-                                                        dataColorM4["actionM8"] = {
+                                        dataColorM4["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
@@ -7301,8 +7192,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 4:
-                                                        dataColorM5["actionM8"] = {
+                                        dataColorM5["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
@@ -7310,8 +7200,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 5:
-                                                        dataColorM6["actionM8"] = {
+                                        dataColorM6["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
@@ -7319,8 +7208,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 6:
-                                                        dataColorM7["actionM8"] = {
+                                        dataColorM7["actionM8"] = {
                                                             "name": "colorM8",
                                                             "row": countRow,
                                                             "col": dataColorM8["col"],
@@ -7328,10 +7216,8 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case _:
-                                                        pass
 
-                                    if dataColorM7:
+                                    if dataColorM7 and self.ban_info["meta"]["tables"][6]["enable"] == True:
                                         self.dataColor7.append(dataColorM7)
                                         dataCount["actionM7"] = {
                                             "name": "colorM7",
@@ -7339,14 +7225,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM7["col"],
                                             "isColor": dataColorM7["notice"],
                                         }
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM7"] = {
+                                        dataColorM1["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
@@ -7354,8 +7233,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM7"] = {
+                                        dataColorM2["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
@@ -7363,8 +7241,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 2:
-                                                        dataColorM3["actionM7"] = {
+                                        dataColorM3["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
@@ -7372,8 +7249,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 3:
-                                                        dataColorM4["actionM7"] = {
+                                        dataColorM4["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
@@ -7381,8 +7257,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 4:
-                                                        dataColorM5["actionM7"] = {
+                                        dataColorM5["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
@@ -7390,8 +7265,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 5:
-                                                        dataColorM6["actionM7"] = {
+                                        dataColorM6["actionM7"] = {
                                                             "name": "colorM7",
                                                             "row": countRow,
                                                             "col": dataColorM7["col"],
@@ -7399,10 +7273,8 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case _:
-                                                        pass
 
-                                    if dataColorM6:
+                                    if dataColorM6 and self.ban_info["meta"]["tables"][5]["enable"] == True:
                                         self.dataColor6.append(dataColorM6)
                                         dataCount["actionM6"] = {
                                             "name": "colorM6",
@@ -7410,14 +7282,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM6["col"],
                                             "isColor": dataColorM6["notice"],
                                         }
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM6"] = {
+                                        dataColorM1["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
@@ -7425,8 +7290,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM6"] = {
+                                        dataColorM2["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
@@ -7434,8 +7298,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 2:
-                                                        dataColorM3["actionM6"] = {
+                                        dataColorM3["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
@@ -7443,8 +7306,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 3:
-                                                        dataColorM4["actionM6"] = {
+                                        dataColorM4["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
@@ -7452,8 +7314,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 4:
-                                                        dataColorM5["actionM6"] = {
+                                        dataColorM5["actionM6"] = {
                                                             "name": "colorM6",
                                                             "row": countRow,
                                                             "col": dataColorM6["col"],
@@ -7461,10 +7322,8 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case _:
-                                                        pass
 
-                                    if dataColorM5:
+                                    if dataColorM5 and self.ban_info["meta"]["tables"][4]["enable"] == True:
                                         self.dataColor5.append(dataColorM5)
                                         dataCount["actionM5"] = {
                                             "name": "colorM5",
@@ -7472,14 +7331,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM5["col"],
                                             "isColor": dataColorM5["notice"],
                                         }
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM5"] = {
+                                        dataColorM1["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
@@ -7487,8 +7339,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM5"] = {
+                                        dataColorM2["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
@@ -7496,8 +7347,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 2:
-                                                        dataColorM3["actionM5"] = {
+                                        dataColorM3["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
@@ -7505,8 +7355,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 3:
-                                                        dataColorM4["actionM5"] = {
+                                        dataColorM4["actionM5"] = {
                                                             "name": "colorM5",
                                                             "row": countRow,
                                                             "col": dataColorM5["col"],
@@ -7514,10 +7363,8 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case _:
-                                                        pass
 
-                                    if dataColorM4:
+                                    if dataColorM4 and self.ban_info["meta"]["tables"][3]["enable"] == True:
                                         self.dataColor4.append(dataColorM4)
                                         dataCount["actionM4"] = {
                                             "name": "colorM4",
@@ -7525,14 +7372,7 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM4["col"],
                                             "isColor": dataColorM4["notice"],
                                         }
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM4"] = {
+                                        dataColorM1["actionM4"] = {
                                                             "name": "colorM4",
                                                             "row": countRow,
                                                             "col": dataColorM4["col"],
@@ -7540,8 +7380,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM4"] = {
+                                        dataColorM2["actionM4"] = {
                                                             "name": "colorM4",
                                                             "row": countRow,
                                                             "col": dataColorM4["col"],
@@ -7549,8 +7388,7 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 2:
-                                                        dataColorM3["actionM4"] = {
+                                        dataColorM3["actionM4"] = {
                                                             "name": "colorM4",
                                                             "row": countRow,
                                                             "col": dataColorM4["col"],
@@ -7558,10 +7396,8 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case _:
-                                                        pass
 
-                                    if dataColorM3:
+                                    if dataColorM3 and self.ban_info["meta"]["tables"][2]["enable"] == True:
                                         self.dataColor3.append(dataColorM3)
                                         dataCount["actionM3"] = {
                                             "name": "colorM3",
@@ -7570,14 +7406,7 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM3["notice"],
                                         }
 
-                                        for i in range(10):
-                                            info_data = self.ban_info["meta"]["tables"][
-                                                i
-                                            ]
-                                            if info_data["enable"]:
-                                                match i:
-                                                    case 0:
-                                                        dataColorM1["actionM3"] = {
+                                        dataColorM1["actionM3"] = {
                                                             "name": "colorM3",
                                                             "row": countRow,
                                                             "col": dataColorM3["col"],
@@ -7585,19 +7414,17 @@ class TinhAndMauPage(QWidget):
                                                                 "notice"
                                                             ],
                                                         }
-                                                    case 1:
-                                                        dataColorM2["actionM3"] = {
-                                                            "name": "colorM3",
-                                                            "row": countRow,
-                                                            "col": dataColorM3["col"],
-                                                            "isColor": dataColorM3[
-                                                                "notice"
-                                                            ],
-                                                        }
-                                                    case _:
-                                                        pass
 
-                                    if dataColorM2:
+                                        dataColorM2["actionM3"] = {
+                                                            "name": "colorM3",
+                                                            "row": countRow,
+                                                            "col": dataColorM3["col"],
+                                                            "isColor": dataColorM3[
+                                                                "notice"
+                                                            ],
+                                                        }
+
+                                    if dataColorM2 and self.ban_info["meta"]["tables"][1]["enable"] == True:
                                         self.dataColor2.append(dataColorM2)
                                         dataCount["actionM2"] = {
                                             "name": "colorM2",
@@ -7605,13 +7432,12 @@ class TinhAndMauPage(QWidget):
                                             "col": dataColorM2["col"],
                                             "isColor": dataColorM2["notice"],
                                         }
-                                        if self.ban_info["meta"]["tables"][0]["enable"]:
-                                            dataColorM1["actionM2"] = {
-                                                "name": "colorM2",
-                                                "row": countRow,
-                                                "col": dataColorM2["col"],
-                                                "isColor": dataColorM2["notice"],
-                                            }
+                                        dataColorM1["actionM2"] = {
+                                            "name": "colorM2",
+                                            "row": countRow,
+                                            "col": dataColorM2["col"],
+                                            "isColor": dataColorM2["notice"],
+                                        }
 
                                     self.dataCount.append(dataCount)
 
@@ -8026,7 +7852,7 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight(new_data)
             # / Config status bar
-            self.renderNavigation("m1")
+            self.renderNavigation()
             self.changeStatusBar("Bảng Tính", "Bảng Tính")
             # self.note_color_label.setText("")
         else:
@@ -8045,7 +7871,7 @@ class TinhAndMauPage(QWidget):
             }
             self.setHighlight_Thong(new_data)
             # / Config status bar
-            self.renderNavigation("m1")
+            self.renderNavigation()
             self.changeStatusBar("Bảng Thông", "Bảng Thông")
         return
 
@@ -8366,19 +8192,19 @@ class TinhAndMauPage(QWidget):
                     "row": countRow,
                     "col": col_color,
                     "isColor": isNoticeColor,
-                },
+                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
                 "actionM2": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m2,
                     "isColor": isNoticeColor_m2,
-                },
+                } if self.ban_info["meta"]["tables"][1]["enable"] else None,
                 "actionM3": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m3,
                     "isColor": isNoticeColor_m3,
-                },
+                } if self.ban_info["meta"]["tables"][2]["enable"] else None,
                 "notice": isNoticeColor_m4,
                 "date": item_date,
                 "color_value": col_e4,
@@ -8489,25 +8315,25 @@ class TinhAndMauPage(QWidget):
                     "row": countRow,
                     "col": col_color,
                     "isColor": isNoticeColor,
-                },
+                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
                 "actionM2": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m2,
                     "isColor": isNoticeColor_m2,
-                },
+                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
                 "actionM3": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m3,
                     "isColor": isNoticeColor_m3,
-                },
+                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
                 "actionM4": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m4,
                     "isColor": isNoticeColor_m4,
-                },
+                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
                 "notice": isNoticeColor_m5,
                 "date": item_date,
                 "color_value": col_e5,
@@ -8621,31 +8447,31 @@ class TinhAndMauPage(QWidget):
                     "row": countRow,
                     "col": col_color,
                     "isColor": isNoticeColor,
-                },
+                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
                 "actionM2": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m2,
                     "isColor": isNoticeColor_m2,
-                },
+                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
                 "actionM3": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m3,
                     "isColor": isNoticeColor_m3,
-                },
+                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
                 "actionM4": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m4,
                     "isColor": isNoticeColor_m4,
-                },
+                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
                 "actionM5": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m5,
                     "isColor": isNoticeColor_m5,
-                },
+                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
                 "notice": isNoticeColor_m6,
                 "date": item_date,
                 "color_value": col_e6,
@@ -8762,37 +8588,37 @@ class TinhAndMauPage(QWidget):
                     "row": countRow,
                     "col": col_color,
                     "isColor": isNoticeColor,
-                },
+                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
                 "actionM2": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m2,
                     "isColor": isNoticeColor_m2,
-                },
+                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
                 "actionM3": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m3,
                     "isColor": isNoticeColor_m3,
-                },
+                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
                 "actionM4": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m4,
                     "isColor": isNoticeColor_m4,
-                },
+                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
                 "actionM5": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m5,
                     "isColor": isNoticeColor_m5,
-                },
+                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
                 "actionM6": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m6,
                     "isColor": isNoticeColor_m6,
-                },
+                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
                 "notice": isNoticeColor_m7,
                 "date": item_date,
                 "color_value": col_e7,
@@ -8912,43 +8738,43 @@ class TinhAndMauPage(QWidget):
                     "row": countRow,
                     "col": col_color,
                     "isColor": isNoticeColor,
-                },
+                }if self.ban_info["meta"]["tables"][0]["enable"] else None,
                 "actionM2": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m2,
                     "isColor": isNoticeColor_m2,
-                },
+                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
                 "actionM3": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m3,
                     "isColor": isNoticeColor_m3,
-                },
+                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
                 "actionM4": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m4,
                     "isColor": isNoticeColor_m4,
-                },
+                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
                 "actionM5": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m5,
                     "isColor": isNoticeColor_m5,
-                },
+                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
                 "actionM6": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m6,
                     "isColor": isNoticeColor_m6,
-                },
+                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
                 "actionM7": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m7,
                     "isColor": isNoticeColor_m7,
-                },
+                }if self.ban_info["meta"]["tables"][6]["enable"] else None,
                 "notice": isNoticeColor_m8,
                 "date": item_date,
                 "color_value": col_e8,
@@ -9066,54 +8892,55 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
+                
                 "actionM1": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color,
                     "isColor": isNoticeColor,
-                },
+                }if self.ban_info["meta"]["tables"][0]["enable"] else None,
                 "actionM2": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m2,
                     "isColor": isNoticeColor_m2,
-                },
+                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
                 "actionM3": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m3,
                     "isColor": isNoticeColor_m3,
-                },
+                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
                 "actionM4": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m4,
                     "isColor": isNoticeColor_m4,
-                },
+                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
                 "actionM5": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m5,
                     "isColor": isNoticeColor_m5,
-                },
+                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
                 "actionM6": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m6,
                     "isColor": isNoticeColor_m6,
-                },
+                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
                 "actionM7": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m7,
                     "isColor": isNoticeColor_m7,
-                },
+                }if self.ban_info["meta"]["tables"][6]["enable"] else None,
                 "actionM8": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m8,
                     "isColor": isNoticeColor_m8,
-                },
+                }if self.ban_info["meta"]["tables"][7]["enable"] else None,
                 "notice": isNoticeColor_m9,
                 "date": item_date,
                 "color_value": col_e9,
@@ -9234,60 +9061,60 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                "actionM1": {
+                 "actionM1": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color,
                     "isColor": isNoticeColor,
-                },
+                }if self.ban_info["meta"]["tables"][0]["enable"] else None,
                 "actionM2": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m2,
                     "isColor": isNoticeColor_m2,
-                },
+                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
                 "actionM3": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m3,
                     "isColor": isNoticeColor_m3,
-                },
+                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
                 "actionM4": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m4,
                     "isColor": isNoticeColor_m4,
-                },
+                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
                 "actionM5": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m5,
                     "isColor": isNoticeColor_m5,
-                },
+                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
                 "actionM6": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m6,
                     "isColor": isNoticeColor_m6,
-                },
+                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
                 "actionM7": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m7,
                     "isColor": isNoticeColor_m7,
-                },
+                }if self.ban_info["meta"]["tables"][6]["enable"] else None,
                 "actionM8": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m8,
                     "isColor": isNoticeColor_m8,
-                },
+                }if self.ban_info["meta"]["tables"][7]["enable"] else None,
                 "actionM9": {
                     "name": "color",
                     "row": countRow,
                     "col": col_color_m9,
                     "isColor": isNoticeColor_m9,
-                },
+                }if self.ban_info["meta"]["tables"][8]["enable"] else None,
                 "notice": isNoticeColor_m10,
                 "date": item_date,
                 "color_value": col_e10,

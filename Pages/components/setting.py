@@ -18,12 +18,9 @@ from PySide6.QtGui import QIcon
 from PySide6.QtGui import Qt, QCursor
 from Controller.handler import updateColorInsert, enableTables
 from Pages.components.stylesheet import (
-    css_button_cancel,
     css_button_submit,
     css_input,
-    css_lable,
-    SendMessage,
-    Note,
+    SendMessage
 )
 
 from functools import partial
@@ -56,9 +53,9 @@ class SettingTable(QDialog):
         # Create a QTabWidget
         tab_widget = QTabWidget()
         # Add tabs
-        tab_widget.addTab(self.create_tab_main_setting(), "Cài Đặt")
+        tab_widget.addTab(self.create_tab_main_setting(), "Cài Đặt Chung")
         tab_widget.addTab(self.create_tab_2_setting_bm(), "Tùy Chọn Bảng Màu")
-        tab_widget.addTab(self.create_tab_3_setting_col_d_bm(), "Tùy Chọn Thống Kê")
+        tab_widget.addTab(self.create_tab_3_setting_col_d_bm(), "Cài Đặt Bảng Màu")
 
         # Add the QTabWidget to the main layout
         dialog_main_layout.addWidget(tab_widget)
@@ -126,881 +123,161 @@ class SettingTable(QDialog):
         tab = QWidget()
         layout_tab = QVBoxLayout(tab)
 
-        main = QWidget()
-        dialog_main_layout = QHBoxLayout(main)
-
-        # / Create Layout
-        layout_w = QWidget()
-        layout = QGridLayout(layout_w)
-        layout.setSpacing(2)
-        dialog_main_layout.addWidget(layout_w)
-        layout_w.setStyleSheet(
-            """
-            QWidget {
-                border: 1px solid #999;
-            }
-            """
-        )
-
-        # / Create Second Layout
-        layout_w_2 = QWidget()
-        layout_2 = QGridLayout(layout_w_2)
-        layout_2.setSpacing(2)
-        dialog_main_layout.addWidget(layout_w_2)
-        layout_w_2.setStyleSheet(
-            """
-            QWidget {
-                border: 1px solid #999;
-            }
-            """
-        )
-
         # / Setting Color Table Count
-        setting_color_count_w = QWidget()
-        setting_color_count_l = QGridLayout(setting_color_count_w)
-
-        setting_color_count_label = QLabel("Báo Màu Bảng Tính")
-        setting_color_count_label.setStyleSheet(css_lable)
-
-        setting_color_count_edit_fisrt = QSpinBox()
-        setting_color_count_edit_fisrt.setMinimum(0)
-        setting_color_count_edit_fisrt.setMaximum(120)
-        setting_color_count_edit_fisrt.setStyleSheet(css_input)
-        setting_color_count_edit_fisrt.setValue(self.old_data["count"][0])
-
-        setting_color_count_edit_second = QSpinBox()
-        setting_color_count_edit_second.setMinimum(0)
-        setting_color_count_edit_second.setMaximum(120)
-        setting_color_count_edit_second.setStyleSheet(css_input)
-        setting_color_count_edit_second.setValue(self.old_data["count"][1])
-
-        setting_color_count_l.addWidget(setting_color_count_edit_fisrt, 0, 0)
-        setting_color_count_l.addWidget(setting_color_count_edit_second, 0, 1)
-
-        layout.addWidget(setting_color_count_label, 0, 0)
-        layout.addWidget(setting_color_count_w, 1, 0)
-
-        # / Setting Color Table Color
-        setting_color_color_w = QWidget()
-        setting_color_color_l = QGridLayout(setting_color_color_w)
-
-        setting_color_color_label = QLabel("Báo Màu BM1")
-        setting_color_color_label.setStyleSheet(css_lable)
-
-        setting_color_color_edit_fisrt = QSpinBox()
-        setting_color_color_edit_fisrt.setDisabled(not self.buttons[0])
-        setting_color_color_edit_fisrt.setMinimum(0)
-        setting_color_color_edit_fisrt.setMaximum(120)
-        setting_color_color_edit_fisrt.setStyleSheet(css_input)
-        setting_color_color_edit_fisrt.setValue(self.old_data["color"][0])
-
-        setting_color_color_edit_second = QSpinBox()
-        setting_color_color_edit_second.setDisabled(not self.buttons[0])
-        setting_color_color_edit_second.setMinimum(0)
-        setting_color_color_edit_second.setMaximum(120)
-        setting_color_color_edit_second.setStyleSheet(css_input)
-        setting_color_color_edit_second.setValue(self.old_data["color"][1])
-
-        setting_color_color_l.addWidget(setting_color_color_edit_fisrt, 0, 0)
-        setting_color_color_l.addWidget(setting_color_color_edit_second, 0, 1)
-
-        layout.addWidget(setting_color_color_label, 2, 0)
-        layout.addWidget(setting_color_color_w, 3, 0)
-
-        # / Setting Thong Ke D B Tinh
-        setting_count_d_label = QLabel("Thông Kê D M1")
-        setting_count_d_label.setStyleSheet(css_lable)
-
-        setting_count_d_w = QWidget()
-        setting_count_d_l = QGridLayout(setting_count_d_w)
-
-        setting_count_d_edit_fisrt = QSpinBox()
-        setting_count_d_edit_fisrt.setMinimum(2)
-        setting_count_d_edit_fisrt.setMaximum(120)
-        setting_count_d_edit_fisrt.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt.setValue(self.col_e["col_e"][0])
-
-        setting_count_d_edit_second = QSpinBox()
-        setting_count_d_edit_second.setMinimum(2)
-        setting_count_d_edit_second.setMaximum(120)
-        setting_count_d_edit_second.setStyleSheet(css_input)
-        setting_count_d_edit_second.setValue(self.col_e["col_e"][1])
-
-        setting_count_d_l.addWidget(setting_count_d_edit_fisrt, 0, 0)
-        setting_count_d_l.addWidget(setting_count_d_edit_second, 0, 1)
-
-        layout.addWidget(setting_count_d_label, 2, 1)
-        layout.addWidget(setting_count_d_w, 3, 1)
-
-        # / Setting Buttons Notice M2
-        setting_color_color_w_m2 = QWidget()
-        setting_color_color_l_m2 = QGridLayout(setting_color_color_w_m2)
-
-        setting_color_color_label_m2 = QLabel("Báo Màu BM2")
-        setting_color_color_label_m2.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m2 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m2.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m2.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m2.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m2.setValue(self.old_data["colorM2"][0])
-
-        setting_buttons_notice_edit_second_m2 = QSpinBox()
-        setting_buttons_notice_edit_second_m2.setMinimum(0)
-        setting_buttons_notice_edit_second_m2.setMaximum(120)
-        setting_buttons_notice_edit_second_m2.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m2.setValue(self.old_data["colorM2"][1])
-
-        setting_color_color_l_m2.addWidget(setting_buttons_notice_edit_fisrt_m2, 0, 0)
-        setting_color_color_l_m2.addWidget(setting_buttons_notice_edit_second_m2, 0, 1)
-
-        layout.addWidget(setting_color_color_label_m2, 4, 0)
-        layout.addWidget(setting_color_color_w_m2, 5, 0)
-
-        # / Setting Thong Ke D M1
-        setting_count_d_label_m2 = QLabel("Thông Kê D M2")
-        setting_count_d_label_m2.setStyleSheet(css_lable)
-
-        setting_count_d_w_m2 = QWidget()
-        setting_count_d_l_m2 = QGridLayout(setting_count_d_w_m2)
-
-        setting_count_d_edit_fisrt_m2 = QSpinBox()
-        setting_count_d_edit_fisrt_m2.setMinimum(2)
-        setting_count_d_edit_fisrt_m2.setMaximum(120)
-        setting_count_d_edit_fisrt_m2.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m2.setValue(self.col_e["col_e2"][0])
-
-        setting_count_d_edit_second_m2 = QSpinBox()
-        setting_count_d_edit_second_m2.setMinimum(2)
-        setting_count_d_edit_second_m2.setMaximum(120)
-        setting_count_d_edit_second_m2.setStyleSheet(css_input)
-        setting_count_d_edit_second_m2.setValue(self.col_e["col_e2"][1])
-
-        setting_count_d_l_m2.addWidget(setting_count_d_edit_fisrt_m2, 0, 0)
-        setting_count_d_l_m2.addWidget(setting_count_d_edit_second_m2, 0, 1)
-
-        layout.addWidget(setting_count_d_label_m2, 4, 1)
-        layout.addWidget(setting_count_d_w_m2, 5, 1)
-
-        # / Setting Color Table Color M3
-        setting_color_color_w_m3 = QWidget()
-        setting_color_color_l_m3 = QGridLayout(setting_color_color_w_m3)
-
-        setting_color_color_label_m3 = QLabel("Báo Màu BM3")
-        setting_color_color_label_m3.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m3 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m3.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m3.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m3.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m3.setValue(self.old_data["colorM3"][0])
-
-        setting_buttons_notice_edit_second_m3 = QSpinBox()
-        setting_buttons_notice_edit_second_m3.setMinimum(0)
-        setting_buttons_notice_edit_second_m3.setMaximum(120)
-        setting_buttons_notice_edit_second_m3.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m3.setValue(self.old_data["colorM3"][1])
-
-        setting_color_color_l_m3.addWidget(setting_buttons_notice_edit_fisrt_m3, 0, 0)
-        setting_color_color_l_m3.addWidget(setting_buttons_notice_edit_second_m3, 0, 1)
-
-        layout.addWidget(setting_color_color_label_m3, 6, 0)
-        layout.addWidget(setting_color_color_w_m3, 7, 0)
-
-        # / Setting Thong Ke D M2=
-        setting_count_d_label_m3 = QLabel("Thông Kê D M3")
-        setting_count_d_label_m3.setStyleSheet(css_lable)
-
-        setting_count_d_w_m3 = QWidget()
-        setting_count_d_l_m3 = QGridLayout(setting_count_d_w_m3)
-
-        setting_count_d_edit_fisrt_m3 = QSpinBox()
-        setting_count_d_edit_fisrt_m3.setMinimum(2)
-        setting_count_d_edit_fisrt_m3.setMaximum(120)
-        setting_count_d_edit_fisrt_m3.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m3.setValue(self.col_e["col_e3"][0])
-
-        setting_count_d_edit_second_m3 = QSpinBox()
-        setting_count_d_edit_second_m3.setMinimum(2)
-        setting_count_d_edit_second_m3.setMaximum(120)
-        setting_count_d_edit_second_m3.setStyleSheet(css_input)
-        setting_count_d_edit_second_m3.setValue(self.col_e["col_e3"][1])
-
-        setting_count_d_l_m3.addWidget(setting_count_d_edit_fisrt_m3, 0, 0)
-        setting_count_d_l_m3.addWidget(setting_count_d_edit_second_m3, 0, 1)
-
-        layout.addWidget(setting_count_d_label_m3, 6, 1)
-        layout.addWidget(setting_count_d_w_m3, 7, 1)
-
-        # / Setting Color Table Color M4
-        setting_color_color_w_m4 = QWidget()
-        setting_color_color_l_m4 = QGridLayout(setting_color_color_w_m4)
-
-        setting_color_color_label_m4 = QLabel("Báo Màu BM4")
-        setting_color_color_label_m4.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m4 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m4.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m4.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m4.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m4.setValue(self.old_data["colorM4"][0])
-
-        setting_buttons_notice_edit_second_m4 = QSpinBox()
-        setting_buttons_notice_edit_second_m4.setMinimum(0)
-        setting_buttons_notice_edit_second_m4.setMaximum(120)
-        setting_buttons_notice_edit_second_m4.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m4.setValue(self.old_data["colorM4"][1])
-
-        setting_color_color_l_m4.addWidget(setting_buttons_notice_edit_fisrt_m4, 0, 0)
-        setting_color_color_l_m4.addWidget(setting_buttons_notice_edit_second_m4, 0, 1)
-
-        layout.addWidget(setting_color_color_label_m4, 8, 0)
-        layout.addWidget(setting_color_color_w_m4, 9, 0)
-
-        # / Setting Thong Ke D M4
-        setting_count_d_label_m4 = QLabel("Thông Kê D M4")
-        setting_count_d_label_m4.setStyleSheet(css_lable)
-
-        setting_count_d_w_m4 = QWidget()
-        setting_count_d_l_m4 = QGridLayout(setting_count_d_w_m4)
-
-        setting_count_d_edit_fisrt_m4 = QSpinBox()
-        setting_count_d_edit_fisrt_m4.setMinimum(1)
-        setting_count_d_edit_fisrt_m4.setMaximum(120)
-        setting_count_d_edit_fisrt_m4.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m4.setValue(self.col_e["col_e4"][0])
-
-        setting_count_d_edit_second_m4 = QSpinBox()
-        setting_count_d_edit_second_m4.setMinimum(1)
-        setting_count_d_edit_second_m4.setMaximum(120)
-        setting_count_d_edit_second_m4.setStyleSheet(css_input)
-        setting_count_d_edit_second_m4.setValue(self.col_e["col_e4"][1])
-
-        setting_count_d_l_m4.addWidget(setting_count_d_edit_fisrt_m4, 0, 0)
-        setting_count_d_l_m4.addWidget(setting_count_d_edit_second_m4, 0, 1)
-
-        layout.addWidget(setting_count_d_label_m4, 8, 1)
-        layout.addWidget(setting_count_d_w_m4, 9, 1)
-
-        # / Setting Color Table Color M5
-        setting_color_color_w_m5 = QWidget()
-        setting_color_color_l_m5 = QGridLayout(setting_color_color_w_m5)
-
-        setting_color_color_label_m5 = QLabel("Báo Màu BM5")
-        setting_color_color_label_m5.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m5 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m5.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m5.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m5.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m5.setValue(self.old_data["colorM5"][0])
-
-        setting_buttons_notice_edit_second_m5 = QSpinBox()
-        setting_buttons_notice_edit_second_m5.setMinimum(0)
-        setting_buttons_notice_edit_second_m5.setMaximum(120)
-        setting_buttons_notice_edit_second_m5.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m5.setValue(self.old_data["colorM5"][1])
-
-        setting_color_color_l_m5.addWidget(setting_buttons_notice_edit_fisrt_m5, 0, 0)
-        setting_color_color_l_m5.addWidget(setting_buttons_notice_edit_second_m5, 0, 1)
-
-        layout.addWidget(setting_color_color_label_m5, 10, 0)
-        layout.addWidget(setting_color_color_w_m5, 11, 0)
-
-        # / Setting Thong Ke D M5
-        setting_count_d_label_m5 = QLabel("Thông Kê D M5")
-        setting_count_d_label_m5.setStyleSheet(css_lable)
-
-        setting_count_d_w_m5 = QWidget()
-        setting_count_d_l_m5 = QGridLayout(setting_count_d_w_m5)
-
-        setting_count_d_edit_fisrt_m5 = QSpinBox()
-        setting_count_d_edit_fisrt_m5.setMinimum(1)
-        setting_count_d_edit_fisrt_m5.setMaximum(120)
-        setting_count_d_edit_fisrt_m5.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m5.setValue(self.col_e["col_e5"][0])
-
-        setting_count_d_edit_second_m5 = QSpinBox()
-        setting_count_d_edit_second_m5.setMinimum(1)
-        setting_count_d_edit_second_m5.setMaximum(120)
-        setting_count_d_edit_second_m5.setStyleSheet(css_input)
-        setting_count_d_edit_second_m5.setValue(self.col_e["col_e5"][1])
-
-        setting_count_d_l_m5.addWidget(setting_count_d_edit_fisrt_m5, 0, 0)
-        setting_count_d_l_m5.addWidget(setting_count_d_edit_second_m5, 0, 1)
-
-        layout.addWidget(setting_count_d_label_m5, 10, 1)
-        layout.addWidget(setting_count_d_w_m5, 11, 1)
-
-        # / Setting Color Table Color M6
-        setting_color_color_w_m6 = QWidget()
-        setting_color_color_l_m6 = QGridLayout(setting_color_color_w_m6)
-
-        setting_color_color_label_m6 = QLabel("Báo Màu BM6")
-        setting_color_color_label_m6.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m6 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m6.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m6.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m6.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m6.setValue(self.old_data["colorM6"][0])
-
-        setting_buttons_notice_edit_second_m6 = QSpinBox()
-        setting_buttons_notice_edit_second_m6.setMinimum(0)
-        setting_buttons_notice_edit_second_m6.setMaximum(120)
-        setting_buttons_notice_edit_second_m6.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m6.setValue(self.old_data["colorM6"][1])
-
-        setting_color_color_l_m6.addWidget(setting_buttons_notice_edit_fisrt_m6, 0, 0)
-        setting_color_color_l_m6.addWidget(setting_buttons_notice_edit_second_m6, 0, 1)
-
-        layout.addWidget(setting_color_color_label_m6, 12, 0)
-        layout.addWidget(setting_color_color_w_m6, 13, 0)
-
-        # / Setting Thong Ke D M6
-        setting_count_d_label_m6 = QLabel("Thông Kê D M6")
-        setting_count_d_label_m6.setStyleSheet(css_lable)
-
-        setting_count_d_w_m6 = QWidget()
-        setting_count_d_l_m6 = QGridLayout(setting_count_d_w_m6)
-
-        setting_count_d_edit_fisrt_m6 = QSpinBox()
-        setting_count_d_edit_fisrt_m6.setMinimum(1)
-        setting_count_d_edit_fisrt_m6.setMaximum(120)
-        setting_count_d_edit_fisrt_m6.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m6.setValue(self.col_e["col_e6"][0])
-
-        setting_count_d_edit_second_m6 = QSpinBox()
-        setting_count_d_edit_second_m6.setMinimum(1)
-        setting_count_d_edit_second_m6.setMaximum(120)
-        setting_count_d_edit_second_m6.setStyleSheet(css_input)
-        setting_count_d_edit_second_m6.setValue(self.col_e["col_e6"][1])
-
-        setting_count_d_l_m6.addWidget(setting_count_d_edit_fisrt_m6, 0, 0)
-        setting_count_d_l_m6.addWidget(setting_count_d_edit_second_m6, 0, 1)
-
-        layout.addWidget(setting_count_d_label_m6, 12, 1)
-        layout.addWidget(setting_count_d_w_m6, 13, 1)
-
-        verticalSpacer1 = QSpacerItem(
-            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
-        )
-        layout.addItem(verticalSpacer1, 14, 0, 1, 1)
-
-        # / Setting Thong Value
-        setting_thong_value_label = QLabel("Số Thông")
-        setting_thong_value_label.setStyleSheet(css_lable)
-
-        setting_thong_value_w = QWidget()
-        setting_thong_value_l = QGridLayout(setting_thong_value_w)
-
-        setting_thong_value_edit_fisrt = QSpinBox()
-        setting_thong_value_edit_fisrt.setMinimum(1)
-        setting_thong_value_edit_fisrt.setMaximum(420)
-        setting_thong_value_edit_fisrt.setStyleSheet(css_input)
-        setting_thong_value_edit_fisrt.setValue(self.col_thong["value"][0])
-
-        setting_thong_value_edit_second = QSpinBox()
-        setting_thong_value_edit_second.setMinimum(1)
-        setting_thong_value_edit_second.setMaximum(420)
-        setting_thong_value_edit_second.setStyleSheet(css_input)
-        setting_thong_value_edit_second.setValue(self.col_thong["value"][1])
-
-        setting_thong_value_l.addWidget(setting_thong_value_edit_fisrt, 0, 0)
-        setting_thong_value_l.addWidget(setting_thong_value_edit_second, 0, 1)
-
-        layout_2.addWidget(setting_thong_value_label, 1, 0)
-        layout_2.addWidget(setting_thong_value_w, 2, 0)
-
-        # / Setting Ngang Value
-        setting_ngang_value_label = QLabel("Số Cột Ngang")
-        setting_ngang_value_label.setStyleSheet(css_lable)
-
-        setting_ngang_value_w = QWidget()
-        setting_ngang_value_l = QGridLayout(setting_ngang_value_w)
-
-        setting_ngang_value_edit_fisrt = QSpinBox()
-        setting_ngang_value_edit_fisrt.setMinimum(1)
-        setting_ngang_value_edit_fisrt.setMaximum(600)
-        setting_ngang_value_edit_fisrt.setStyleSheet(css_input)
-        setting_ngang_value_edit_fisrt.setValue(self.col_ngang["col"][0])
-
-        setting_ngang_value_edit_second = QSpinBox()
-        setting_ngang_value_edit_second.setMinimum(1)
-        setting_ngang_value_edit_second.setMaximum(600)
-        setting_ngang_value_edit_second.setStyleSheet(css_input)
-        setting_ngang_value_edit_second.setValue(self.col_ngang["col"][1])
-
-        setting_ngang_value_l.addWidget(setting_ngang_value_edit_fisrt, 0, 0)
-        setting_ngang_value_l.addWidget(setting_ngang_value_edit_second, 0, 1)
-
-        layout_2.addWidget(setting_ngang_value_label, 1, 1)
-        layout_2.addWidget(setting_ngang_value_w, 2, 1)
-
-        # / Setting Thong Value
-        setting_max_row_label = QLabel("Tối Đa Dòng Tồn Tại")
-        setting_max_row_label.setStyleSheet(css_lable)
-
-        setting_max_row_edit_fisrt = QSpinBox()
-        setting_max_row_edit_fisrt.setMinimum(1)
-        setting_max_row_edit_fisrt.setMaximum(1000)
-        setting_max_row_edit_fisrt.setStyleSheet(css_input)
-        setting_max_row_edit_fisrt.setValue(self.maxRow["maxRow"])
-
-        layout_2.addWidget(setting_max_row_label, 3, 0)
-        layout_2.addWidget(setting_max_row_edit_fisrt, 4, 0)
-
-        # / Setting Thong Change
-        setting_thong_change_label = QLabel("Bộ Chuyển Đổi")
-        setting_thong_change_label.setStyleSheet(css_lable)
-
-        setting_thong_change_edit_fisrt = QSpinBox()
-        setting_thong_change_edit_fisrt.setMinimum(0)
-        setting_thong_change_edit_fisrt.setMaximum(5)
-        setting_thong_change_edit_fisrt.setStyleSheet(css_input)
-        setting_thong_change_edit_fisrt.setValue(self.change_data)
-
-        layout_2.addWidget(setting_thong_change_label, 3, 1)
-        layout_2.addWidget(setting_thong_change_edit_fisrt, 4, 1)
-
-        # / Setting Color Table Color M7
-        setting_color_color_w_m7 = QWidget()
-        setting_color_color_l_m7 = QGridLayout(setting_color_color_w_m7)
-
-        setting_color_color_label_m7 = QLabel("Báo Màu BM7")
-        setting_color_color_label_m7.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m7 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m7.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m7.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m7.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m7.setValue(self.old_data["colorM7"][0])
-
-        setting_buttons_notice_edit_second_m7 = QSpinBox()
-        setting_buttons_notice_edit_second_m7.setMinimum(0)
-        setting_buttons_notice_edit_second_m7.setMaximum(120)
-        setting_buttons_notice_edit_second_m7.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m7.setValue(self.old_data["colorM7"][1])
-
-        setting_color_color_l_m7.addWidget(setting_buttons_notice_edit_fisrt_m7, 0, 0)
-        setting_color_color_l_m7.addWidget(setting_buttons_notice_edit_second_m7, 0, 1)
-
-        layout_2.addWidget(setting_color_color_label_m7, 5, 0)
-        layout_2.addWidget(setting_color_color_w_m7, 6, 0)
-
-        # / Setting Thong Ke D M7
-        setting_count_d_label_m7 = QLabel("Thông Kê D M7")
-        setting_count_d_label_m7.setStyleSheet(css_lable)
-
-        setting_count_d_w_m7 = QWidget()
-        setting_count_d_l_m7 = QGridLayout(setting_count_d_w_m7)
-
-        setting_count_d_edit_fisrt_m7 = QSpinBox()
-        setting_count_d_edit_fisrt_m7.setMinimum(1)
-        setting_count_d_edit_fisrt_m7.setMaximum(120)
-        setting_count_d_edit_fisrt_m7.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m7.setValue(self.col_e["col_e7"][0])
-
-        setting_count_d_edit_second_m7 = QSpinBox()
-        setting_count_d_edit_second_m7.setMinimum(1)
-        setting_count_d_edit_second_m7.setMaximum(120)
-        setting_count_d_edit_second_m7.setStyleSheet(css_input)
-        setting_count_d_edit_second_m7.setValue(self.col_e["col_e7"][1])
-
-        setting_count_d_l_m7.addWidget(setting_count_d_edit_fisrt_m7, 0, 0)
-        setting_count_d_l_m7.addWidget(setting_count_d_edit_second_m7, 0, 1)
-
-        layout_2.addWidget(setting_count_d_label_m7, 5, 1)
-        layout_2.addWidget(setting_count_d_w_m7, 6, 1)
-
-        # / Setting Color Table Color M8
-        setting_color_color_w_m8 = QWidget()
-        setting_color_color_l_m8 = QGridLayout(setting_color_color_w_m8)
-
-        setting_color_color_label_m8 = QLabel("Báo Màu BM8")
-        setting_color_color_label_m8.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m8 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m8.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m8.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m8.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m8.setValue(self.old_data["colorM8"][0])
-
-        setting_buttons_notice_edit_second_m8 = QSpinBox()
-        setting_buttons_notice_edit_second_m8.setMinimum(0)
-        setting_buttons_notice_edit_second_m8.setMaximum(120)
-        setting_buttons_notice_edit_second_m8.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m8.setValue(self.old_data["colorM8"][1])
-
-        setting_color_color_l_m8.addWidget(setting_buttons_notice_edit_fisrt_m8, 0, 0)
-        setting_color_color_l_m8.addWidget(setting_buttons_notice_edit_second_m8, 0, 1)
-
-        layout_2.addWidget(setting_color_color_label_m8, 7, 0)
-        layout_2.addWidget(setting_color_color_w_m8, 8, 0)
-
-        # / Setting Thong Ke D M8
-        setting_count_d_label_m8 = QLabel("Thông Kê D M8")
-        setting_count_d_label_m8.setStyleSheet(css_lable)
-
-        setting_count_d_w_m8 = QWidget()
-        setting_count_d_l_m8 = QGridLayout(setting_count_d_w_m8)
-
-        setting_count_d_edit_fisrt_m8 = QSpinBox()
-        setting_count_d_edit_fisrt_m8.setMinimum(1)
-        setting_count_d_edit_fisrt_m8.setMaximum(120)
-        setting_count_d_edit_fisrt_m8.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m8.setValue(self.col_e["col_e8"][0])
-
-        setting_count_d_edit_second_m8 = QSpinBox()
-        setting_count_d_edit_second_m8.setMinimum(1)
-        setting_count_d_edit_second_m8.setMaximum(120)
-        setting_count_d_edit_second_m8.setStyleSheet(css_input)
-        setting_count_d_edit_second_m8.setValue(self.col_e["col_e8"][1])
-
-        setting_count_d_l_m8.addWidget(setting_count_d_edit_fisrt_m8, 0, 0)
-        setting_count_d_l_m8.addWidget(setting_count_d_edit_second_m8, 0, 1)
-
-        layout_2.addWidget(setting_count_d_label_m8, 7, 1)
-        layout_2.addWidget(setting_count_d_w_m8, 8, 1)
-
-        # / Setting Color Table Color M9
-        setting_color_color_w_m9 = QWidget()
-        setting_color_color_l_m9 = QGridLayout(setting_color_color_w_m9)
-
-        setting_color_color_label_m9 = QLabel("Báo Màu BM9")
-        setting_color_color_label_m9.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m9 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m9.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m9.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m9.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m9.setValue(self.old_data["colorM9"][0])
-
-        setting_buttons_notice_edit_second_m9 = QSpinBox()
-        setting_buttons_notice_edit_second_m9.setMinimum(0)
-        setting_buttons_notice_edit_second_m9.setMaximum(120)
-        setting_buttons_notice_edit_second_m9.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m9.setValue(self.old_data["colorM9"][1])
-
-        setting_color_color_l_m9.addWidget(setting_buttons_notice_edit_fisrt_m9, 0, 0)
-        setting_color_color_l_m9.addWidget(setting_buttons_notice_edit_second_m9, 0, 1)
-
-        layout_2.addWidget(setting_color_color_label_m9, 9, 0)
-        layout_2.addWidget(setting_color_color_w_m9, 10, 0)
-
-        # / Setting Thong Ke D M9
-        setting_count_d_label_m9 = QLabel("Thông Kê D M9")
-        setting_count_d_label_m9.setStyleSheet(css_lable)
-
-        setting_count_d_w_m9 = QWidget()
-        setting_count_d_l_m9 = QGridLayout(setting_count_d_w_m9)
-
-        setting_count_d_edit_fisrt_m9 = QSpinBox()
-        setting_count_d_edit_fisrt_m9.setMinimum(1)
-        setting_count_d_edit_fisrt_m9.setMaximum(120)
-        setting_count_d_edit_fisrt_m9.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m9.setValue(self.col_e["col_e9"][0])
-
-        setting_count_d_edit_second_m9 = QSpinBox()
-        setting_count_d_edit_second_m9.setMinimum(1)
-        setting_count_d_edit_second_m9.setMaximum(120)
-        setting_count_d_edit_second_m9.setStyleSheet(css_input)
-        setting_count_d_edit_second_m9.setValue(self.col_e["col_e9"][1])
-
-        setting_count_d_l_m9.addWidget(setting_count_d_edit_fisrt_m9, 0, 0)
-        setting_count_d_l_m9.addWidget(setting_count_d_edit_second_m9, 0, 1)
-
-        layout_2.addWidget(setting_count_d_label_m9, 9, 1)
-        layout_2.addWidget(setting_count_d_w_m9, 10, 1)
-
-        # / Setting Color Table Color M10
-        setting_color_color_w_m10 = QWidget()
-        setting_color_color_l_m10 = QGridLayout(setting_color_color_w_m10)
-
-        setting_color_color_label_m10 = QLabel("Báo Màu BM10")
-        setting_color_color_label_m10.setStyleSheet(css_lable)
-
-        setting_buttons_notice_edit_fisrt_m10 = QSpinBox()
-        setting_buttons_notice_edit_fisrt_m10.setMinimum(0)
-        setting_buttons_notice_edit_fisrt_m10.setMaximum(120)
-        setting_buttons_notice_edit_fisrt_m10.setStyleSheet(css_input)
-        setting_buttons_notice_edit_fisrt_m10.setValue(self.old_data["colorM10"][0])
-
-        setting_buttons_notice_edit_second_m10 = QSpinBox()
-        setting_buttons_notice_edit_second_m10.setMinimum(0)
-        setting_buttons_notice_edit_second_m10.setMaximum(120)
-        setting_buttons_notice_edit_second_m10.setStyleSheet(css_input)
-        setting_buttons_notice_edit_second_m10.setValue(self.old_data["colorM10"][1])
-
-        setting_color_color_l_m10.addWidget(setting_buttons_notice_edit_fisrt_m10, 0, 0)
-        setting_color_color_l_m10.addWidget(
-            setting_buttons_notice_edit_second_m10, 0, 1
-        )
-
-        layout_2.addWidget(setting_color_color_label_m10, 11, 0)
-        layout_2.addWidget(setting_color_color_w_m10, 12, 0)
-
-        # / Setting Thong Ke D M10
-        setting_count_d_label_m10 = QLabel("Thông Kê D M10")
-        setting_count_d_label_m10.setStyleSheet(css_lable)
-
-        setting_count_d_w_m10 = QWidget()
-        setting_count_d_l_m10 = QGridLayout(setting_count_d_w_m10)
-
-        setting_count_d_edit_fisrt_m10 = QSpinBox()
-        setting_count_d_edit_fisrt_m10.setMinimum(1)
-        setting_count_d_edit_fisrt_m10.setMaximum(120)
-        setting_count_d_edit_fisrt_m10.setStyleSheet(css_input)
-        setting_count_d_edit_fisrt_m10.setValue(self.col_e["col_e10"][0])
-
-        setting_count_d_edit_second_m10 = QSpinBox()
-        setting_count_d_edit_second_m10.setMinimum(1)
-        setting_count_d_edit_second_m10.setMaximum(120)
-        setting_count_d_edit_second_m10.setStyleSheet(css_input)
-        setting_count_d_edit_second_m10.setValue(self.col_e["col_e10"][1])
-
-        setting_count_d_l_m10.addWidget(setting_count_d_edit_fisrt_m10, 0, 0)
-        setting_count_d_l_m10.addWidget(setting_count_d_edit_second_m10, 0, 1)
-
-        layout_2.addWidget(setting_count_d_label_m10, 11, 1)
-        layout_2.addWidget(setting_count_d_w_m10, 12, 1)
+        s_table_count_color_w = QWidget()
+        s_table_count_color_w.setStyleSheet("border: 1px solid #999;")
+        layout_tab.addWidget(s_table_count_color_w)
+        s_table_count_color_l = QGridLayout(s_table_count_color_w)
+
+        # / Setting Color table count > Lable | SpinBox
+        s_table_count_color_lable = QLabel("Báo Màu Bảng Tính")
+        s_table_count_color_lable.setStyleSheet("border: 0px;font-size: 24px;")
+        s_table_count_color_l.addWidget(s_table_count_color_lable, 0, 0)
+
+        s_table_count_color_spinbox_1 = QSpinBox()
+        s_table_count_color_l.addWidget(s_table_count_color_spinbox_1, 1, 0)
+        s_table_count_color_spinbox_1.setMinimum(0)
+        s_table_count_color_spinbox_1.setMaximum(120)
+        s_table_count_color_spinbox_1.setStyleSheet(css_input)
+        s_table_count_color_spinbox_1.setValue(self.old_data["count"][0])
+
+        s_table_count_color_spinbox_2 = QSpinBox()
+        s_table_count_color_l.addWidget(s_table_count_color_spinbox_2, 1, 1)
+        s_table_count_color_spinbox_2.setMinimum(0)
+        s_table_count_color_spinbox_2.setMaximum(120)
+        s_table_count_color_spinbox_2.setStyleSheet(css_input)
+        s_table_count_color_spinbox_2.setValue(self.old_data["count"][1])
+
+        # / Setting Values Thong Config
+        s_values_thong_w = QWidget()
+        s_values_thong_w.setStyleSheet("border: 1px solid #999;")
+        layout_tab.addWidget(s_values_thong_w)
+        s_values_thong_l = QGridLayout(s_values_thong_w)
+
+        # / Setting Values Thong Config > Lable | SpinBox
+        s_values_thong_lable = QLabel("Số Thông")
+        s_values_thong_lable.setStyleSheet("border: 0px;font-size: 24px;")
+        s_values_thong_l.addWidget(s_values_thong_lable, 0, 0)
+
+        s_values_thong_spinbox_1 = QSpinBox()
+        s_values_thong_l.addWidget(s_values_thong_spinbox_1, 1, 0)
+        s_values_thong_spinbox_1.setMinimum(0)
+        s_values_thong_spinbox_1.setMaximum(120)
+        s_values_thong_spinbox_1.setStyleSheet(css_input)
+        s_values_thong_spinbox_1.setValue(self.col_thong["value"][0])
+
+        s_values_thong_spinbox_2 = QSpinBox()
+        s_values_thong_l.addWidget(s_values_thong_spinbox_2, 1, 1)
+        s_values_thong_spinbox_2.setMinimum(0)
+        s_values_thong_spinbox_2.setMaximum(120)
+        s_values_thong_spinbox_2.setStyleSheet(css_input)
+        s_values_thong_spinbox_2.setValue(self.col_thong["value"][1])
+
+        # / Setting Value Ngang
+        s_values_ngang_w = QWidget()
+        s_values_ngang_w.setStyleSheet("border: 1px solid #999;")
+        layout_tab.addWidget(s_values_ngang_w)
+        s_values_ngang_l = QGridLayout(s_values_ngang_w)
+
+        # / Setting Value Ngang > Lable | SpinBox
+        s_values_ngang_lable = QLabel("Số Cột Ngang")
+        s_values_ngang_lable.setStyleSheet("border: 0px;font-size: 24px;")
+        s_values_ngang_l.addWidget(s_values_ngang_lable, 0, 0)
+
+        s_values_ngang_spinbox_1 = QSpinBox()
+        s_values_ngang_l.addWidget(s_values_ngang_spinbox_1, 1, 0)
+        s_values_ngang_spinbox_1.setMinimum(0)
+        s_values_ngang_spinbox_1.setMaximum(120)
+        s_values_ngang_spinbox_1.setStyleSheet(css_input)
+        s_values_ngang_spinbox_1.setValue(self.col_ngang["col"][0])
+
+        s_values_ngang_spinbox_2 = QSpinBox()
+        s_values_ngang_l.addWidget(s_values_ngang_spinbox_2, 1, 1)
+        s_values_ngang_spinbox_2.setMinimum(0)
+        s_values_ngang_spinbox_2.setMaximum(120)
+        s_values_ngang_spinbox_2.setStyleSheet(css_input)
+        s_values_ngang_spinbox_2.setValue(self.col_ngang["col"][1])
+
+        # / Setting Max row
+        s_max_row_w = QWidget()
+        s_max_row_w.setStyleSheet("border: 1px solid #999;")
+        layout_tab.addWidget(s_max_row_w)
+        s_max_row_l = QGridLayout(s_max_row_w)
+        # / Setting Max row > Lable | SpinBox
+        s_max_row_lable = QLabel("Tối Đa Dòng Tồn Tại")
+        s_max_row_lable.setStyleSheet("border: 0px;font-size: 24px;")
+        s_max_row_l.addWidget(s_max_row_lable, 0, 0)
+
+        s_max_row_spinbox_1 = QSpinBox()
+        s_max_row_l.addWidget(s_max_row_spinbox_1, 1, 0)
+        s_max_row_spinbox_1.setMinimum(1)
+        s_max_row_spinbox_1.setMaximum(999)
+        s_max_row_spinbox_1.setStyleSheet(css_input)
+        s_max_row_spinbox_1.setValue(self.maxRow["maxRow"])
+
+        # / Setting Value Change
+        s_value_change_w = QWidget()
+        s_value_change_w.setStyleSheet("border: 1px solid #999;")
+        layout_tab.addWidget(s_value_change_w)
+        s_value_change_l = QGridLayout(s_value_change_w)
+
+        # / Setting Max row > Lable | SpinBox
+        s_value_change_lable = QLabel("Bộ Chuyển Đổi")
+        s_value_change_lable.setStyleSheet("border: 0px;font-size: 24px;")
+        s_value_change_l.addWidget(s_value_change_lable, 0, 0)
+
+        s_value_change_spinbox_1 = QSpinBox()
+        s_value_change_l.addWidget(s_value_change_spinbox_1, 1, 0)
+        s_value_change_spinbox_1.setMinimum(0)
+        s_value_change_spinbox_1.setMaximum(5)
+        s_value_change_spinbox_1.setStyleSheet(css_input)
+        s_value_change_spinbox_1.setValue(self.ban_info["meta"]["number"])
 
         verticalSpacer2 = QSpacerItem(
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         )
-        layout_2.addItem(verticalSpacer2, 13, 0, 1, 1)
+        layout_tab.addItem(verticalSpacer2)
 
-        # TODO Handler Button
-        def changeColorCount():
-            value1 = setting_color_count_edit_fisrt.value()
-            value2 = setting_color_count_edit_second.value()
+        # TODO Handler Func
+        def value_table_count_color(value):
+            value1 = s_table_count_color_spinbox_1.value()
+            value2 = s_table_count_color_spinbox_2.value()
             self.old_data["count"] = [value1, value2]
 
-        def changeColorColor():
-            value1 = setting_color_color_edit_fisrt.value()
-            value2 = setting_color_color_edit_second.value()
-            self.old_data["color"] = [value1, value2]
+        def value_thong(value):
+            value1 = s_values_thong_spinbox_1.value()
+            value2 = s_values_thong_spinbox_2.value()
+            self.col_thong["value"] = [value1, value2]
 
-        def changeThong():
-            value = setting_thong_change_edit_fisrt.value()
-            self.ban_info["meta"]["number"] = value
-            if value != 0:
-                note = Note[value - 1]
-                self.note.setText(note)
-            else:
-                self.note.setText("")
+        def value_ngang(value):
+            value1 = s_values_ngang_spinbox_1.value()
+            value2 = s_values_ngang_spinbox_2.value()
+            self.col_ngang["col"] = [value1, value2]
 
-        def changeThongValue():
-            value_1 = setting_thong_value_edit_fisrt.value()
-            value_2 = setting_thong_value_edit_second.value()
-            self.col_thong["value"] = [value_1, value_2]
-
-        def changeNgangValue():
-            value_1 = setting_ngang_value_edit_fisrt.value()
-            value_2 = setting_ngang_value_edit_second.value()
-            self.col_ngang["col"] = [value_1, value_2]
-
-        def changeColunmE():
-            value1 = setting_count_d_edit_fisrt.value()
-            value2 = setting_count_d_edit_second.value()
-            self.col_e["col_e"] = [value1, value2]
-
-        def changeColunmEM2():
-            value1 = setting_count_d_edit_fisrt_m2.value()
-            value2 = setting_count_d_edit_second_m2.value()
-            self.col_e["col_e2"] = [value1, value2]
-
-        def changeColunmEM3():
-            value1 = setting_count_d_edit_fisrt_m3.value()
-            value2 = setting_count_d_edit_second_m3.value()
-            self.col_e["col_e3"] = [value1, value2]
-
-        def changeColunmEM4():
-            value1 = setting_count_d_edit_fisrt_m4.value()
-            value2 = setting_count_d_edit_second_m4.value()
-            self.col_e["col_e4"] = [value1, value2]
-
-        def changeColunmEM5():
-            value1 = setting_count_d_edit_fisrt_m5.value()
-            value2 = setting_count_d_edit_second_m5.value()
-            self.col_e["col_e5"] = [value1, value2]
-
-        def changeColunmEM6():
-            value1 = setting_count_d_edit_fisrt_m6.value()
-            value2 = setting_count_d_edit_second_m6.value()
-            self.col_e["col_e6"] = [value1, value2]
-
-        def changeColunmEM7():
-            value1 = setting_count_d_edit_fisrt_m7.value()
-            value2 = setting_count_d_edit_second_m7.value()
-            self.col_e["col_e7"] = [value1, value2]
-
-        def changeColunmEM8():
-            value1 = setting_count_d_edit_fisrt_m8.value()
-            value2 = setting_count_d_edit_second_m8.value()
-            self.col_e["col_e8"] = [value1, value2]
-
-        def changeColunmEM9():
-            value1 = setting_count_d_edit_fisrt_m9.value()
-            value2 = setting_count_d_edit_second_m9.value()
-            self.col_e["col_e9"] = [value1, value2]
-
-        def changeColunmEM10():
-            value1 = setting_count_d_edit_fisrt_m10.value()
-            value2 = setting_count_d_edit_second_m10.value()
-            self.col_e["col_e10"] = [value1, value2]
-
-        def changeMaxRow():
-            value = setting_max_row_edit_fisrt.value()
+        def value_max_row(value):
             self.maxRow["maxRow"] = value
 
-        def changeButtonNoticeM2():
-            value1 = setting_buttons_notice_edit_fisrt_m2.value()
-            value2 = setting_buttons_notice_edit_second_m2.value()
-            self.old_data["colorM2"] = [value1, value2]
+        def value_change(value):
+            self.ban_info["meta"]["number"] = value
 
-        def changeButtonNoticeM3():
-            value1 = setting_buttons_notice_edit_fisrt_m3.value()
-            value2 = setting_buttons_notice_edit_second_m3.value()
-            self.old_data["colorM3"] = [value1, value2]
+        # / Table Count Color Event Change
+        s_table_count_color_spinbox_1.valueChanged.connect(value_table_count_color)
+        s_table_count_color_spinbox_2.valueChanged.connect(value_table_count_color)
 
-        def changeButtonNoticeM4():
-            value1 = setting_buttons_notice_edit_fisrt_m4.value()
-            value2 = setting_buttons_notice_edit_second_m4.value()
-            self.old_data["colorM4"] = [value1, value2]
+        # / Value thong Event Change
+        s_values_thong_spinbox_1.valueChanged.connect(value_thong)
+        s_values_thong_spinbox_2.valueChanged.connect(value_thong)
 
-        def changeButtonNoticeM5():
-            value1 = setting_buttons_notice_edit_fisrt_m5.value()
-            value2 = setting_buttons_notice_edit_second_m5.value()
-            self.old_data["colorM5"] = [value1, value2]
+        # / Value ngang Event Change
+        s_values_ngang_spinbox_1.valueChanged.connect(value_ngang)
+        s_values_ngang_spinbox_2.valueChanged.connect(value_ngang)
 
-        def changeButtonNoticeM6():
-            value1 = setting_buttons_notice_edit_fisrt_m6.value()
-            value2 = setting_buttons_notice_edit_second_m6.value()
-            self.old_data["colorM6"] = [value1, value2]
+        # / Value Max Row Event Change
+        s_max_row_spinbox_1.valueChanged.connect(value_max_row)
 
-        def changeButtonNoticeM7():
-            value1 = setting_buttons_notice_edit_fisrt_m7.value()
-            value2 = setting_buttons_notice_edit_second_m7.value()
-            self.old_data["colorM7"] = [value1, value2]
+        # / Value Change Event Change
+        s_value_change_spinbox_1.valueChanged.connect(value_change)
 
-        def changeButtonNoticeM8():
-            value1 = setting_buttons_notice_edit_fisrt_m8.value()
-            value2 = setting_buttons_notice_edit_second_m8.value()
-            self.old_data["colorM8"] = [value1, value2]
-
-        def changeButtonNoticeM9():
-            value1 = setting_buttons_notice_edit_fisrt_m9.value()
-            value2 = setting_buttons_notice_edit_second_m9.value()
-            self.old_data["colorM9"] = [value1, value2]
-
-        def changeButtonNoticeM10():
-            value1 = setting_buttons_notice_edit_fisrt_m10.value()
-            value2 = setting_buttons_notice_edit_second_m10.value()
-            self.old_data["colorM10"] = [value1, value2]
-
-        # / Buttons tpye 1 change (Color)
-        setting_color_color_edit_fisrt.valueChanged.connect(changeColorColor)
-        setting_color_color_edit_second.valueChanged.connect(changeColorColor)
-
-        # / Buttons Color Count Change
-        setting_color_count_edit_fisrt.valueChanged.connect(changeColorCount)
-        setting_color_count_edit_second.valueChanged.connect(changeColorCount)
-
-        # / Change Number
-        setting_thong_change_edit_fisrt.valueChanged.connect(changeThong)
-
-        # / Change Value of Thong and Ngang (Column)
-        setting_ngang_value_edit_fisrt.valueChanged.connect(changeNgangValue)
-        setting_ngang_value_edit_second.valueChanged.connect(changeNgangValue)
-
-        setting_thong_value_edit_fisrt.valueChanged.connect(changeThongValue)
-        setting_thong_value_edit_second.valueChanged.connect(changeThongValue)
-
-        # / Change value of Column Table Color
-        setting_count_d_edit_fisrt.valueChanged.connect(changeColunmE)
-        setting_count_d_edit_second.valueChanged.connect(changeColunmE)
-
-        # / Change value of Column Table M2 Color
-        setting_count_d_edit_fisrt_m2.valueChanged.connect(changeColunmEM2)
-        setting_count_d_edit_second_m2.valueChanged.connect(changeColunmEM2)
-
-        # / Change value of Column Table M3 Color
-        setting_count_d_edit_fisrt_m3.valueChanged.connect(changeColunmEM3)
-        setting_count_d_edit_second_m3.valueChanged.connect(changeColunmEM3)
-
-        # / Change value of Column Table M4 Color
-        setting_count_d_edit_fisrt_m4.valueChanged.connect(changeColunmEM4)
-        setting_count_d_edit_second_m4.valueChanged.connect(changeColunmEM4)
-
-        # / Change value of Column Table M5 Color
-        setting_count_d_edit_fisrt_m5.valueChanged.connect(changeColunmEM5)
-        setting_count_d_edit_second_m5.valueChanged.connect(changeColunmEM5)
-
-        # / Change value of Column Table M6 Color
-        setting_count_d_edit_fisrt_m6.valueChanged.connect(changeColunmEM6)
-        setting_count_d_edit_second_m6.valueChanged.connect(changeColunmEM6)
-
-        # / Change value of Column Table M7 Color
-        setting_count_d_edit_fisrt_m7.valueChanged.connect(changeColunmEM7)
-        setting_count_d_edit_second_m7.valueChanged.connect(changeColunmEM7)
-
-        # / Change value of Column Table M8 Color
-        setting_count_d_edit_fisrt_m8.valueChanged.connect(changeColunmEM8)
-        setting_count_d_edit_second_m8.valueChanged.connect(changeColunmEM8)
-
-        # / Change value of Column Table M9 Color
-        setting_count_d_edit_fisrt_m9.valueChanged.connect(changeColunmEM9)
-        setting_count_d_edit_second_m9.valueChanged.connect(changeColunmEM9)
-
-        # / Change value of Column Table M10 Color
-        setting_count_d_edit_fisrt_m10.valueChanged.connect(changeColunmEM10)
-        setting_count_d_edit_second_m10.valueChanged.connect(changeColunmEM10)
-
-        # / Change MaxRow for All Table
-        setting_max_row_edit_fisrt.valueChanged.connect(changeMaxRow)
-
-        # / Buttons Type 2 change (ColorM2)
-        setting_buttons_notice_edit_fisrt_m2.valueChanged.connect(changeButtonNoticeM2)
-        setting_buttons_notice_edit_second_m2.valueChanged.connect(changeButtonNoticeM2)
-
-        # / Buttons Type 2 change (ColorM3)
-        setting_buttons_notice_edit_fisrt_m3.valueChanged.connect(changeButtonNoticeM3)
-        setting_buttons_notice_edit_second_m3.valueChanged.connect(changeButtonNoticeM3)
-
-        # / Buttons Type 2 change (ColorM4)
-        setting_buttons_notice_edit_fisrt_m4.valueChanged.connect(changeButtonNoticeM4)
-        setting_buttons_notice_edit_second_m4.valueChanged.connect(changeButtonNoticeM4)
-
-        # / Buttons Type 2 change (ColorM5)
-        setting_buttons_notice_edit_fisrt_m5.valueChanged.connect(changeButtonNoticeM5)
-        setting_buttons_notice_edit_second_m5.valueChanged.connect(changeButtonNoticeM5)
-
-        # / Buttons Type 2 change (ColorM6)
-        setting_buttons_notice_edit_fisrt_m6.valueChanged.connect(changeButtonNoticeM6)
-        setting_buttons_notice_edit_second_m6.valueChanged.connect(changeButtonNoticeM6)
-
-        # / Buttons Type 2 change (ColorM7)
-        setting_buttons_notice_edit_fisrt_m7.valueChanged.connect(changeButtonNoticeM7)
-        setting_buttons_notice_edit_second_m7.valueChanged.connect(changeButtonNoticeM7)
-
-        # / Buttons Type 2 change (ColorM8)
-        setting_buttons_notice_edit_fisrt_m8.valueChanged.connect(changeButtonNoticeM8)
-        setting_buttons_notice_edit_second_m8.valueChanged.connect(changeButtonNoticeM8)
-
-        # / Buttons Type 2 change (ColorM9)
-        setting_buttons_notice_edit_fisrt_m9.valueChanged.connect(changeButtonNoticeM9)
-        setting_buttons_notice_edit_second_m9.valueChanged.connect(changeButtonNoticeM9)
-
-        # / Buttons Type 2 change (ColorM10)
-        setting_buttons_notice_edit_fisrt_m10.valueChanged.connect(
-            changeButtonNoticeM10
-        )
-        setting_buttons_notice_edit_second_m10.valueChanged.connect(
-            changeButtonNoticeM10
-        )
-        # Add the button layout to the main layout
-        layout_tab.addWidget(main)
         return tab
 
     def create_tab_2_setting_bm(self):
@@ -1035,6 +312,7 @@ class SettingTable(QDialog):
             }
             """
         )
+        lable_m1.setDisabled(True)
         # / BM2
         lable_m2 = QCheckBox("Bảng Màu M2")
         lable_m2.setChecked(data[1]["enable"])
@@ -1283,7 +561,7 @@ class SettingTable(QDialog):
 
         # Create the scrollarea
         scroll_area = QScrollArea(widget)
-        scroll_area.setFixedHeight(600)
+        scroll_area.setFixedHeight(400)
         scroll_area.setWidgetResizable(
             True
         )  # Ensure the widget inside scrolls as needed
@@ -1294,14 +572,15 @@ class SettingTable(QDialog):
 
         for i in range(120):
             widget_label = QWidget()
+            widget_label.setStyleSheet("border: 1px solid #999;")
             label_layout = QVBoxLayout(widget_label)
 
             label = QLabel(f"D {i + 1}/M{type + 1}")
-            label.setStyleSheet("font-size: 24px;")
+            label.setStyleSheet("font-size: 24px;border: 0px;")
 
             spin_label = QSpinBox()
             spin_label.setMinimum(1)
-            spin_label.setStyleSheet("font-size: 24px;")
+            spin_label.setStyleSheet("font-size: 24px;border: 0px;")
             spin_label.setValue(info_table["col_d"][i])
             spin_label.valueChanged.connect(partial(self.change_table_col_d, type, i))
 
@@ -1314,6 +593,111 @@ class SettingTable(QDialog):
 
         layout.addWidget(scroll_area)
 
+        # / Add Notice Color
+        notice = QWidget()
+        notice.setStyleSheet("border: 1px solid #999;")
+        notice_l = QVBoxLayout(notice)
+        layout.addWidget(notice)
+
+        # / Lable > SpinBox
+        notice_lable = QLabel(f"Báo Màu M{type+1}")
+        notice_lable.setStyleSheet("border: 0px;font-size:24px;")
+        notice_l.addWidget(notice_lable)
+
+        notice_spinBox_w = QWidget()
+        notice_spinBox_w.setStyleSheet("border: 0px;")
+        notice_spinBox_l = QHBoxLayout(notice_spinBox_w)
+        notice_l.addWidget(notice_spinBox_w)
+        notice_spinBox_1 = QSpinBox()
+        notice_spinBox_1.setMinimum(0)
+        notice_spinBox_1.setMaximum(999)
+        notice_spinBox_1.setStyleSheet(css_input)
+        notice_spinBox_1.setValue(
+            self.old_data[f'color{"M"+str(type + 1) if type != 0 else ""}'][0]
+        )
+        notice_spinBox_2 = QSpinBox()
+        notice_spinBox_2.setMinimum(0)
+        notice_spinBox_2.setMaximum(999)
+        notice_spinBox_2.setStyleSheet(css_input)
+        notice_spinBox_2.setValue(
+            self.old_data[f'color{"M"+str(type + 1) if type != 0 else ""}'][1]
+        )
+
+        notice_spinBox_l.addWidget(notice_spinBox_1)
+        notice_spinBox_l.addWidget(notice_spinBox_2)
+
+        # / Add Config Col D
+        config_col = QWidget()
+        config_col.setStyleSheet("border: 1px solid #999;")
+        config_col_l = QVBoxLayout(config_col)
+        layout.addWidget(config_col)
+
+        # / Lable > SpinBox
+        config_col_lable = QLabel(f"Thông Kê D M{type+1}")
+        config_col_lable.setStyleSheet("border: 0px;font-size:24px;")
+        config_col_l.addWidget(config_col_lable)
+
+        config_col_spinBox_w = QWidget()
+        config_col_spinBox_w.setStyleSheet("border: 0px;")
+        config_col_spinBox_l = QHBoxLayout(config_col_spinBox_w)
+        config_col_l.addWidget(config_col_spinBox_w)
+
+        config_col_spinBox_1 = QSpinBox()
+        config_col_spinBox_1.setMinimum(1)
+        config_col_spinBox_1.setMaximum(120)
+        config_col_spinBox_1.setStyleSheet(css_input)
+        config_col_spinBox_1.setValue(
+            self.col_e[f"col_e{type + 1 if type != 0 else ''}"][0]
+        )
+        config_col_spinBox_2 = QSpinBox()
+        config_col_spinBox_2.setMinimum(1)
+        config_col_spinBox_2.setMaximum(120)
+        config_col_spinBox_2.setStyleSheet(css_input)
+        config_col_spinBox_2.setValue(
+            self.col_e[f"col_e{type + 1 if type != 0 else ''}"][1]
+        )
+
+        config_col_spinBox_l.addWidget(config_col_spinBox_1)
+        config_col_spinBox_l.addWidget(config_col_spinBox_2)
+
+        verticalSpacer2 = QSpacerItem(
+            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+        )
+        layout.addItem(verticalSpacer2)
+
+        # TODO Handler Func
+        # / Notice Color
+        notice_spinBox_1.valueChanged.connect(
+            partial(
+                self.value_change_col_table_color_notice,
+                f'color{"M"+str(type + 1) if type != 0 else ""}',
+                0,
+            )
+        )
+        notice_spinBox_2.valueChanged.connect(
+            partial(
+                self.value_change_col_table_color_notice,
+                f'color{"M"+str(type + 1) if type != 0 else ""}',
+                1,
+            )
+        )
+
+        # / Config Col
+        config_col_spinBox_1.valueChanged.connect(
+            partial(
+                self.value_change_col_table_color_config_col,
+                f"col_e{type + 1 if type != 0 else ''}",
+                0,
+            )
+        )
+        config_col_spinBox_2.valueChanged.connect(
+            partial(
+                self.value_change_col_table_color_config_col,
+                f"col_e{type + 1 if type != 0 else ''}",
+                1,
+            )
+        )
+
         if self.current_widget:
             self.clearLayoutMain(self.main_layout)
 
@@ -1322,3 +706,9 @@ class SettingTable(QDialog):
 
     def change_table_col_d(self, type, index, value):
         self.ban_info["meta"]["tables"][type]["col_d"][index] = value
+
+    def value_change_col_table_color_notice(self, type, index, value):
+        self.old_data[type][index] = value
+
+    def value_change_col_table_color_config_col(self, type, index, value):
+        self.col_e[type][index] = value
