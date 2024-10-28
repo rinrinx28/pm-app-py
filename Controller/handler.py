@@ -9,17 +9,17 @@ from datetime import datetime
 # TODO Handler Data
 def changeNumber_old(number, value):
     if number == 1:
-        if value != 3 and value != 4 and value != 5 and value != 6 and value != 7:
-            if value == 0:
-                return 3
-            elif value == 1:
-                return 4
-            elif value == 2:
-                return 5
-            elif value == 8:
-                return 6
+        if value != 0 and value != 1 and value != 2 and value != 3 and value != 4:
+            if value == 5:
+                return 0
+            elif value == 6:
+                return 1
             elif value == 7:
-                return 9
+                return 2
+            elif value == 8:
+                return 3
+            elif value == 9:
+                return 4
             else:
                 return value
         return value
@@ -69,90 +69,88 @@ def changeNumber_old(number, value):
                 return value
         return value
     elif number == 5:
-        if value != 0 and value != 1 and value != 2 and value != 3 and value != 4:
+        if value != 1 and value != 2 and value != 3 and value != 4 and value != 0:
             if value == 5:
-                return 0
-            elif value == 6:
                 return 1
-            elif value == 7:
+            elif value == 6:
                 return 2
-            elif value == 8:
+            elif value == 7:
                 return 3
-            elif value == 9:
+            elif value == 8:
                 return 4
+            elif value == 9:
+                return 0
             else:
                 return value
         return value
     elif number == 6:
-        if value != 0 and value != 1 and value != 2 and value != 3 and value != 5:
-            if value == 4:
+        if value != 0 and value != 1 and value != 2 and value != 3 and value != 4:
+            if value == 5:
                 return 3
             elif value == 6:
-                return 0
+                return 4
             elif value == 7:
-                return 1
+                return 0
             elif value == 8:
-                return 2
+                return 1
             elif value == 9:
-                return 5
+                return 2
             else:
                 return value
         return value
     elif number == 7:
-        if value != 1 and value != 2 and value != 3 and value != 4 and value != 5:
+        if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
             if value == 0:
-                return 4
-            elif value == 6:
+                return 7
+            elif value == 1:
+                return 8
+            elif value == 2:
+                return 6
+            elif value == 3:
                 return 5
-            elif value == 7:
-                return 1
-            elif value == 8:
-                return 2
-            elif value == 9:
-                return 3
             else:
                 return value
         return value
     elif number == 8:
-        if value != 4 and value != 5 and value != 6 and value != 7 and value != 9:
-            if value == 1:
-                return 5
-            elif value == 2:
-                return 6
-            elif value == 3:
+        if value != 0 and value != 1 and value != 2 and value != 3 and value != 9:
+            if value == 4:
+                return 2
+            elif value == 5:
+                return 3
+            elif value == 6:
                 return 9
+            elif value == 7:
+                return 0
             elif value == 8:
-                return 7
-            elif value == 0:
-                return 4
+                return 1
             else:
                 return value
         return value
     elif number == 9:
-        if value != 2 and value != 3 and value != 4 and value != 5 and value != 7:
-            if value == 0:
-                return 2
-            elif value == 1:
-                return 3
-            elif value == 6:
-                return 4
-            elif value == 8:
-                return 5
-            elif value == 9:
+        if value != 0 and value != 1 and value != 7 and value != 8 and value != 9:
+            if value == 2:
+                return 0
+            elif value == 3:
+                return 1
+            elif value == 4:
                 return 7
+            elif value == 5:
+                return 8
+            elif value == 6:
+                return 9
             else:
                 return value
         return value
     elif number == 10:
-        if value != 1 and value != 2 and value != 3 and value != 4 and value != 6:
+        if value != 2 and value != 3 and value != 4 and value != 6 and value != 7:
             if value == 0:
-                return 1
-            elif value == 5:
                 return 2
-            elif value == 7:
+            elif value == 1:
                 return 3
-            elif value == 8:
+            elif value == 5:
                 return 4
+            elif value == 8:
+                return 7
             elif value == 9:
                 return 6
             else:
@@ -209,30 +207,103 @@ def changeNumber(number, value):
                 return value
         return value
     elif number == 4:
-        if value != 3 and value != 4 and value != 5 and value != 6 and value != 7:
-            if value == 0:
-                return 3
-            elif value == 1:
-                return 4
-            elif value == 2:
+        if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
+            if value == 1:
                 return 5
-            elif value == 8:
+            elif value == 2:
                 return 6
-            elif value == 9:
+            elif value == 3:
                 return 7
+            elif value == 4:
+                return 8
+            elif value == 0:
+                return 9
             else:
                 return value
         return value
     elif number == 5:
-        if value != 1 and value != 2 and value != 3 and value != 4 and value != 6:
-            if value == 0:
+        if value != 1 and value != 2 and value != 3 and value != 4 and value != 0:
+            if value == 5:
                 return 1
-            elif value == 5:
+            elif value == 6:
                 return 2
             elif value == 7:
                 return 3
             elif value == 8:
                 return 4
+            elif value == 9:
+                return 0
+            else:
+                return value
+        return value
+    elif number == 6:
+        if value != 0 and value != 1 and value != 2 and value != 3 and value != 4:
+            if value == 5:
+                return 3
+            elif value == 6:
+                return 4
+            elif value == 7:
+                return 0
+            elif value == 8:
+                return 1
+            elif value == 9:
+                return 2
+            else:
+                return value
+        return value
+    elif number == 7:
+        if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
+            if value == 0:
+                return 7
+            elif value == 1:
+                return 8
+            elif value == 2:
+                return 6
+            elif value == 3:
+                return 5
+            else:
+                return value
+        return value
+    elif number == 8:
+        if value != 0 and value != 1 and value != 2 and value != 3 and value != 9:
+            if value == 4:
+                return 2
+            elif value == 5:
+                return 3
+            elif value == 6:
+                return 9
+            elif value == 7:
+                return 0
+            elif value == 8:
+                return 1
+            else:
+                return value
+        return value
+    elif number == 9:
+        if value != 0 and value != 1 and value != 7 and value != 8 and value != 9:
+            if value == 2:
+                return 0
+            elif value == 3:
+                return 1
+            elif value == 4:
+                return 7
+            elif value == 5:
+                return 8
+            elif value == 6:
+                return 9
+            else:
+                return value
+        return value
+    elif number == 10:
+        if value != 2 and value != 3 and value != 4 and value != 6 and value != 7:
+            if value == 0:
+                return 2
+            elif value == 1:
+                return 3
+            elif value == 5:
+                return 4
+            elif value == 8:
+                return 7
             elif value == 9:
                 return 6
             else:
@@ -245,7 +316,7 @@ def changeNumber(number, value):
 def TachVaGhep(number, value):
     chuoiso = str(value)
     mangso = list(chuoiso)
-    chuSo = map(lambda i: str(changeNumber(number, int(i))), mangso)
+    chuSo = map(lambda i: str(changeNumber_old(number, int(i))), mangso)
     joined_string = "".join(list(chuSo))
     return joined_string
 
@@ -278,13 +349,23 @@ def updateBanInsert(data):
     insert = data["insert"]
     update = data["update"]
     maxRow = data_db["meta"]["maxRow"]
-
+    
+    # Lọc ra tất cả các phần tử chưa bị xóa
     notIsDeleted = [item for item in data_db["data"] if not item["isDeleted"]]
-    isDelete = [item for item in data_db["data"] if item["isDeleted"]]
-    # / Check Max Row
-    if len(notIsDeleted) + 1 >= maxRow:
-        notIsDeleted[0]["isDeleted"] = True
-        data_db["data"] = isDelete + notIsDeleted
+
+    # Nếu số phần tử chưa bị xóa vượt quá maxRow
+    if len(notIsDeleted) >= maxRow:
+        # Đếm số lượng phần tử cần đánh dấu là đã xóa
+        excess_count = len(notIsDeleted) - (maxRow - 1)
+        
+        # Duyệt qua mảng gốc và đánh dấu các phần tử cũ nhất là đã xóa
+        for item in data_db["data"]:
+            if not item["isDeleted"]:
+                if excess_count > 0:
+                    item["isDeleted"] = True  # Đánh dấu phần tử là đã xóa
+                    excess_count -= 1  # Giảm số lượng phần tử cần xóa
+                else:
+                    break  # Dừng khi đã đánh dấu đủ số lượng
     data_db["data"].append(insert)
 
     # / Update meta features
@@ -296,11 +377,12 @@ def updateBanInsert(data):
 
     return {"status": True, "msg": "Đã nhập liệu thành công!", "data": data_db}
 
+
 def enableTables(data):
     path_db = Path().path_db()
     with open(path_db, "r") as file:
         data_db = json.load(file)
-    data_db['meta']['tables'] = data
+    data_db["meta"]["tables"] = data
 
     # / Write File JSON
     with open(path_db, "w") as file:

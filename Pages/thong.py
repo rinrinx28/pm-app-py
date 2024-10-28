@@ -360,10 +360,10 @@ class ThongPage(QWidget):
 
         # / Create ChangeNumber
         self.ChangeNumber = QComboBox()
-        self.ChangeNumber.setStyleSheet(css_input)
+        self.ChangeNumber.setStyleSheet("font-size: 24px;line-height: 32px;")
         self.ChangeNumber.setCursor(QCursor(Qt.PointingHandCursor))
         self.ChangeNumber.addItem("Chuyển Đổi 0")
-        for i in range(5):
+        for i in range(10):
             self.ChangeNumber.addItem(f"Chuyển Đổi {i+1}")
         layout.addWidget(self.ChangeNumber, 0, 5)
 

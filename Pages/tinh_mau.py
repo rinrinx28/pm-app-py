@@ -20,7 +20,6 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QFrame,
     QApplication,
-    QSizePolicy,
 )
 from PySide6.QtGui import Qt, QCursor, QIcon, QColor, QAction, QFont
 from PySide6.QtCore import QDate, QTimer
@@ -263,11 +262,14 @@ class TinhAndMauPage(QWidget):
         ban_col = ban_info["col"]
         ban_thong_value = ban_info["thong"]["value"]
         ban_thong_name = ban_info["thong"]["name"]
+        list_table_color = [
+            f"M{i+1}" for i, v in enumerate(ban_info["meta"]["tables"]) if v["enable"]
+        ]
 
         title_text = (
             f"{ban_thong_name}/30 ** Bảng Tính ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} **  Bộ Chuyển Đổi: {change_number} ** "
-            + f"Số dòng: {row_count}/{max_row}"
+            + f"Số dòng: {row_count}/{max_row} ** Bảng Màu: {','.join(list_table_color)}"
         )
 
         self.status_w = QWidget()
@@ -2710,11 +2712,9 @@ class TinhAndMauPage(QWidget):
         insert_day_label.setStyleSheet(css_lable)
 
         insert_day_edit = QDateEdit()
-        font = QFont()
-        font.setPointSize(20)
-        insert_day_edit.setFont(font)
         insert_day_edit.setWrapping(False)
         insert_day_edit.setCalendarPopup(True)
+        insert_day_edit.setStyleSheet("background-color: pink;font-size:24px")
 
         insert_from_l.addWidget(insert_day_label, 1, 0)
         insert_from_l.addWidget(insert_day_edit, 1, 1)
@@ -2816,11 +2816,22 @@ class TinhAndMauPage(QWidget):
             if not data["update"]["N=1"]["status"]:
                 day = date.day()
                 insert_ngang_edit.setValue(day)
+            else:
+                if old_data is None or old_data['date'] != date.toString("dd/MM/yyyy"):
+                    insert_day_edit.setStyleSheet("background-color: pink;font-size:24px;")
+                else:
+                    insert_day_edit.setStyleSheet("font-size:24px;")
 
         def changeNgang(value):
             data["insert"]["ngang"] = value - 1
             number_value = self.number_info[value - 1]
             insert_ngang_edit_first.setText(f"{number_value[0]}")
+            if old_data is None or old_data['ngang'] != value - 1:
+                insert_ngang_edit.setStyleSheet("background-color: pink;font-size:24px;")
+            else:
+                insert_ngang_edit.setStyleSheet("font-size:24px;")
+
+
 
         def changeThongTable(value):
             item = value.text()
@@ -2833,6 +2844,12 @@ class TinhAndMauPage(QWidget):
             if value == -1:
                 insert_thong_edit_first.setText(f"")
                 return
+            
+            if old_data is None or old_data['thong'] != value:
+                insert_thong_edit.setStyleSheet("background-color: pink;font-size:24px;")
+            else:
+                insert_thong_edit.setStyleSheet("font-size:24px;")
+
             thong_value = self.thong_info[0][value]
             insert_thong_edit_first.setText(f"{thong_value}")
 
@@ -4653,15 +4670,13 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M1")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_color.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_color.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M1")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_color.setItem(0, total_columns + j, header_item)
+                
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_color.setHorizontalHeaderItem(
@@ -4803,15 +4818,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M2")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM2.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM2.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M2")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM2.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM2.setHorizontalHeaderItem(
@@ -4955,15 +4967,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M3")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM3.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM3.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M3")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM3.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM3.setHorizontalHeaderItem(
@@ -5107,15 +5116,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M4")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM4.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM4.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M4")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM4.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM4.setHorizontalHeaderItem(
@@ -5259,15 +5265,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M5")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM5.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM5.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M5")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM5.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM5.setHorizontalHeaderItem(
@@ -5411,15 +5414,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M6")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM6.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM6.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M6")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM6.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM6.setHorizontalHeaderItem(
@@ -5563,15 +5563,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M7")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM7.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM7.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M7")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM7.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM7.setHorizontalHeaderItem(
@@ -5715,15 +5712,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M8")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM8.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM8.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M8")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM8.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM8.setHorizontalHeaderItem(
@@ -5867,15 +5861,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M9")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM9.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM9.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M9")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM9.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM9.setHorizontalHeaderItem(
@@ -6019,15 +6010,12 @@ class TinhAndMauPage(QWidget):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
 
-            # Tạo hàng header cho mỗi lần tạo cột
-            header_item = QTableWidgetItem(f"D {i + 1}/M10")
-            header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_colorM10.setItem(0, total_columns, header_item)
-            if num_cols > 1:
-                self.frozen_table_colorM10.setSpan(0, total_columns, 1, num_cols)
-
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
+                # Tạo hàng header cho mỗi lần tạo cột
+                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M10")
+                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.frozen_table_colorM10.setItem(0, total_columns + j, header_item)
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM10.setHorizontalHeaderItem(
@@ -6178,7 +6166,7 @@ class TinhAndMauPage(QWidget):
                     )
 
                     # / Start check isFirst
-                    isColFisrt = f"{col_a}:{i}:{col_d}"
+                    isColFisrt = f"{col_a}:{i}:{t}"
 
                     # / Check col_a equal col_t
                     isEqual = (
@@ -6186,26 +6174,19 @@ class TinhAndMauPage(QWidget):
                         if item_thong > -1
                         else None
                     )
+                    # / End count color with col_d
+                    if value1 <= col_d <= value2:
+                        if not isColFisrt in self.isFrits:
+                            self.isFrits[isColFisrt] = True
+                            # / Start check col_c is first Like first check
+                            maths_c1 = f"{col_d}:{t}:{i}:_color"
+                            if not maths_c1 in self.math_isFirst:
+                                self.math_isFirst[maths_c1] = 1
+                            else:
+                                self.math_isFirst[maths_c1] += 1
 
-                    if col_d == 1:
-                        self.dataCount.append(
-                            {
-                                "row": countRow,
-                                "col": total_column,
-                                "color": isEqual,
-                                "data": f"{col_a}/{col_d}",
-                                "notice": isNoticeCount,
-                                "date": item_date,
-                                "color_value": col_d,
-                                "isDeleted": isDeleted,
-                            }
-                        )
-                    else:
-                        # / End count color with col_d
-                        if value1 <= col_d <= value2:
-                            if not isColFisrt in self.isFrits:
-                                self.isFrits[isColFisrt] = True
-                                # / Start check col_stt table count min 3 and max 4 with every count_handler
+                            col_c1 = self.math_isFirst[maths_c1]
+                            if col_c1 == 1:
                                 math_count_handler = f"{col_d}:{i}:_color"
                                 if not math_count_handler in self.count_handler:
                                     self.count_handler[math_count_handler] = 1
@@ -6322,17 +6303,10 @@ class TinhAndMauPage(QWidget):
                                     # / M2 Start
                                     if value1_2 <= col_e <= value2_2:
                                         math_count_handler_m2 = f"{col_e}:{i}:_color_m2"
-                                        if (
-                                            not math_count_handler_m2
-                                            in self.count_handler
-                                        ):
-                                            self.count_handler[
-                                                math_count_handler_m2
-                                            ] = 1
+                                        if not math_count_handler_m2 in self.count_handler:
+                                            self.count_handler[math_count_handler_m2] = 1
                                         else:
-                                            self.count_handler[
-                                                math_count_handler_m2
-                                            ] += 1
+                                            self.count_handler[math_count_handler_m2] += 1
 
                                         # / End check col_stt table count
                                         stt_count_with_d_m2 = self.count_handler[
@@ -6344,7 +6318,9 @@ class TinhAndMauPage(QWidget):
 
                                         if stt_count_with_d_m2 <= number_col_d_m2:
                                             # / Start count color with col_e
-                                            col_e_count_m2 = f"{col_e}:{stt_count_with_d_m2}:col_e_m2"
+                                            col_e_count_m2 = (
+                                                f"{col_e}:{stt_count_with_d_m2}:col_e_m2"
+                                            )
                                             if not col_e_count_m2 in self.count_handler:
                                                 self.count_handler[col_e_count_m2] = 1
                                             else:
@@ -6359,13 +6335,11 @@ class TinhAndMauPage(QWidget):
                                             )
                                             find_null_color_m2 = 0
                                             find_stt_color_m2 = stt_count_with_d_m2 - 1
-                                            find_next_color_m2 = (
-                                                self.find_column_by_index(
-                                                    tables[1]["col_d"],
-                                                    col_e - value1_2,
-                                                    value1_2 - 1,
-                                                    value2_2,
-                                                )
+                                            find_next_color_m2 = self.find_column_by_index(
+                                                tables[1]["col_d"],
+                                                col_e - value1_2,
+                                                value1_2 - 1,
+                                                value2_2,
                                             )
                                             col_color_m2 = (
                                                 find_next_color_m2
@@ -6428,19 +6402,14 @@ class TinhAndMauPage(QWidget):
                                                     ] += 1
 
                                                 # / End check col_stt table count
-                                                stt_count_with_d_m3 = (
-                                                    self.count_handler[
-                                                        math_count_handler_m3
-                                                    ]
-                                                )  # So thu tu cua so dem
+                                                stt_count_with_d_m3 = self.count_handler[
+                                                    math_count_handler_m3
+                                                ]  # So thu tu cua so dem
                                                 number_col_d_m3 = tables[2]["col_d"][
                                                     col_e_m2 - 1
                                                 ]
 
-                                                if (
-                                                    stt_count_with_d_m3
-                                                    <= number_col_d_m3
-                                                ):
+                                                if stt_count_with_d_m3 <= number_col_d_m3:
                                                     # / Start count color with col_e
                                                     col_e_count_m3 = f"{col_e_m2}:{stt_count_with_d_m3}:col_e_m3"
                                                     if (
@@ -6573,9 +6542,7 @@ class TinhAndMauPage(QWidget):
                                                                 object_m4[
                                                                     "isNoticeColor_m4"
                                                                 ],
-                                                                object_m4[
-                                                                    "col_color_m4"
-                                                                ],
+                                                                object_m4["col_color_m4"],
                                                             )
                                                             dataColorM4 = m4
                                                             # / M5 start
@@ -6584,44 +6551,44 @@ class TinhAndMauPage(QWidget):
                                                                 <= col_e_m4
                                                                 <= value2_5
                                                             ):
-                                                                data_m5 = self.handler_data_m5(
-                                                                    i,
-                                                                    t,
-                                                                    col_e_m3,
-                                                                    notice_colorM5,
-                                                                    value1_5,
-                                                                    value2_5,
-                                                                    countRow,
-                                                                    col_a,
-                                                                    thong_range_1,
-                                                                    stt_cot,
-                                                                    col_d,
-                                                                    col_t,
-                                                                    col_e,
-                                                                    col_e_m2,
-                                                                    col_e_m4,
-                                                                    isEqual,
-                                                                    total_column,
-                                                                    isNoticeCount,
-                                                                    col_color,
-                                                                    col_color_m2,
-                                                                    col_color_m3,
-                                                                    col_color_m4,
-                                                                    isNoticeColor,
-                                                                    isNoticeColor_m2,
-                                                                    isNoticeColor_m3,
-                                                                    isNoticeColor_m4,
-                                                                    item_date,
-                                                                    col_e5,
-                                                                    row_thong,
-                                                                    isDeleted,
+                                                                data_m5 = (
+                                                                    self.handler_data_m5(
+                                                                        i,
+                                                                        t,
+                                                                        col_e_m3,
+                                                                        notice_colorM5,
+                                                                        value1_5,
+                                                                        value2_5,
+                                                                        countRow,
+                                                                        col_a,
+                                                                        thong_range_1,
+                                                                        stt_cot,
+                                                                        col_d,
+                                                                        col_t,
+                                                                        col_e,
+                                                                        col_e_m2,
+                                                                        col_e_m4,
+                                                                        isEqual,
+                                                                        total_column,
+                                                                        isNoticeCount,
+                                                                        col_color,
+                                                                        col_color_m2,
+                                                                        col_color_m3,
+                                                                        col_color_m4,
+                                                                        isNoticeColor,
+                                                                        isNoticeColor_m2,
+                                                                        isNoticeColor_m3,
+                                                                        isNoticeColor_m4,
+                                                                        item_date,
+                                                                        col_e5,
+                                                                        row_thong,
+                                                                        isDeleted,
+                                                                    )
                                                                 )
                                                                 if data_m5:
                                                                     m5, object_m5 = (
                                                                         data_m5["m5"],
-                                                                        data_m5[
-                                                                            "object"
-                                                                        ],
+                                                                        data_m5["object"],
                                                                     )
                                                                     (
                                                                         col_e_m5,
@@ -6692,9 +6659,7 @@ class TinhAndMauPage(QWidget):
                                                                                     "object"
                                                                                 ],
                                                                             )
-                                                                            dataColorM6 = (
-                                                                                m6
-                                                                            )
+                                                                            dataColorM6 = m6
 
                                                                             (
                                                                                 col_e_m6,
@@ -6767,7 +6732,9 @@ class TinhAndMauPage(QWidget):
                                                                                             "object"
                                                                                         ],
                                                                                     )
-                                                                                    dataColorM7 = m7
+                                                                                    dataColorM7 = (
+                                                                                        m7
+                                                                                    )
 
                                                                                     (
                                                                                         col_e_m7,
@@ -6998,7 +6965,11 @@ class TinhAndMauPage(QWidget):
                                                                                                             ]
                                                                                                             dataColorM10 = m10
 
-                                    if dataColorM10 and self.ban_info["meta"]["tables"][9]["enable"] == True:
+                                    if (
+                                        dataColorM10
+                                        and self.ban_info["meta"]["tables"][9]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor10.append(dataColorM10)
                                         dataCount["actionM10"] = {
                                             "name": "colorM10",
@@ -7007,79 +6978,65 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM10["notice"],
                                         }
                                         dataColorM1["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM2["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM3["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM4["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM5["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM6["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM7["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM8["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
                                         dataColorM9["actionM10"] = {
-                                                            "name": "colorM10",
-                                                            "row": countRow,
-                                                            "col": dataColorM10["col"],
-                                                            "isColor": dataColorM10[
-                                                                "notice"
-                                                            ],
-                                                        }
-  
-                                    if dataColorM9 and self.ban_info["meta"]["tables"][8]["enable"] == True:
+                                            "name": "colorM10",
+                                            "row": countRow,
+                                            "col": dataColorM10["col"],
+                                            "isColor": dataColorM10["notice"],
+                                        }
+
+                                    if (
+                                        dataColorM9
+                                        and self.ban_info["meta"]["tables"][8]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor9.append(dataColorM9)
                                         dataCount["actionM9"] = {
                                             "name": "colorM9",
@@ -7088,71 +7045,59 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM9["notice"],
                                         }
                                         dataColorM1["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
                                         dataColorM2["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
                                         dataColorM3["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
                                         dataColorM4["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
                                         dataColorM5["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
                                         dataColorM6["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
                                         dataColorM7["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
                                         dataColorM8["actionM9"] = {
-                                                            "name": "colorM9",
-                                                            "row": countRow,
-                                                            "col": dataColorM9["col"],
-                                                            "isColor": dataColorM9[
-                                                                "notice"
-                                                            ],
-                                                        }
-                                        
-                                    if dataColorM8 and self.ban_info["meta"]["tables"][7]["enable"] == True:
+                                            "name": "colorM9",
+                                            "row": countRow,
+                                            "col": dataColorM9["col"],
+                                            "isColor": dataColorM9["notice"],
+                                        }
+
+                                    if (
+                                        dataColorM8
+                                        and self.ban_info["meta"]["tables"][7]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor8.append(dataColorM8)
                                         dataCount["actionM8"] = {
                                             "name": "colorM8",
@@ -7161,63 +7106,53 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM8["notice"],
                                         }
                                         dataColorM1["actionM8"] = {
-                                                            "name": "colorM8",
-                                                            "row": countRow,
-                                                            "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
                                         dataColorM2["actionM8"] = {
-                                                            "name": "colorM8",
-                                                            "row": countRow,
-                                                            "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
                                         dataColorM3["actionM8"] = {
-                                                            "name": "colorM8",
-                                                            "row": countRow,
-                                                            "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
                                         dataColorM4["actionM8"] = {
-                                                            "name": "colorM8",
-                                                            "row": countRow,
-                                                            "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
                                         dataColorM5["actionM8"] = {
-                                                            "name": "colorM8",
-                                                            "row": countRow,
-                                                            "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
                                         dataColorM6["actionM8"] = {
-                                                            "name": "colorM8",
-                                                            "row": countRow,
-                                                            "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
                                         dataColorM7["actionM8"] = {
-                                                            "name": "colorM8",
-                                                            "row": countRow,
-                                                            "col": dataColorM8["col"],
-                                                            "isColor": dataColorM8[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM8",
+                                            "row": countRow,
+                                            "col": dataColorM8["col"],
+                                            "isColor": dataColorM8["notice"],
+                                        }
 
-                                    if dataColorM7 and self.ban_info["meta"]["tables"][6]["enable"] == True:
+                                    if (
+                                        dataColorM7
+                                        and self.ban_info["meta"]["tables"][6]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor7.append(dataColorM7)
                                         dataCount["actionM7"] = {
                                             "name": "colorM7",
@@ -7226,55 +7161,47 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM7["notice"],
                                         }
                                         dataColorM1["actionM7"] = {
-                                                            "name": "colorM7",
-                                                            "row": countRow,
-                                                            "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
                                         dataColorM2["actionM7"] = {
-                                                            "name": "colorM7",
-                                                            "row": countRow,
-                                                            "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
                                         dataColorM3["actionM7"] = {
-                                                            "name": "colorM7",
-                                                            "row": countRow,
-                                                            "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
                                         dataColorM4["actionM7"] = {
-                                                            "name": "colorM7",
-                                                            "row": countRow,
-                                                            "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
                                         dataColorM5["actionM7"] = {
-                                                            "name": "colorM7",
-                                                            "row": countRow,
-                                                            "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
                                         dataColorM6["actionM7"] = {
-                                                            "name": "colorM7",
-                                                            "row": countRow,
-                                                            "col": dataColorM7["col"],
-                                                            "isColor": dataColorM7[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM7",
+                                            "row": countRow,
+                                            "col": dataColorM7["col"],
+                                            "isColor": dataColorM7["notice"],
+                                        }
 
-                                    if dataColorM6 and self.ban_info["meta"]["tables"][5]["enable"] == True:
+                                    if (
+                                        dataColorM6
+                                        and self.ban_info["meta"]["tables"][5]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor6.append(dataColorM6)
                                         dataCount["actionM6"] = {
                                             "name": "colorM6",
@@ -7283,47 +7210,41 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM6["notice"],
                                         }
                                         dataColorM1["actionM6"] = {
-                                                            "name": "colorM6",
-                                                            "row": countRow,
-                                                            "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM6",
+                                            "row": countRow,
+                                            "col": dataColorM6["col"],
+                                            "isColor": dataColorM6["notice"],
+                                        }
                                         dataColorM2["actionM6"] = {
-                                                            "name": "colorM6",
-                                                            "row": countRow,
-                                                            "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM6",
+                                            "row": countRow,
+                                            "col": dataColorM6["col"],
+                                            "isColor": dataColorM6["notice"],
+                                        }
                                         dataColorM3["actionM6"] = {
-                                                            "name": "colorM6",
-                                                            "row": countRow,
-                                                            "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM6",
+                                            "row": countRow,
+                                            "col": dataColorM6["col"],
+                                            "isColor": dataColorM6["notice"],
+                                        }
                                         dataColorM4["actionM6"] = {
-                                                            "name": "colorM6",
-                                                            "row": countRow,
-                                                            "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM6",
+                                            "row": countRow,
+                                            "col": dataColorM6["col"],
+                                            "isColor": dataColorM6["notice"],
+                                        }
                                         dataColorM5["actionM6"] = {
-                                                            "name": "colorM6",
-                                                            "row": countRow,
-                                                            "col": dataColorM6["col"],
-                                                            "isColor": dataColorM6[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM6",
+                                            "row": countRow,
+                                            "col": dataColorM6["col"],
+                                            "isColor": dataColorM6["notice"],
+                                        }
 
-                                    if dataColorM5 and self.ban_info["meta"]["tables"][4]["enable"] == True:
+                                    if (
+                                        dataColorM5
+                                        and self.ban_info["meta"]["tables"][4]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor5.append(dataColorM5)
                                         dataCount["actionM5"] = {
                                             "name": "colorM5",
@@ -7332,39 +7253,35 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM5["notice"],
                                         }
                                         dataColorM1["actionM5"] = {
-                                                            "name": "colorM5",
-                                                            "row": countRow,
-                                                            "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM5",
+                                            "row": countRow,
+                                            "col": dataColorM5["col"],
+                                            "isColor": dataColorM5["notice"],
+                                        }
                                         dataColorM2["actionM5"] = {
-                                                            "name": "colorM5",
-                                                            "row": countRow,
-                                                            "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM5",
+                                            "row": countRow,
+                                            "col": dataColorM5["col"],
+                                            "isColor": dataColorM5["notice"],
+                                        }
                                         dataColorM3["actionM5"] = {
-                                                            "name": "colorM5",
-                                                            "row": countRow,
-                                                            "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM5",
+                                            "row": countRow,
+                                            "col": dataColorM5["col"],
+                                            "isColor": dataColorM5["notice"],
+                                        }
                                         dataColorM4["actionM5"] = {
-                                                            "name": "colorM5",
-                                                            "row": countRow,
-                                                            "col": dataColorM5["col"],
-                                                            "isColor": dataColorM5[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM5",
+                                            "row": countRow,
+                                            "col": dataColorM5["col"],
+                                            "isColor": dataColorM5["notice"],
+                                        }
 
-                                    if dataColorM4 and self.ban_info["meta"]["tables"][3]["enable"] == True:
+                                    if (
+                                        dataColorM4
+                                        and self.ban_info["meta"]["tables"][3]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor4.append(dataColorM4)
                                         dataCount["actionM4"] = {
                                             "name": "colorM4",
@@ -7373,31 +7290,29 @@ class TinhAndMauPage(QWidget):
                                             "isColor": dataColorM4["notice"],
                                         }
                                         dataColorM1["actionM4"] = {
-                                                            "name": "colorM4",
-                                                            "row": countRow,
-                                                            "col": dataColorM4["col"],
-                                                            "isColor": dataColorM4[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM4",
+                                            "row": countRow,
+                                            "col": dataColorM4["col"],
+                                            "isColor": dataColorM4["notice"],
+                                        }
                                         dataColorM2["actionM4"] = {
-                                                            "name": "colorM4",
-                                                            "row": countRow,
-                                                            "col": dataColorM4["col"],
-                                                            "isColor": dataColorM4[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM4",
+                                            "row": countRow,
+                                            "col": dataColorM4["col"],
+                                            "isColor": dataColorM4["notice"],
+                                        }
                                         dataColorM3["actionM4"] = {
-                                                            "name": "colorM4",
-                                                            "row": countRow,
-                                                            "col": dataColorM4["col"],
-                                                            "isColor": dataColorM4[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM4",
+                                            "row": countRow,
+                                            "col": dataColorM4["col"],
+                                            "isColor": dataColorM4["notice"],
+                                        }
 
-                                    if dataColorM3 and self.ban_info["meta"]["tables"][2]["enable"] == True:
+                                    if (
+                                        dataColorM3
+                                        and self.ban_info["meta"]["tables"][2]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor3.append(dataColorM3)
                                         dataCount["actionM3"] = {
                                             "name": "colorM3",
@@ -7407,24 +7322,24 @@ class TinhAndMauPage(QWidget):
                                         }
 
                                         dataColorM1["actionM3"] = {
-                                                            "name": "colorM3",
-                                                            "row": countRow,
-                                                            "col": dataColorM3["col"],
-                                                            "isColor": dataColorM3[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM3",
+                                            "row": countRow,
+                                            "col": dataColorM3["col"],
+                                            "isColor": dataColorM3["notice"],
+                                        }
 
                                         dataColorM2["actionM3"] = {
-                                                            "name": "colorM3",
-                                                            "row": countRow,
-                                                            "col": dataColorM3["col"],
-                                                            "isColor": dataColorM3[
-                                                                "notice"
-                                                            ],
-                                                        }
+                                            "name": "colorM3",
+                                            "row": countRow,
+                                            "col": dataColorM3["col"],
+                                            "isColor": dataColorM3["notice"],
+                                        }
 
-                                    if dataColorM2 and self.ban_info["meta"]["tables"][1]["enable"] == True:
+                                    if (
+                                        dataColorM2
+                                        and self.ban_info["meta"]["tables"][1]["enable"]
+                                        == True
+                                    ):
                                         self.dataColor2.append(dataColorM2)
                                         dataCount["actionM2"] = {
                                             "name": "colorM2",
@@ -7462,23 +7377,22 @@ class TinhAndMauPage(QWidget):
                                             "isDeleted": isDeleted,
                                         }
                                     )
-                            # / End check col_c is first
+                                # / End check col_c is first
                             else:
-                                # / Add Data to Table count without math
                                 self.dataCount.append(
-                                    {
-                                        "row": countRow,
-                                        "col": total_column,
-                                        "color": isEqual,
-                                        "data": f"{col_a}/{col_d}",
-                                        "notice": isNoticeCount,
-                                        "date": item_date,
-                                        "color_value": col_d,
-                                        "isDeleted": isDeleted,
-                                    }
-                                )
-
+                                {
+                                    "row": countRow,
+                                    "col": total_column,
+                                    "color": isEqual,
+                                    "data": f"{col_a}/{col_d}",
+                                    "notice": isNoticeCount,
+                                    "date": item_date,
+                                    "color_value": col_d,
+                                    "isDeleted": isDeleted,
+                                }
+                            )
                         else:
+                            # / Add Data to Table count without math
                             self.dataCount.append(
                                 {
                                     "row": countRow,
@@ -7486,10 +7400,24 @@ class TinhAndMauPage(QWidget):
                                     "color": isEqual,
                                     "data": f"{col_a}/{col_d}",
                                     "notice": isNoticeCount,
+                                    "date": item_date,
                                     "color_value": col_d,
                                     "isDeleted": isDeleted,
                                 }
                             )
+
+                    else:
+                        self.dataCount.append(
+                            {
+                                "row": countRow,
+                                "col": total_column,
+                                "color": isEqual,
+                                "data": f"{col_a}/{col_d}",
+                                "notice": isNoticeCount,
+                                "color_value": col_d,
+                                "isDeleted": isDeleted,
+                            }
+                        )
                     if isEqual:
                         # / Reset Count col_d if isEqual
                         self.count_handler[dem_col_row] = 0
@@ -8187,24 +8115,36 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                "actionM1": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color,
-                    "isColor": isNoticeColor,
-                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
-                "actionM2": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m2,
-                    "isColor": isNoticeColor_m2,
-                } if self.ban_info["meta"]["tables"][1]["enable"] else None,
-                "actionM3": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m3,
-                    "isColor": isNoticeColor_m3,
-                } if self.ban_info["meta"]["tables"][2]["enable"] else None,
+                "actionM1": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color,
+                        "isColor": isNoticeColor,
+                    }
+                    if self.ban_info["meta"]["tables"][0]["enable"]
+                    else None
+                ),
+                "actionM2": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m2,
+                        "isColor": isNoticeColor_m2,
+                    }
+                    if self.ban_info["meta"]["tables"][1]["enable"]
+                    else None
+                ),
+                "actionM3": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m3,
+                        "isColor": isNoticeColor_m3,
+                    }
+                    if self.ban_info["meta"]["tables"][2]["enable"]
+                    else None
+                ),
                 "notice": isNoticeColor_m4,
                 "date": item_date,
                 "color_value": col_e4,
@@ -8310,30 +8250,46 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                "actionM1": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color,
-                    "isColor": isNoticeColor,
-                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
-                "actionM2": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m2,
-                    "isColor": isNoticeColor_m2,
-                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
-                "actionM3": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m3,
-                    "isColor": isNoticeColor_m3,
-                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
-                "actionM4": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m4,
-                    "isColor": isNoticeColor_m4,
-                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
+                "actionM1": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color,
+                        "isColor": isNoticeColor,
+                    }
+                    if self.ban_info["meta"]["tables"][0]["enable"]
+                    else None
+                ),
+                "actionM2": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m2,
+                        "isColor": isNoticeColor_m2,
+                    }
+                    if self.ban_info["meta"]["tables"][1]["enable"]
+                    else None
+                ),
+                "actionM3": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m3,
+                        "isColor": isNoticeColor_m3,
+                    }
+                    if self.ban_info["meta"]["tables"][2]["enable"]
+                    else None
+                ),
+                "actionM4": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m4,
+                        "isColor": isNoticeColor_m4,
+                    }
+                    if self.ban_info["meta"]["tables"][3]["enable"]
+                    else None
+                ),
                 "notice": isNoticeColor_m5,
                 "date": item_date,
                 "color_value": col_e5,
@@ -8442,36 +8398,56 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                "actionM1": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color,
-                    "isColor": isNoticeColor,
-                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
-                "actionM2": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m2,
-                    "isColor": isNoticeColor_m2,
-                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
-                "actionM3": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m3,
-                    "isColor": isNoticeColor_m3,
-                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
-                "actionM4": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m4,
-                    "isColor": isNoticeColor_m4,
-                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
-                "actionM5": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m5,
-                    "isColor": isNoticeColor_m5,
-                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
+                "actionM1": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color,
+                        "isColor": isNoticeColor,
+                    }
+                    if self.ban_info["meta"]["tables"][0]["enable"]
+                    else None
+                ),
+                "actionM2": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m2,
+                        "isColor": isNoticeColor_m2,
+                    }
+                    if self.ban_info["meta"]["tables"][1]["enable"]
+                    else None
+                ),
+                "actionM3": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m3,
+                        "isColor": isNoticeColor_m3,
+                    }
+                    if self.ban_info["meta"]["tables"][2]["enable"]
+                    else None
+                ),
+                "actionM4": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m4,
+                        "isColor": isNoticeColor_m4,
+                    }
+                    if self.ban_info["meta"]["tables"][3]["enable"]
+                    else None
+                ),
+                "actionM5": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m5,
+                        "isColor": isNoticeColor_m5,
+                    }
+                    if self.ban_info["meta"]["tables"][4]["enable"]
+                    else None
+                ),
                 "notice": isNoticeColor_m6,
                 "date": item_date,
                 "color_value": col_e6,
@@ -8583,42 +8559,66 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                "actionM1": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color,
-                    "isColor": isNoticeColor,
-                } if self.ban_info["meta"]["tables"][0]["enable"] else None,
-                "actionM2": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m2,
-                    "isColor": isNoticeColor_m2,
-                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
-                "actionM3": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m3,
-                    "isColor": isNoticeColor_m3,
-                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
-                "actionM4": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m4,
-                    "isColor": isNoticeColor_m4,
-                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
-                "actionM5": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m5,
-                    "isColor": isNoticeColor_m5,
-                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
-                "actionM6": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m6,
-                    "isColor": isNoticeColor_m6,
-                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
+                "actionM1": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color,
+                        "isColor": isNoticeColor,
+                    }
+                    if self.ban_info["meta"]["tables"][0]["enable"]
+                    else None
+                ),
+                "actionM2": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m2,
+                        "isColor": isNoticeColor_m2,
+                    }
+                    if self.ban_info["meta"]["tables"][1]["enable"]
+                    else None
+                ),
+                "actionM3": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m3,
+                        "isColor": isNoticeColor_m3,
+                    }
+                    if self.ban_info["meta"]["tables"][2]["enable"]
+                    else None
+                ),
+                "actionM4": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m4,
+                        "isColor": isNoticeColor_m4,
+                    }
+                    if self.ban_info["meta"]["tables"][3]["enable"]
+                    else None
+                ),
+                "actionM5": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m5,
+                        "isColor": isNoticeColor_m5,
+                    }
+                    if self.ban_info["meta"]["tables"][4]["enable"]
+                    else None
+                ),
+                "actionM6": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m6,
+                        "isColor": isNoticeColor_m6,
+                    }
+                    if self.ban_info["meta"]["tables"][5]["enable"]
+                    else None
+                ),
                 "notice": isNoticeColor_m7,
                 "date": item_date,
                 "color_value": col_e7,
@@ -8733,48 +8733,76 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                "actionM1": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color,
-                    "isColor": isNoticeColor,
-                }if self.ban_info["meta"]["tables"][0]["enable"] else None,
-                "actionM2": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m2,
-                    "isColor": isNoticeColor_m2,
-                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
-                "actionM3": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m3,
-                    "isColor": isNoticeColor_m3,
-                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
-                "actionM4": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m4,
-                    "isColor": isNoticeColor_m4,
-                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
-                "actionM5": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m5,
-                    "isColor": isNoticeColor_m5,
-                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
-                "actionM6": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m6,
-                    "isColor": isNoticeColor_m6,
-                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
-                "actionM7": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m7,
-                    "isColor": isNoticeColor_m7,
-                }if self.ban_info["meta"]["tables"][6]["enable"] else None,
+                "actionM1": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color,
+                        "isColor": isNoticeColor,
+                    }
+                    if self.ban_info["meta"]["tables"][0]["enable"]
+                    else None
+                ),
+                "actionM2": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m2,
+                        "isColor": isNoticeColor_m2,
+                    }
+                    if self.ban_info["meta"]["tables"][1]["enable"]
+                    else None
+                ),
+                "actionM3": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m3,
+                        "isColor": isNoticeColor_m3,
+                    }
+                    if self.ban_info["meta"]["tables"][2]["enable"]
+                    else None
+                ),
+                "actionM4": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m4,
+                        "isColor": isNoticeColor_m4,
+                    }
+                    if self.ban_info["meta"]["tables"][3]["enable"]
+                    else None
+                ),
+                "actionM5": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m5,
+                        "isColor": isNoticeColor_m5,
+                    }
+                    if self.ban_info["meta"]["tables"][4]["enable"]
+                    else None
+                ),
+                "actionM6": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m6,
+                        "isColor": isNoticeColor_m6,
+                    }
+                    if self.ban_info["meta"]["tables"][5]["enable"]
+                    else None
+                ),
+                "actionM7": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m7,
+                        "isColor": isNoticeColor_m7,
+                    }
+                    if self.ban_info["meta"]["tables"][6]["enable"]
+                    else None
+                ),
                 "notice": isNoticeColor_m8,
                 "date": item_date,
                 "color_value": col_e8,
@@ -8892,55 +8920,86 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                
-                "actionM1": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color,
-                    "isColor": isNoticeColor,
-                }if self.ban_info["meta"]["tables"][0]["enable"] else None,
-                "actionM2": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m2,
-                    "isColor": isNoticeColor_m2,
-                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
-                "actionM3": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m3,
-                    "isColor": isNoticeColor_m3,
-                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
-                "actionM4": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m4,
-                    "isColor": isNoticeColor_m4,
-                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
-                "actionM5": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m5,
-                    "isColor": isNoticeColor_m5,
-                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
-                "actionM6": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m6,
-                    "isColor": isNoticeColor_m6,
-                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
-                "actionM7": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m7,
-                    "isColor": isNoticeColor_m7,
-                }if self.ban_info["meta"]["tables"][6]["enable"] else None,
-                "actionM8": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m8,
-                    "isColor": isNoticeColor_m8,
-                }if self.ban_info["meta"]["tables"][7]["enable"] else None,
+                "actionM1": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color,
+                        "isColor": isNoticeColor,
+                    }
+                    if self.ban_info["meta"]["tables"][0]["enable"]
+                    else None
+                ),
+                "actionM2": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m2,
+                        "isColor": isNoticeColor_m2,
+                    }
+                    if self.ban_info["meta"]["tables"][1]["enable"]
+                    else None
+                ),
+                "actionM3": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m3,
+                        "isColor": isNoticeColor_m3,
+                    }
+                    if self.ban_info["meta"]["tables"][2]["enable"]
+                    else None
+                ),
+                "actionM4": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m4,
+                        "isColor": isNoticeColor_m4,
+                    }
+                    if self.ban_info["meta"]["tables"][3]["enable"]
+                    else None
+                ),
+                "actionM5": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m5,
+                        "isColor": isNoticeColor_m5,
+                    }
+                    if self.ban_info["meta"]["tables"][4]["enable"]
+                    else None
+                ),
+                "actionM6": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m6,
+                        "isColor": isNoticeColor_m6,
+                    }
+                    if self.ban_info["meta"]["tables"][5]["enable"]
+                    else None
+                ),
+                "actionM7": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m7,
+                        "isColor": isNoticeColor_m7,
+                    }
+                    if self.ban_info["meta"]["tables"][6]["enable"]
+                    else None
+                ),
+                "actionM8": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m8,
+                        "isColor": isNoticeColor_m8,
+                    }
+                    if self.ban_info["meta"]["tables"][7]["enable"]
+                    else None
+                ),
                 "notice": isNoticeColor_m9,
                 "date": item_date,
                 "color_value": col_e9,
@@ -9061,60 +9120,96 @@ class TinhAndMauPage(QWidget):
                     "col": total_column,
                     "isColor": isNoticeCount,
                 },
-                 "actionM1": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color,
-                    "isColor": isNoticeColor,
-                }if self.ban_info["meta"]["tables"][0]["enable"] else None,
-                "actionM2": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m2,
-                    "isColor": isNoticeColor_m2,
-                }if self.ban_info["meta"]["tables"][1]["enable"] else None,
-                "actionM3": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m3,
-                    "isColor": isNoticeColor_m3,
-                }if self.ban_info["meta"]["tables"][2]["enable"] else None,
-                "actionM4": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m4,
-                    "isColor": isNoticeColor_m4,
-                }if self.ban_info["meta"]["tables"][3]["enable"] else None,
-                "actionM5": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m5,
-                    "isColor": isNoticeColor_m5,
-                }if self.ban_info["meta"]["tables"][4]["enable"] else None,
-                "actionM6": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m6,
-                    "isColor": isNoticeColor_m6,
-                }if self.ban_info["meta"]["tables"][5]["enable"] else None,
-                "actionM7": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m7,
-                    "isColor": isNoticeColor_m7,
-                }if self.ban_info["meta"]["tables"][6]["enable"] else None,
-                "actionM8": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m8,
-                    "isColor": isNoticeColor_m8,
-                }if self.ban_info["meta"]["tables"][7]["enable"] else None,
-                "actionM9": {
-                    "name": "color",
-                    "row": countRow,
-                    "col": col_color_m9,
-                    "isColor": isNoticeColor_m9,
-                }if self.ban_info["meta"]["tables"][8]["enable"] else None,
+                "actionM1": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color,
+                        "isColor": isNoticeColor,
+                    }
+                    if self.ban_info["meta"]["tables"][0]["enable"]
+                    else None
+                ),
+                "actionM2": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m2,
+                        "isColor": isNoticeColor_m2,
+                    }
+                    if self.ban_info["meta"]["tables"][1]["enable"]
+                    else None
+                ),
+                "actionM3": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m3,
+                        "isColor": isNoticeColor_m3,
+                    }
+                    if self.ban_info["meta"]["tables"][2]["enable"]
+                    else None
+                ),
+                "actionM4": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m4,
+                        "isColor": isNoticeColor_m4,
+                    }
+                    if self.ban_info["meta"]["tables"][3]["enable"]
+                    else None
+                ),
+                "actionM5": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m5,
+                        "isColor": isNoticeColor_m5,
+                    }
+                    if self.ban_info["meta"]["tables"][4]["enable"]
+                    else None
+                ),
+                "actionM6": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m6,
+                        "isColor": isNoticeColor_m6,
+                    }
+                    if self.ban_info["meta"]["tables"][5]["enable"]
+                    else None
+                ),
+                "actionM7": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m7,
+                        "isColor": isNoticeColor_m7,
+                    }
+                    if self.ban_info["meta"]["tables"][6]["enable"]
+                    else None
+                ),
+                "actionM8": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m8,
+                        "isColor": isNoticeColor_m8,
+                    }
+                    if self.ban_info["meta"]["tables"][7]["enable"]
+                    else None
+                ),
+                "actionM9": (
+                    {
+                        "name": "color",
+                        "row": countRow,
+                        "col": col_color_m9,
+                        "isColor": isNoticeColor_m9,
+                    }
+                    if self.ban_info["meta"]["tables"][8]["enable"]
+                    else None
+                ),
                 "notice": isNoticeColor_m10,
                 "date": item_date,
                 "color_value": col_e10,

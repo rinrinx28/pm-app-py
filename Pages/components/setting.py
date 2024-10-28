@@ -17,11 +17,7 @@ from Pages.components.path import Path
 from PySide6.QtGui import QIcon
 from PySide6.QtGui import Qt, QCursor
 from Controller.handler import updateColorInsert, enableTables
-from Pages.components.stylesheet import (
-    css_button_submit,
-    css_input,
-    SendMessage
-)
+from Pages.components.stylesheet import css_button_submit, css_input, SendMessage
 
 from functools import partial
 
@@ -229,7 +225,7 @@ class SettingTable(QDialog):
         s_value_change_spinbox_1 = QSpinBox()
         s_value_change_l.addWidget(s_value_change_spinbox_1, 1, 0)
         s_value_change_spinbox_1.setMinimum(0)
-        s_value_change_spinbox_1.setMaximum(5)
+        s_value_change_spinbox_1.setMaximum(10)
         s_value_change_spinbox_1.setStyleSheet(css_input)
         s_value_change_spinbox_1.setValue(self.ban_info["meta"]["number"])
 
@@ -569,6 +565,18 @@ class SettingTable(QDialog):
         # Create the content widget to put inside the scroll area
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
+        content_layout.setSpacing(20)
+
+        # Danh sách để lưu trữ tất cả các QSpinBox
+        spin_boxes = []
+
+        # Hàm để tắt hoặc bật tất cả SpinBox
+        def toggle_all_spinboxes():
+            all_enabled = any(
+                spinbox.isEnabled() for spinbox in spin_boxes
+            )  # Kiểm tra xem có SpinBox nào đang hoạt động không
+            for spinbox in spin_boxes:
+                spinbox.setEnabled(not all_enabled)  # Tắt hoặc bật tất cả SpinBox
 
         for i in range(120):
             widget_label = QWidget()
@@ -579,10 +587,13 @@ class SettingTable(QDialog):
             label.setStyleSheet("font-size: 24px;border: 0px;")
 
             spin_label = QSpinBox()
+            spin_label.setDisabled(True)
             spin_label.setMinimum(1)
             spin_label.setStyleSheet("font-size: 24px;border: 0px;")
             spin_label.setValue(info_table["col_d"][i])
             spin_label.valueChanged.connect(partial(self.change_table_col_d, type, i))
+
+            spin_boxes.append(spin_label)  # Thêm SpinBox vào danh sách
 
             label_layout.addWidget(label)
             label_layout.addWidget(spin_label)
@@ -592,6 +603,14 @@ class SettingTable(QDialog):
         scroll_area.setWidget(content_widget)
 
         layout.addWidget(scroll_area)
+
+        # Tạo nút để tắt hoặc bật tất cả SpinBox
+        toggle_button = QPushButton("Bật Tắt Tùy Chỉnh D")
+        toggle_button.setStyleSheet(css_button_submit)
+        toggle_button.clicked.connect(
+            toggle_all_spinboxes
+        )  # Kết nối nút với hàm toggle_all_spinboxes
+        layout.addWidget(toggle_button)  # Thêm nút vào layout
 
         # / Add Notice Color
         notice = QWidget()

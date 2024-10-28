@@ -1,75 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>994</width>
-    <height>904</height>
+    <width>1071</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Form</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="widget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>110</y>
-      <width>781</width>
-      <height>171</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border: 1px solid #999;</string>
-    </property>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>11</x>
-       <y>11</y>
-       <width>55</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="">
-     <property name="geometry">
-      <rect>
-       <x>11</x>
-       <y>118</y>
-       <width>471</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QSpinBox" name="spinBox"/>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="spinBox_2"/>
-      </item>
-     </layout>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
+  <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>994</width>
-     <height>21</height>
+     <x>20</x>
+     <y>10</y>
+     <width>1001</width>
+     <height>702</height>
     </rect>
    </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>20</number>
+    </property>
+    <item>
+     <widget class="QSpinBox" name="spinBox"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_2"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_3"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_4"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_6"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_7"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_8"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_9"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_10"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_11"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_12"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_13"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_5"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_14"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_17"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_18"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_16"/>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinBox_15"/>
+    </item>
+   </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

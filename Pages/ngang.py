@@ -152,9 +152,9 @@ class NgangPage(QWidget):
 
         # / Change_number Button
         # TODO Config Change Number
-        number = 6
+        number = 11
         self.Change_number = QComboBox()
-        self.Change_number.setStyleSheet(css_input)
+        self.Change_number.setStyleSheet("font-size: 24px;line-height: 32px;")
         self.Change_number.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.Change_number)
         for i in range(number):
