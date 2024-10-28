@@ -555,16 +555,14 @@ class SettingTable(QDialog):
         title.setStyleSheet("font-size:24px;\ncolor:red;")
         layout.addWidget(title)
 
-        # Create the scrollarea
+        # Tạo scroll area
         scroll_area = QScrollArea(widget)
-        scroll_area.setFixedHeight(400)
-        scroll_area.setWidgetResizable(
-            True
-        )  # Ensure the widget inside scrolls as needed
+        scroll_area.setFixedHeight(500)
+        scroll_area.setWidgetResizable(True)
 
-        # Create the content widget to put inside the scroll area
+        # Tạo widget chứa các nội dung để thêm vào scroll area
         content_widget = QWidget()
-        content_layout = QVBoxLayout(content_widget)
+        content_layout = QGridLayout(content_widget)
         content_layout.setSpacing(20)
 
         # Danh sách để lưu trữ tất cả các QSpinBox
@@ -572,12 +570,11 @@ class SettingTable(QDialog):
 
         # Hàm để tắt hoặc bật tất cả SpinBox
         def toggle_all_spinboxes():
-            all_enabled = any(
-                spinbox.isEnabled() for spinbox in spin_boxes
-            )  # Kiểm tra xem có SpinBox nào đang hoạt động không
+            all_enabled = any(spinbox.isEnabled() for spinbox in spin_boxes)
             for spinbox in spin_boxes:
-                spinbox.setEnabled(not all_enabled)  # Tắt hoặc bật tất cả SpinBox
+                spinbox.setEnabled(not all_enabled)
 
+        # Thêm các widget vào lưới 4 cột
         for i in range(120):
             widget_label = QWidget()
             widget_label.setStyleSheet("border: 1px solid #999;")
@@ -593,24 +590,18 @@ class SettingTable(QDialog):
             spin_label.setValue(info_table["col_d"][i])
             spin_label.valueChanged.connect(partial(self.change_table_col_d, type, i))
 
-            spin_boxes.append(spin_label)  # Thêm SpinBox vào danh sách
+            spin_boxes.append(spin_label)
 
             label_layout.addWidget(label)
             label_layout.addWidget(spin_label)
 
-            content_layout.addWidget(widget_label)
+            # Thêm widget vào lưới 4 cột
+            row = i // 4
+            col = i % 4
+            content_layout.addWidget(widget_label, row, col)
 
         scroll_area.setWidget(content_widget)
-
         layout.addWidget(scroll_area)
-
-        # Tạo nút để tắt hoặc bật tất cả SpinBox
-        toggle_button = QPushButton("Bật Tắt Tùy Chỉnh D")
-        toggle_button.setStyleSheet(css_button_submit)
-        toggle_button.clicked.connect(
-            toggle_all_spinboxes
-        )  # Kết nối nút với hàm toggle_all_spinboxes
-        layout.addWidget(toggle_button)  # Thêm nút vào layout
 
         # / Add Notice Color
         notice = QWidget()
@@ -630,20 +621,25 @@ class SettingTable(QDialog):
         notice_spinBox_1 = QSpinBox()
         notice_spinBox_1.setMinimum(0)
         notice_spinBox_1.setMaximum(999)
-        notice_spinBox_1.setStyleSheet(css_input)
+        notice_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
         notice_spinBox_1.setValue(
             self.old_data[f'color{"M"+str(type + 1) if type != 0 else ""}'][0]
         )
         notice_spinBox_2 = QSpinBox()
         notice_spinBox_2.setMinimum(0)
         notice_spinBox_2.setMaximum(999)
-        notice_spinBox_2.setStyleSheet(css_input)
+        notice_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
         notice_spinBox_2.setValue(
             self.old_data[f'color{"M"+str(type + 1) if type != 0 else ""}'][1]
         )
 
         notice_spinBox_l.addWidget(notice_spinBox_1)
         notice_spinBox_l.addWidget(notice_spinBox_2)
+
+        notice_spinBox_1.setDisabled(True)
+        notice_spinBox_2.setDisabled(True)
+        spin_boxes.append(notice_spinBox_1)
+        spin_boxes.append(notice_spinBox_2)
 
         # / Add Config Col D
         config_col = QWidget()
@@ -664,14 +660,14 @@ class SettingTable(QDialog):
         config_col_spinBox_1 = QSpinBox()
         config_col_spinBox_1.setMinimum(1)
         config_col_spinBox_1.setMaximum(120)
-        config_col_spinBox_1.setStyleSheet(css_input)
+        config_col_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
         config_col_spinBox_1.setValue(
             self.col_e[f"col_e{type + 1 if type != 0 else ''}"][0]
         )
         config_col_spinBox_2 = QSpinBox()
         config_col_spinBox_2.setMinimum(1)
         config_col_spinBox_2.setMaximum(120)
-        config_col_spinBox_2.setStyleSheet(css_input)
+        config_col_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
         config_col_spinBox_2.setValue(
             self.col_e[f"col_e{type + 1 if type != 0 else ''}"][1]
         )
@@ -679,10 +675,21 @@ class SettingTable(QDialog):
         config_col_spinBox_l.addWidget(config_col_spinBox_1)
         config_col_spinBox_l.addWidget(config_col_spinBox_2)
 
+        config_col_spinBox_1.setDisabled(True)
+        config_col_spinBox_2.setDisabled(True)
+        spin_boxes.append(config_col_spinBox_1)
+        spin_boxes.append(config_col_spinBox_2)
+
         verticalSpacer2 = QSpacerItem(
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         )
         layout.addItem(verticalSpacer2)
+
+        # Tạo nút để bật/tắt tất cả SpinBox
+        toggle_button = QPushButton("Bật Tắt Tùy Chỉnh D")
+        toggle_button.setStyleSheet(css_button_submit)
+        toggle_button.clicked.connect(toggle_all_spinboxes)
+        layout.addWidget(toggle_button)
 
         # TODO Handler Func
         # / Notice Color

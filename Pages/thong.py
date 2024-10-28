@@ -588,6 +588,7 @@ class ThongPage(QWidget):
     def delete_all_rows(self):
         rowCount = len(self.thong_data[0])
         stt = self.thong_db["stt"][self.ChangeNumber.currentIndex()]
+        data_value = self.thong_db["data"]
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -598,6 +599,15 @@ class ThongPage(QWidget):
         for i in range(len(self.thong_data)):
             for j in range(len(self.thong_data[i])):
                 self.thong_data[i][j] = ""
+
+        for i in range(len(data_value)):
+            value_col = data_value[i]
+            for j in range(len(value_col)):
+                item = QTableWidgetItem(f"{value_col[j]}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main.setItem(j, i + 2, item)
+                if i + 2 == 2 or i + 2 == 4:
+                    item.setBackground(self.stt_highlight)
 
         # * Render Rows STT First
         for i in range(rowCount):
