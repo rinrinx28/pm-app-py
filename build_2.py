@@ -35,35 +35,35 @@ if __name__ == "__main__":
             shutil.rmtree(file)
     app_v = 3
 
-    for v in range(app_v):
-        for c in range(1, 4):
-            count = c + v * 30
-            new_app_file = os.path.join(destination_directory, f"{count}")
-            if os.path.exists(new_app_file):
-                shutil.rmtree(new_app_file)
+    # for v in range(app_v):
+    for c in range(1):
+        count = 90
+        new_app_file = os.path.join(destination_directory, f"{count}")
+        if os.path.exists(new_app_file):
+            shutil.rmtree(new_app_file)
 
-            os.makedirs(new_app_file, exist_ok=True)
-            # Change Path Data for Application
-            path_data = os.path.join(current_dir, "path_file.txt")
-            with open(path_data, "r") as file:
-                data_file = file.read()
+        os.makedirs(new_app_file, exist_ok=True)
+        # Change Path Data for Application
+        path_data = os.path.join(current_dir, "path_file.txt")
+        with open(path_data, "r") as file:
+            data_file = file.read()
 
-            data_file_arr = data_file.split("/")
-            data_file_arr[len(data_file_arr) - 1] = f"{count}"
-            data_file_new = "/".join(data_file_arr)
-            with open(path_data, "w", encoding="utf-8") as file:
-                file.write(data_file_new)
+        data_file_arr = data_file.split("/")
+        data_file_arr[len(data_file_arr) - 1] = f"{count}"
+        data_file_new = "/".join(data_file_arr)
+        with open(path_data, "w", encoding="utf-8") as file:
+            file.write(data_file_new)
 
-            # Running Command
-            print("Running command:", command)
-            return_code = run_command(command)
+        # Running Command
+        print("Running command:", command)
+        return_code = run_command(command)
 
-            if return_code == 0:
-                print("Command completed successfully.")
+        if return_code == 0:
+            print("Command completed successfully.")
 
-                # Di chuyển các file và thư mục
-                move_files_and_dirs(files_and_dirs_to_move, new_app_file)
+            # Di chuyển các file và thư mục
+            move_files_and_dirs(files_and_dirs_to_move, new_app_file)
 
-                print(f"Files and directories moved successfully. App {count}")
-            else:
-                print("Command failed with return code:", return_code)
+            print(f"Files and directories moved successfully. App {count}")
+        else:
+            print("Command failed with return code:", return_code)

@@ -1,59 +1,32 @@
-from Pages.components.path import Path
-from PySide6.QtWidgets import (
-    QWidget,
-    QHBoxLayout,
-    QVBoxLayout,
-    QStackedWidget,
-    QPushButton,
-    QDialog,
-    QGridLayout,
-    QLabel,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
-    QSpinBox,
-    QSplitter,
-    QDateEdit,
-    QCheckBox,
-    QMessageBox,
-    QMenu,
-    QScrollArea,
-    QFrame,
-    QApplication,
-)
-from PySide6.QtGui import Qt, QCursor, QIcon, QColor, QAction, QFont
-from PySide6.QtCore import QDate, QTimer
-from Pages.components.stylesheet import (
-    css_button_cancel,
-    css_button_submit,
-    css_input,
-    Font,
-    css_lable,
-    SendMessage,
-    css_button_view,
-    css_button_normal,
-    css_button_notice,
-    css_title,
-    css_customs_table,
-    css_button_checkbox,
-    css_table_header,
-    Note,
-)
-import json
-from Controller.handler import (
-    updateBanInsert,
-    updateThongInsert,
-    updateColorInsert,
-    deleteRowBan,
-    deleteFromToBan,
-    TachVaGhep,
-)
 import bisect
-from functools import partial
+import json
 import os
+from functools import partial
+
+from PySide6.QtCore import QDate, QTimer
+from PySide6.QtGui import QAction, QColor, QCursor, QFont, QIcon, Qt
+from PySide6.QtWidgets import (QApplication, QCheckBox, QDateEdit, QDialog,
+                               QFrame, QGridLayout, QHBoxLayout, QHeaderView,
+                               QLabel, QMenu, QMessageBox, QPushButton,
+                               QScrollArea, QSpinBox, QSplitter,
+                               QStackedWidget, QTableWidget, QTableWidgetItem,
+                               QVBoxLayout, QWidget)
+
+from Controller.handler import (TachVaGhep, deleteFromToBan, deleteRowBan,
+                                updateBanInsert, updateColorInsert,
+                                updateThongInsert)
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
+from Pages.components.path import Path
 from Pages.components.setting import SettingTable
+from Pages.components.stylesheet import (Font, Note, SendMessage,
+                                         css_button_cancel,
+                                         css_button_checkbox,
+                                         css_button_normal, css_button_notice,
+                                         css_button_submit, css_button_view,
+                                         css_customs_table, css_input,
+                                         css_lable, css_table_header,
+                                         css_title)
 
 
 class TinhAndMauPage(QWidget):
@@ -67,7 +40,7 @@ class TinhAndMauPage(QWidget):
 
         # / Load Title and Icon Page
         self.setWindowTitle(
-            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam"
+            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam - maikien06091966@gmail.com  - Chủ sáng lập, thiết kế và mã hóa dữ liệu: Mai Đình Kiên - Số Điện Thoại: 0964636709"
         )
         logo_path = self.path.path_logo()
         icon = QIcon(logo_path)

@@ -37,7 +37,7 @@ class NgangPage(QWidget):
         self.path = Path()
         self.layout_ngang = QVBoxLayout(self)
         self.setWindowTitle(
-            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam"
+            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam - maikien06091966@gmail.com  - Chủ sáng lập, thiết kế và mã hóa dữ liệu: Mai Đình Kiên - Số Điện Thoại: 0964636709"
         )
         logo_path = self.path.path_logo()
         icon = QIcon(logo_path)

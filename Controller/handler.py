@@ -349,7 +349,7 @@ def updateBanInsert(data):
     insert = data["insert"]
     update = data["update"]
     maxRow = data_db["meta"]["maxRow"]
-    
+
     # Lọc ra tất cả các phần tử chưa bị xóa
     notIsDeleted = [item for item in data_db["data"] if not item["isDeleted"]]
 
@@ -357,7 +357,7 @@ def updateBanInsert(data):
     if len(notIsDeleted) >= maxRow:
         # Đếm số lượng phần tử cần đánh dấu là đã xóa
         excess_count = len(notIsDeleted) - (maxRow - 1)
-        
+
         # Duyệt qua mảng gốc và đánh dấu các phần tử cũ nhất là đã xóa
         for item in data_db["data"]:
             if not item["isDeleted"]:
@@ -493,9 +493,9 @@ def deleteFromToBan(fromdate, todate, id, isChecked):
         for i in range(len(data)):
             entry = data[i]
             if (
-                start_date
-                <= datetime.strptime(entry["date"], "%d/%m/%Y").strftime("%Y/%m/%d")
-                <= end_date
+                    start_date
+                    <= datetime.strptime(entry["date"], "%d/%m/%Y").strftime("%Y/%m/%d")
+                    <= end_date
             ):
                 data[i]["isDeleted"] = True
 
@@ -510,6 +510,61 @@ def deleteFromToBan(fromdate, todate, id, isChecked):
 
     return {"status": True, "data": data_db, "msg": "Đã xóa dữ liệu thành công!"}
 
+
+def save_setting_tables(data):
+    col = data["col"]
+    value = data["thong"]['value']
+    meta = data["meta"]
+    path_thong = Path().path_thong()
+    with open(os.path.join(path_thong, 'thongs.json'), 'r') as file:
+        thong_db = json.load(file)
+
+    type_count = thong_db['type_count']
+    current_path = rf"C:\data"
+
+    if type_count == 1:
+        for i in range(0, 30):
+            file_type = i + 1
+            db_path = os.path.join(current_path, f'{file_type}', 'db')
+            with open(os.path.join(db_path, 'index.json'), 'r') as file:
+                db_index = json.load(file)
+
+            db_index['col'] = col
+            db_index['thong']['value'] = value
+            db_index['meta'] = meta
+
+            with open(os.path.join(db_path, 'index.json'), 'w') as file:
+                json.dump(db_index, file)
+
+    if type_count == 2:
+        for i in range(31, 60):
+            file_type = i + 1
+            db_path = os.path.join(current_path, f'{file_type}', 'db')
+            with open(os.path.join(db_path, 'index.json'), 'r') as file:
+                db_index = json.load(file)
+
+            db_index['col'] = col
+            db_index['thong']['value'] = value
+            db_index['meta'] = meta
+
+            with open(os.path.join(db_path, 'index.json'), 'w') as file:
+                json.dump(db_index, file)
+
+    if type_count == 3:
+        for i in range(61, 90):
+            file_type = i + 1
+            db_path = os.path.join(current_path, f'{file_type}', 'db')
+            with open(os.path.join(db_path, 'index.json'), 'r') as file:
+                db_index = json.load(file)
+
+            db_index['col'] = col
+            db_index['thong']['value'] = value
+            db_index['meta'] = meta
+
+            with open(os.path.join(db_path, 'index.json'), 'w') as file:
+                json.dump(db_index, file)
+
+    return f"Đã đồng bộ dữ liệu bộ {type_count}"
 
 # TODO Handler Data Thong
 def CreateNumber():
@@ -728,7 +783,6 @@ def saveAllThong(data):
     number = data["number"]
     change = data["change"]
     stt = data["stt"]
-
     current_path = rf"C:\data"
 
     if type_count == 1:
@@ -738,7 +792,6 @@ def saveAllThong(data):
             with open(os.path.join(thong_path, "thongs.json"), "r") as file:
                 thong_db = json.load(file)
 
-            thong_id = thong_db["id"]
             thong_db["stt"] = stt
             thong_db["data"] = custom
             thong_db["change"] = change
@@ -749,7 +802,7 @@ def saveAllThong(data):
 
             # / Save thong data
             with open(
-                os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
+                    os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
             ) as file:
                 json.dump(update, file)
     elif type_count == 2:
@@ -770,7 +823,7 @@ def saveAllThong(data):
 
             # / Save thong data
             with open(
-                os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
+                    os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
             ) as file:
                 json.dump(update, file)
     else:
@@ -791,7 +844,7 @@ def saveAllThong(data):
 
             # / Save thong data
             with open(
-                os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
+                    os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
             ) as file:
                 json.dump(update, file)
 
@@ -823,12 +876,12 @@ def typeWithRecipe(data):
                 for k in range(60):
                     if k == 0:
                         update[k + i][row] = (
-                            int(update[(step - 1) * 60][row]) + 1
-                        ) % 10
+                                                     int(update[(step - 1) * 60][row]) + 1
+                                             ) % 10
                     elif k == 1:
                         update[k + i][row] = (
-                            int(update[(step - 1) * 60 + 1][row]) + 1
-                        ) % 10
+                                                     int(update[(step - 1) * 60 + 1][row]) + 1
+                                             ) % 10
                     else:
                         update[k + i][row] = 0
             step += 1

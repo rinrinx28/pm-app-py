@@ -8,3 +8,5 @@ test*.*
 test.py
 test_2.py
 .vs
+.idea
+.venv/

@@ -29,8 +29,9 @@ except ImportError:
 class FullScreenApp(QMainWindow):
     def __init__(self):
         super().__init__()
-
-        self.setWindowTitle("Project Management")
+        self.setWindowTitle(
+            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam - maikien06091966@gmail.com  - Chủ sáng lập, thiết kế và mã hóa dữ liệu: Mai Đình Kiên - Số Điện Thoại: 0964636709"
+        )
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 

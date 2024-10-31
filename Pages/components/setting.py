@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 from Pages.components.path import Path
 from PySide6.QtGui import QIcon
 from PySide6.QtGui import Qt, QCursor
-from Controller.handler import updateColorInsert, enableTables
+from Controller.handler import updateColorInsert, enableTables, save_setting_tables
 from Pages.components.stylesheet import css_button_submit, css_input, SendMessage
 
 from functools import partial
@@ -102,6 +102,32 @@ class SettingTable(QDialog):
         cancel_button.setCursor(QCursor(Qt.PointingHandCursor))
         cancel_button.clicked.connect(self.reject)  # Connect to reject action
 
+        save_button = QPushButton("Đồng Bộ Cài Đặt")  # Custom save button
+        save_button.setStyleSheet(
+            """
+            QPushButton {
+                border-radius: 8px;
+                font-size: 24px;
+                font-weight: 600;
+                color: #111827;
+                background-color: #ffffff;
+            }
+            QPushButton:hover {
+                color: #1D4ED8;
+                background-color: #F3F4F6;
+            }
+
+        """
+        )
+        save_button.setCursor(QCursor(Qt.PointingHandCursor))
+        save_button.clicked.connect(lambda _: self.save_setting_all_app({
+            "col": self.ban_info['col'],
+            "meta": self.ban_info['meta'],
+            "thong": {
+                "value": self.ban_info['thong']['value']
+            }
+        }))  # Connect to reject action
+
         # Add buttons to the button layout
         horizontalSpacer = QSpacerItem(
             40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
@@ -109,11 +135,16 @@ class SettingTable(QDialog):
         button_layout.addItem(horizontalSpacer)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
+        button_layout.addWidget(save_button)
 
         dialog_main_layout.addLayout(button_layout)
 
         # Set the main layout as the dialog's layout
         self.setLayout(dialog_main_layout)
+
+    def save_setting_all_app(self, data):
+        msg = save_setting_tables(data)
+        return SendMessage(msg)
 
     def create_tab_main_setting(self):
         tab = QWidget()
@@ -487,7 +518,7 @@ class SettingTable(QDialog):
         button_l = QHBoxLayout(button_w)
         i = 0
         while i < 10:
-            button = QPushButton(f"BM{i+1}")
+            button = QPushButton(f"BM{i + 1}")
             button.setStyleSheet(css_button_submit)
             button.setCursor(QCursor(Qt.PointingHandCursor))
             button.clicked.connect(partial(self.handle_change_setting_col_d_bm, i))
@@ -503,7 +534,7 @@ class SettingTable(QDialog):
         layout.addWidget(button_w)
         return tab
 
-    def clearLayoutMain(self, layout):
+    def clear_layout_main(self, layout):
         while layout.count():
             item = layout.takeAt(0)
             widget = item.widget()
@@ -610,7 +641,7 @@ class SettingTable(QDialog):
         layout.addWidget(notice)
 
         # / Lable > SpinBox
-        notice_lable = QLabel(f"Báo Màu M{type+1}")
+        notice_lable = QLabel(f"Báo Màu M{type + 1}")
         notice_lable.setStyleSheet("border: 0px;font-size:24px;")
         notice_l.addWidget(notice_lable)
 
@@ -623,14 +654,14 @@ class SettingTable(QDialog):
         notice_spinBox_1.setMaximum(999)
         notice_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
         notice_spinBox_1.setValue(
-            self.old_data[f'color{"M"+str(type + 1) if type != 0 else ""}'][0]
+            self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][0]
         )
         notice_spinBox_2 = QSpinBox()
         notice_spinBox_2.setMinimum(0)
         notice_spinBox_2.setMaximum(999)
         notice_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
         notice_spinBox_2.setValue(
-            self.old_data[f'color{"M"+str(type + 1) if type != 0 else ""}'][1]
+            self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][1]
         )
 
         notice_spinBox_l.addWidget(notice_spinBox_1)
@@ -648,7 +679,7 @@ class SettingTable(QDialog):
         layout.addWidget(config_col)
 
         # / Lable > SpinBox
-        config_col_lable = QLabel(f"Thông Kê D M{type+1}")
+        config_col_lable = QLabel(f"Thông Kê D M{type + 1}")
         config_col_lable.setStyleSheet("border: 0px;font-size:24px;")
         config_col_l.addWidget(config_col_lable)
 
@@ -696,14 +727,14 @@ class SettingTable(QDialog):
         notice_spinBox_1.valueChanged.connect(
             partial(
                 self.value_change_col_table_color_notice,
-                f'color{"M"+str(type + 1) if type != 0 else ""}',
+                f'color{"M" + str(type + 1) if type != 0 else ""}',
                 0,
             )
         )
         notice_spinBox_2.valueChanged.connect(
             partial(
                 self.value_change_col_table_color_notice,
-                f'color{"M"+str(type + 1) if type != 0 else ""}',
+                f'color{"M" + str(type + 1) if type != 0 else ""}',
                 1,
             )
         )
