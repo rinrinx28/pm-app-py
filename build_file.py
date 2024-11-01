@@ -186,137 +186,249 @@ def createThong(data, path):
                 for k in range(60):
                     thong_data = []
                     for j in range(row):
-                        line = f"{j:02}"
+                        line = f"{j:02}"  # Create a two-digit string for j
                         if j > 99:
-                            thong_data.append("")
+                            thong_data.append("")  # Append empty string if j exceeds 99
                         else:
-                            if type_count == 1:
-                                if k == 0:
-                                    thong_data.append((int(line[0])) % 10)
-                                elif k == 1:
-                                    thong_data.append((int(line[1])) % 10)
-                                else:
-                                    thong_data.append(0)
-                            # elif type_count == 2:
-                            #     if k == 0:
-                            #         thong_data.append(f'{line}')
-                            #     else:
-                            #         thong_data.append(0)
-                            # else:
-                            #     thong_data.append('')
-                    thong_file.append(thong_data)
+                            if k == 0:
+                                thong_data.append(
+                                    (int(line[0])) % 10
+                                )  # First digit of line
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(line[1])) % 10
+                                )  # Second digit of line
+                            else:
+                                thong_data.append(0)  # Default value for other columns
+                    thong_file.append(
+                        thong_data
+                    )  # Append the constructed thong_data to thong_file
             else:
                 for k in range(60):
                     thong_data = []
                     for j in range(row):
                         if j > 99:
-                            thong_data.append("")
+                            thong_data.append("")  # Append empty string if j exceeds 99
                         else:
-                            if type_count == 1:
-                                if k == 0:
-                                    thong_data.append(
-                                        (int(thong_file[(step - 1) * 60][j]) + 1) % 10
-                                    )
-                                elif k == 1:
-                                    thong_data.append(
-                                        (int(thong_file[(step - 1) * 60 + 1][j]) + 1)
-                                        % 10
-                                    )
-                                else:
-                                    thong_data.append(0)
-                            # elif type_count == 2:
-                            #     if k == 0:
-                            #         first = thong_file[(step - 1 ) * 60][j]
-                            #         second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
-                            #         thong_data.append(f'{second}')
-                            #     else:
-                            #         thong_data.append(0)
-                            # else:
-                            #     thong_data.append('')
-                    thong_file.append(thong_data)
-            step += 1
+                            if k == 0:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60][j]) + 1) % 10
+                                )
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
+                                )
+                            else:
+                                thong_data.append(0)  # Default value for other columns
+                    thong_file.append(
+                        thong_data
+                    )  # Append the constructed thong_data to thong_file
+            step += 1  # Increment step
 
+        # Calculate sums for each column
         for j in range(row):
             if j > 99:
-                break
+                break  # Exit loop if j exceeds 99
             for i in range(0, col, 60):
                 for k in range(60):
                     if k > 1:
+                        # Ensure first and second are converted to integers
                         first = thong_file[i + k - 2][j]
                         second = thong_file[i + k - 1][j]
-                        sum = (first + second) % 10
-                        thong_file[i + k][j] = sum
 
-    if type_count == 2:
-        for i in range(0, col, 100):
+                        # Convert to integer if they are strings
+                        if isinstance(first, str) and first.isdigit():
+                            first = int(first)
+                        elif isinstance(first, str):
+                            first = 0  # Set to 0 if not a digit
+
+                        if isinstance(second, str) and second.isdigit():
+                            second = int(second)
+                        elif isinstance(second, str):
+                            second = 0  # Set to 0 if not a digit
+
+                        # Calculate the sum and store it back
+                        sum_value = (first + second) % 10
+                        thong_file[i + k][j] = sum_value
+
+    if type_count == 3:
+
+        for i in range(0, col, 60):
             if i == 0:
-                for k in range(i, i + 100, 10):
-                    for l in range(10):
-                        thong_data = []
-                        for j in range(row):
-                            line = f"{j:02}"
-                            if j > 99:
-                                thong_data.append("")
+                for k in range(60):
+                    thong_data = []
+                    for j in range(row):
+                        line = f"{j:02}"  # Create a two-digit string for j
+                        if j > 99:
+                            thong_data.append("")  # Append empty string if j exceeds 99
+                        else:
+                            if k == 0:
+                                thong_data.append(
+                                    (int(line[0])) % 10
+                                )  # First digit of line
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(line[1])) % 10
+                                )  # Second digit of line
                             else:
-                                if l == 0:
-                                    thong_data.append(f"{line}")
-                                else:
-                                    thong_data.append(0)
-                        thong_file.append(thong_data)
+                                thong_data.append(0)  # Default value for other columns
+                    thong_file.append(
+                        thong_data
+                    )  # Append the constructed thong_data to thong_file
             else:
-                for k in range(i, i + 100, 10):
-                    for l in range(10):
-                        thong_data = []
-                        for j in range(row):
-                            thong_data.append(0)
-                        thong_file.append(thong_data)
+                for k in range(60):
+                    thong_data = []
+                    for j in range(row):
+                        if j > 99:
+                            thong_data.append("")  # Append empty string if j exceeds 99
+                        else:
+                            if k == 0:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60][j]) + 1) % 10
+                                )
+                            elif k == 1:
+                                thong_data.append(
+                                    (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
+                                )
+                            else:
+                                thong_data.append(0)  # Default value for other columns
+                    thong_file.append(
+                        thong_data
+                    )  # Append the constructed thong_data to thong_file
+            step += 1  # Increment step
 
+        # Calculate sums for each column
         for j in range(row):
             if j > 99:
-                break
+                break  # Exit loop if j exceeds 99
+            for i in range(0, col, 60):
+                for k in range(60):
+                    if k > 1:
+                        # Ensure first and second are converted to integers
+                        first = thong_file[i + k - 2][j]
+                        second = thong_file[i + k - 1][j]
+
+                        # Convert to integer if they are strings
+                        if isinstance(first, str) and first.isdigit():
+                            first = int(first)
+                        elif isinstance(first, str):
+                            first = 0  # Set to 0 if not a digit
+
+                        if isinstance(second, str) and second.isdigit():
+                            second = int(second)
+                        elif isinstance(second, str):
+                            second = 0  # Set to 0 if not a digit
+
+                        # Calculate the sum and store it back
+                        sum_value = (first + second) % 10
+                        thong_file[i + k][j] = sum_value
+
+    if type_count == 2:
+
+        # Populate thong_file based on row and column values
+        for i in range(0, col, 100):
+            for k in range(i, i + 100, 10):
+                for l in range(10):
+                    thong_data = []
+                    for j in range(row):
+                        line = f"{j:02}"  # Format j as a two-digit string
+                        if j > 99:
+                            thong_data.append("")  # Append empty string if j exceeds 99
+                        else:
+                            if l == 0:
+                                thong_data.append(
+                                    f"{line}"
+                                )  # Append formatted line for the first column
+                            else:
+                                thong_data.append(0)  # Default value for other columns
+                    thong_file.append(thong_data)  # Append the constructed thong_data
+
+        # Process and calculate values for thong_file
+        for j in range(row):
+            if j > 99:
+                break  # Exit if j exceeds 99
             for i in range(0, col, 100):
                 for k in range(i, i + 100, 10):
                     for l in range(10):
                         if i == 0:
                             if k == 0:
                                 if l > 0:
-                                    first = thong_file[k + l - 1][j]
-                                    c = (int(first[0]) + int(first[1])) % 10
-                                    d = (int(first[1]) + c) % 10
-                                    thong_file[k + l][j] = f"{c}{d}"
+                                    first = thong_file[k + l - 1][
+                                        j
+                                    ]  # Get previous value
+                                    c = (
+                                        int(first[0]) + int(first[1])
+                                    ) % 10  # Calculate first digit
+                                    d = (
+                                        int(first[1]) + c
+                                    ) % 10  # Calculate second digit
+                                    thong_file[k + l][
+                                        j
+                                    ] = f"{c}{d}"  # Update thong_file
                             else:
                                 if l == 0:
-                                    first = thong_file[k + l - 10][j]
+                                    first = thong_file[k + l - 10][
+                                        j
+                                    ]  # Reference a different row
                                     c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
-                                    thong_file[k + l][j] = f"{c}"
+                                    thong_file[k + l][j] = f"{c}"  # Update first column
                                 else:
-                                    first = thong_file[k + l - 1][j]
-                                    c = (int(first[0]) + int(first[1])) % 10
-                                    d = (int(first[1]) + c) % 10
-                                    thong_file[k + l][j] = f"{c}{d}"
+                                    first = thong_file[k + l - 1][
+                                        j
+                                    ]  # Get previous value
+                                    c = (
+                                        int(first[0]) + int(first[1])
+                                    ) % 10  # Calculate first digit
+                                    d = (
+                                        int(first[1]) + c
+                                    ) % 10  # Calculate second digit
+                                    thong_file[k + l][
+                                        j
+                                    ] = f"{c}{d}"  # Update thong_file
 
                         else:
                             if k == 100:
                                 if l == 0:
-                                    first = thong_file[98][j]
-                                    second = thong_file[99][j]
-                                    thong_file[100][j] = f"{first[1]}{second[0]}"
+                                    first = thong_file[98][
+                                        j
+                                    ]  # Reference the penultimate row
+                                    second = thong_file[99][j]  # Reference the last row
+                                    thong_file[100][
+                                        j
+                                    ] = f"{first[1]}{second[0]}"  # Update based on previous rows
                                 else:
-                                    first = thong_file[k + l - 1][j]
-                                    c = (int(first[0]) + int(first[1])) % 10
-                                    d = (int(first[1]) + c) % 10
-                                    thong_file[k + l][j] = f"{c}{d}"
-
+                                    first = thong_file[k + l - 1][
+                                        j
+                                    ]  # Get previous value
+                                    c = (
+                                        int(first[0]) + int(first[1])
+                                    ) % 10  # Calculate first digit
+                                    d = (
+                                        int(first[1]) + c
+                                    ) % 10  # Calculate second digit
+                                    thong_file[k + l][
+                                        j
+                                    ] = f"{c}{d}"  # Update thong_file
                             else:
                                 if l == 0:
-                                    first = thong_file[k + l - 10][j]
+                                    first = thong_file[k + l - 10][
+                                        j
+                                    ]  # Reference a different row
                                     c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
-                                    thong_file[k + l][j] = f"{c}"
+                                    thong_file[k + l][j] = f"{c}"  # Update first column
                                 else:
-                                    first = thong_file[k + l - 1][j]
-                                    c = (int(first[0]) + int(first[1])) % 10
-                                    d = (int(first[1]) + c) % 10
-                                    thong_file[k + l][j] = f"{c}{d}"
+                                    first = thong_file[k + l - 1][
+                                        j
+                                    ]  # Get previous value
+                                    c = (
+                                        int(first[0]) + int(first[1])
+                                    ) % 10  # Calculate first digit
+                                    d = (
+                                        int(first[1]) + c
+                                    ) % 10  # Calculate second digit
+                                    thong_file[k + l][
+                                        j
+                                    ] = f"{c}{d}"  # Update thong_file
 
     if type_count == 0:
         for i in range(col):
@@ -749,12 +861,6 @@ def createThong(data, path):
         ],
     ]
 
-    # for i in range(col_custom):
-    #     data_item = []
-    #     for j in range(row):
-    #         data_item.append("")
-    #     data_custon.append(data_item)
-
     # / Make Data STT for thong data
     stt_data = []
     for i in range(11):
@@ -884,18 +990,18 @@ def create():
     default_dir = r"C:\data\1"
     arr_folder = ["image", "number"]
 
-    for i in range(2, 91):
+    for i in range(2, 121):
         for folder in arr_folder:
             prev_dir = os.path.join(current_dir, str(i), folder)
             next_dir = os.path.join(default_dir, folder)
             copy_files_into_folders(next_dir, prev_dir)
 
-    for i in range(1, 91):
+    for i in range(1, 121):
         thong_dir = os.path.join(current_dir, str(i), "thong")
         db_dir = os.path.join(current_dir, str(i), "db")
         if i < 31:
             dataThong = createThong(
-                {"value": 300, "type_count": 1, "name": f"Bản 1.{i}"}, thong_dir
+                {"value": 300, "type_count": 1, "name": f"Bản 1a.{i}"}, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
         elif i > 30 and i < 61:
@@ -903,9 +1009,14 @@ def create():
                 {"value": 400, "type_count": 2, "name": f"Bản 2.{i - 30}"}, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
+        elif i > 60 and i < 91:
+            dataThong = createThong(
+                {"value": 300, "type_count": 3, "name": f"Bản 1b.{i - 60}"}, thong_dir
+            )
+            createDB(dataThong, f"B{i}", db_dir)
         else:
             dataThong = createThong(
-                {"value": 300, "type_count": 0, "name": f"Bản 0.{i - 60}"}, thong_dir
+                {"value": 300, "type_count": 0, "name": f"Bản 0.{i - 90}"}, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
 

@@ -25,7 +25,7 @@ css_button_cancel = """
         font-size: 24px;
         line-height: 32px;
         font-weight: 600; 
-        color: #111827; 
+         
         background-color: #ffffff;
     }
     QPushButton:hover {
@@ -74,7 +74,7 @@ css_lable = """
     font-size: 24px;
     line-height: 32px;
     font-weight: 600; 
-    color: #111827;
+    
 """
 
 css_input = """
@@ -85,7 +85,7 @@ css_input = """
     font-size: 24px;
     line-height: 32px;
     font-weight: 600; 
-    color: #111827; 
+     
     background-color: #F9FAFB; 
     padding: 10px;
 """

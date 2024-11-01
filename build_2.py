@@ -33,26 +33,27 @@ if __name__ == "__main__":
     for file in files_and_dirs_to_move:
         if os.path.exists(file):
             shutil.rmtree(file)
-    app_v = 3
+    app_v = 4
 
-    # for v in range(app_v):
-    for c in range(1):
-        count = 90
-        new_app_file = os.path.join(destination_directory, f"{count}")
+    for v in range(app_v):
+        count = v
+        type_count = (
+            "Bộ 1a Số"
+            if count == 1
+            else ("Bộ 2 Số" if count == 2 else "Bộ trắng" if count == 0 else "Bộ 1b Số")
+        )
+        new_app_file = os.path.join(destination_directory, f"{type_count}")
         if os.path.exists(new_app_file):
             shutil.rmtree(new_app_file)
 
         os.makedirs(new_app_file, exist_ok=True)
         # Change Path Data for Application
-        path_data = os.path.join(current_dir, "path_file.txt")
+        path_data = os.path.join(current_dir, "type_pm.txt")
         with open(path_data, "r") as file:
             data_file = file.read()
 
-        data_file_arr = data_file.split("/")
-        data_file_arr[len(data_file_arr) - 1] = f"{count}"
-        data_file_new = "/".join(data_file_arr)
-        with open(path_data, "w", encoding="utf-8") as file:
-            file.write(data_file_new)
+        with open(path_data, "w") as file:
+            file.write(f"{v}")
 
         # Running Command
         print("Running command:", command)
@@ -64,6 +65,6 @@ if __name__ == "__main__":
             # Di chuyển các file và thư mục
             move_files_and_dirs(files_and_dirs_to_move, new_app_file)
 
-            print(f"Files and directories moved successfully. App {count}")
+            print(f"Files and directories moved successfully. App {type_count}")
         else:
             print("Command failed with return code:", return_code)

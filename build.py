@@ -10,5 +10,6 @@ PyInstaller.__main__.run(
         "--icon=logo.ico",
         "--onefile",
         "--add-data=path_file.txt;.",
+        "--add-data=type_pm.txt;.",
     ]
 )
