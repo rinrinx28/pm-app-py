@@ -25,8 +25,8 @@ css_button_cancel = """
         font-size: 24px;
         line-height: 32px;
         font-weight: 600; 
-         
         background-color: #ffffff;
+        color: #000;
     }
     QPushButton:hover {
         color: #1D4ED8; 
@@ -42,6 +42,7 @@ css_button_view = """
         font-weight: 600;
         background-color: rgb(178, 255, 255);
         padding: 8px;
+        color: #000;
     }
 """
 
@@ -53,6 +54,7 @@ css_button_notice = """
         font-weight: 600;
         background-color: #FFD700;
         padding: 8px;
+        color: #000;
     }
 """
 
@@ -64,6 +66,7 @@ css_button_normal = """
         font-weight: 600;
         background-color: #D3D3D3;
         padding: 8px;
+        color: #000;
     }
 """
 
@@ -74,7 +77,6 @@ css_lable = """
     font-size: 24px;
     line-height: 32px;
     font-weight: 600; 
-    
 """
 
 css_input = """
@@ -85,7 +87,7 @@ css_input = """
     font-size: 24px;
     line-height: 32px;
     font-weight: 600; 
-     
+    color: #000;
     background-color: #F9FAFB; 
     padding: 10px;
 """
@@ -110,14 +112,14 @@ css_title = """
 """
 
 css_customs_table = """
-            QLabel {
-                border: 2px solid black;
-                background-color: #FFFFFF;
-                color: #000000;
-                font-size: 24px;
-                line-height: 32px;
-                font-weight: 600;
-            }
+    QLabel {
+        border: 2px solid black;
+        background-color: #FFFFFF;
+        color: #000;
+        font-size: 24px;
+        line-height: 32px;
+        font-weight: 600;
+    }
 """
 
 css_button_checkbox = """

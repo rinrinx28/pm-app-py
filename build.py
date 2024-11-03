@@ -11,5 +11,6 @@ PyInstaller.__main__.run(
         "--onefile",
         "--add-data=path_file.txt;.",
         "--add-data=type_pm.txt;.",
+        "--add-data=button_clicks.txt;.",
     ]
 )

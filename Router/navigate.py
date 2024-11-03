@@ -3,9 +3,10 @@ from PySide6.QtGui import Qt, QCursor
 
 
 class Navbar(QtWidgets.QWidget):
-    def __init__(self, controller):  # Fix the typo here from `seft` to `self`
+    def __init__(self, controller, main):  # Fix the typo here from `seft` to `self`
         super().__init__()
         self.controller = controller
+        self.main = main
         layout = QtWidgets.QHBoxLayout()
 
         self.setLayout(layout)  # Set the layout for the widget
@@ -61,7 +62,8 @@ class Navbar(QtWidgets.QWidget):
         b_tinh_mau.clicked.connect(self.tinhvamaupage)
 
     def exit_application(self):
-        QtWidgets.QApplication.quit()  # Exit the application when the button is clicked
+        self.main.open_apps.clear()
+        self.main.close()
 
     def homepage(self):
         self.controller.show_home_page()

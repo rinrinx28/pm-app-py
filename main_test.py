@@ -1,99 +1,111 @@
 import sys
-import time
+import os
+from datetime import datetime, timedelta
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
+    QDialog,
     QVBoxLayout,
-    QLabel,
     QPushButton,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
 )
-from PySide6.QtCore import Qt, QTimer, QThread, Signal
-from PySide6.QtGui import QMovie
-from Pages.tinh_mau import TinhAndMauPage
+from PySide6.QtGui import QIcon
+from PySide6.QtGui import Qt, QCursor
+from Router.navigate import Navbar
+from Controller.main import Controller
+from Pages.components.path import Path
+from Pages.components.stylesheet import (
+    css_button_submit,
+    css_title,
+    css_button_normal,
+    css_button_notice,
+    css_button_view,
+)
 
 
-class LoadingScreen(QWidget):
-    def __init__(self, movie_path):
+class FullScreenApp(QMainWindow):
+    def __init__(self, index):
         super().__init__()
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.movie = QMovie(movie_path)
-        self.movie_label = QLabel(self)
-        self.movie_label.setMovie(self.movie)
-        layout = QVBoxLayout()
-        layout.addWidget(self.movie_label)
-        self.setLayout(layout)
-        self.setFixedSize(300, 200)
-        self.center()
 
-    def start(self):
-        self.movie.start()
+        self.setWindowTitle(f"Application {index}")
+        self.setGeometry(0, 0, 1920, 1080)  # Set size to full HD (adjust as needed)
+        self.showFullScreen()  # Show in full screen
 
-    def stop(self):
-        self.movie.stop()
-
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QApplication.primaryScreen().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+        # Example: Add any widgets or layout to your main window
+        # self.setCentralWidget(QWidget())  # If you want to set a central widget
 
 
-class HeavyTaskThread(QThread):
-    task_completed = Signal()
-
-    def run(self):
-        # Simulate a heavy task
-        time.sleep(5)  # Replace with actual heavy task
-        self.task_completed.emit()
-
-
-class MainWindow(QMainWindow):
+class AppSelectionDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Main Window")
-        self.setGeometry(100, 100, 800, 600)
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout(self.central_widget)
 
-        # Button to start a heavy task
-        self.button = QPushButton("Start Heavy Task", self)
-        self.button.clicked.connect(self.start_heavy_task)
-        self.layout.addWidget(self.button)
+        self.setWindowTitle("Select Applications to Open")
+        self.selected_app_indices = []  # To store selected indices
+        self.type_pm = 1  # Example: you might want to set this based on your logic
 
-        # Placeholder for results
-        self.result_label = QLabel("Result will be shown here", self)
-        self.layout.addWidget(self.result_label)
+        self.layout = QVBoxLayout(self)
 
-        # Loading screen
-        self.loading_screen = LoadingScreen("C:/data/1/image/loading.gif")
+        # List Widget for applications
+        self.app_list_widget = QListWidget(self)
+        self.populate_app_list()  # Populate the list with application names
+        self.layout.addWidget(self.app_list_widget)
 
-    def start_heavy_task(self):
-        self.show_loading_screen()
+        # Open Selected Apps Button
+        open_button = QPushButton("Open Selected Apps")
+        open_button.clicked.connect(self.open_selected_apps)
+        self.layout.addWidget(open_button)
 
-        # Create and start a thread to perform the heavy task
-        self.thread = HeavyTaskThread()
-        self.thread.task_completed.connect(self.on_task_completed)
-        self.thread.start()
+        # Exit Button
+        exit_button = QPushButton("Exit")
+        exit_button.clicked.connect(self.reject)  # Closes the dialog
+        self.layout.addWidget(exit_button)
 
-    def show_loading_screen(self):
-        self.loading_screen.show()
-        self.loading_screen.start()
+        # Connect selection change
+        self.app_list_widget.itemChanged.connect(self.update_selection)
 
-    def hide_loading_screen(self):
-        self.loading_screen.stop()
-        self.loading_screen.hide()
+    def populate_app_list(self):
+        # Example application names
+        for i in range(30):
+            item = QListWidgetItem(f"App {i + 1}")
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)  # Allow checkbox
+            item.setCheckState(Qt.Unchecked)  # Start unchecked
+            self.app_list_widget.addItem(item)
 
-    def on_task_completed(self):
-        self.hide_loading_screen()
-        page = TinhAndMauPage()
-        page.show()
+    def update_selection(self):
+        self.selected_app_indices = [
+            row
+            for row in range(self.app_list_widget.count())
+            if self.app_list_widget.item(row).checkState() == Qt.Checked
+        ]
+
+    def open_selected_apps(self):
+        selected_app_indices = self.selected_app_indices  # Get selected indices
+        type_count = self.type_pm  # Example: retrieve type count
+
+        # Open each selected app
+        for index in selected_app_indices:
+            open_app(
+                index + 1, type_count
+            )  # Call the open_app function with adjusted index
+
+        # Optionally, provide feedback to the user that the apps were opened
+        print(
+            "Opened apps:", [index + 1 for index in selected_app_indices]
+        )  # Replace with a message box if needed
+
+
+def open_app(index, type_count):
+    # modify_text_file(index, type_count)
+    mainWindow = FullScreenApp(index)  # Create the full screen app
+    mainWindow.show()  # Show the main window in full screen
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    main_window = MainWindow()
-    main_window.show()
+
+    # Show the selection dialog
+    selection_dialog = AppSelectionDialog()
+    selection_dialog.exec()  # Keep the dialog open until the user closes it
+
     sys.exit(app.exec())

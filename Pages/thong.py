@@ -395,7 +395,7 @@ class ThongPage(QWidget):
         layout.addWidget(SaveData, 1, 3)
 
         # / Create Backup
-        ButtonType = QPushButton("Nhập loại App")
+        ButtonType = QPushButton("Nhập Liệu B Thông")
         ButtonType.setStyleSheet(css_button_submit)
         ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(ButtonType, 1, 4)
@@ -444,9 +444,11 @@ class ThongPage(QWidget):
             data = {}
             data["update"] = self.thong_data
             data["custom"] = self.thong_db["data"]
+            data["name"] = self.thong_db["name"]
             data["number"] = self.ChangeNumber.currentIndex()
             data["stt"] = self.thong_db["stt"]
             data["change"] = self.thong_db["change"]
+            data["type_count"] = self.thong_db["type_count"]
             data["type_count"] = self.thong_db["type_count"]
             msg = saveAllThong(data)
             self.delete_color_click()

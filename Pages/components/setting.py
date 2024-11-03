@@ -120,13 +120,18 @@ class SettingTable(QDialog):
         """
         )
         save_button.setCursor(QCursor(Qt.PointingHandCursor))
-        save_button.clicked.connect(lambda _: self.save_setting_all_app({
-            "col": self.ban_info['col'],
-            "meta": self.ban_info['meta'],
-            "thong": {
-                "value": self.ban_info['thong']['value']
-            }
-        }))  # Connect to reject action
+        save_button.clicked.connect(
+            lambda _: self.save_setting_all_app(
+                {
+                    "col": self.ban_info["col"],
+                    "meta": self.ban_info["meta"],
+                    "thong": {
+                        "value": self.ban_info["thong"]["value"],
+                        "name": self.ban_info["thong"]["name"],
+                    },
+                }
+            )
+        )  # Connect to reject action
 
         # Add buttons to the button layout
         horizontalSpacer = QSpacerItem(
