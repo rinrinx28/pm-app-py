@@ -53,16 +53,16 @@ def changeNumber(number, value):
         return value
     elif number == 4:
         if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
-            if value == 1:
+            if value == 0:
                 return 5
-            elif value == 2:
-                return 6
-            elif value == 3:
+            elif value == 1:
                 return 7
-            elif value == 4:
+            elif value == 2:
                 return 8
-            elif value == 0:
+            elif value == 3:
                 return 9
+            elif value == 4:
+                return 6
             else:
                 return value
         return value
@@ -106,6 +106,8 @@ def changeNumber(number, value):
                 return 6
             elif value == 3:
                 return 5
+            elif value == 4:
+                return 9
             else:
                 return value
         return value

@@ -33,6 +33,7 @@ from Controller.handler import (
     saveAllThong,
     typeWithRecipe,
     TachVaGhep,
+    saveBackupThong,
 )
 import os
 from Pages.common.loading import LoadingScreen
@@ -362,49 +363,54 @@ class ThongPage(QWidget):
         self.ChangeNumber = QComboBox()
         self.ChangeNumber.setStyleSheet("font-size: 24px;line-height: 32px;")
         self.ChangeNumber.setCursor(QCursor(Qt.PointingHandCursor))
-        self.ChangeNumber.addItem("Chuyển Đổi 0")
-        for i in range(10):
-            self.ChangeNumber.addItem(f"Chuyển Đổi {i+1}")
+        self.ChangeNumber.addItem(f"Bộ chuyển đổi gốc")
+        for i in range(1, 11):
+            self.ChangeNumber.addItem(f"Bộ chuyển Đổi {i}")
         layout.addWidget(self.ChangeNumber, 0, 5)
 
         # TODO Line 2
 
         # / Create Backup
+        save_back_up = QPushButton("Đặt DL gốc")
+        save_back_up.setStyleSheet(css_button_submit)
+        save_back_up.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(save_back_up, 1, 0)
+        # / Backup
         BackUp = QPushButton("Khôi phục DL gốc")
         BackUp.setStyleSheet(css_button_submit)
         BackUp.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(BackUp, 1, 0)
+        layout.addWidget(BackUp, 1, 1)
 
         # / Create AutoSaveFiles
         SaveFile = QPushButton("Đồng Bộ DL")
         SaveFile.setStyleSheet(css_button_submit)
         SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(SaveFile, 1, 1)
+        layout.addWidget(SaveFile, 1, 2)
 
         # / Create HandlerData
         type_input = "Tắt Tùy Chỉnh"
         self.HandlerData = QPushButton(type_input)
         self.HandlerData.setStyleSheet(css_button_submit)
         self.HandlerData.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(self.HandlerData, 1, 2)
+        layout.addWidget(self.HandlerData, 1, 3)
 
         # / Create SaveData
         SaveData = QPushButton("Lưu")
         SaveData.setStyleSheet(css_button_submit)
         SaveData.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(SaveData, 1, 3)
+        layout.addWidget(SaveData, 1, 4)
 
         # / Create Backup
         ButtonType = QPushButton("Nhập Liệu B Thông")
         ButtonType.setStyleSheet(css_button_submit)
         ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(ButtonType, 1, 4)
+        layout.addWidget(ButtonType, 1, 5)
 
         # / Create SaveData
         SettingType = QPushButton("Cài Đặt App")
         SettingType.setStyleSheet(css_button_submit)
         SettingType.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(SettingType, 1, 5)
+        layout.addWidget(SettingType, 1, 6)
 
         def changeTypeCount():
             types = self.HandlerData.text()
@@ -490,6 +496,7 @@ class ThongPage(QWidget):
         SaveFile.clicked.connect(saveFile_click)
         SettingType.clicked.connect(self.setting_type_click)
         ButtonType.clicked.connect(type_with_button)
+        save_back_up.clicked.connect(self.saveBackUp)
 
     # TODO Handler Widgets
     def delete_color_click(self):
@@ -625,6 +632,38 @@ class ThongPage(QWidget):
         self.show_loading_screen()
         self.thread = Thread()
         self.thread.task_completed.connect(lambda: self.updateWidget([]))
+        self.thread.task_completed.connect(
+            lambda: SendMessage("Bạn đã xóa toàn bộ dữ liệu thành công")
+        )
+        self.thread.start()
+
+    def saveBackUp(self):
+        number = self.ChangeNumber.currentIndex()
+        if number != 0:
+            SendMessage(f"Không thể đặt DL gốc ở bộ chuyển đổi {number}")
+            return
+        data = {}
+        data["id"] = self.thong_db["id"]
+        data["thong_data"] = self.thong_data
+
+        # / Check isEditor
+        isEditor = self.table_main.editTriggers()
+        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
+            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            self.HandlerData.setText("Tắt Tùy Chỉnh")
+
+        res = saveBackupThong(data)
+        self.thong_data = res["thong_data"]
+        self.thong_db = res["thong_info"]
+
+        self.show_loading_screen()
+        self.thread = Thread()
+        self.thread.task_completed.connect(
+            lambda: self.updateWidget([self.updateRowAndColumns])
+        )
+        self.thread.task_completed.connect(
+            lambda: SendMessage("Bạn đã lưu DL gốc thành công")
+        )
         self.thread.start()
 
     def backUpRows(self):
@@ -646,6 +685,9 @@ class ThongPage(QWidget):
         self.thread = Thread()
         self.thread.task_completed.connect(
             lambda: self.updateWidget([self.updateRowAndColumns])
+        )
+        self.thread.task_completed.connect(
+            lambda: SendMessage("Bạn đã khôi phục toàn bộ dữ liệu thành công")
         )
         self.thread.start()
 
@@ -699,13 +741,17 @@ class ThongPage(QWidget):
 
         self.thong_db["stt"][self.ChangeNumber.currentIndex()] = shifted_stt
         self.thong_data = shifted_data
-        SendMessage("Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại")
         # self.updateHeaderRow()
 
         self.show_loading_screen()
         self.thread = Thread()
         self.thread.task_completed.connect(
             lambda: self.updateWidget([self.updateRowAndColumns])
+        )
+        self.thread.task_completed.connect(
+            lambda: SendMessage(
+                "Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại"
+            )
         )
         self.thread.start()
         return
@@ -728,13 +774,17 @@ class ThongPage(QWidget):
         for row in data_select:
             for i in range(5, self.table_main.columnCount()):
                 self.thong_data[i - 5][row] = ""
-        SendMessage("Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại")
         # self.updateHeaderRow()
 
         self.show_loading_screen()
         self.thread = Thread()
         self.thread.task_completed.connect(
             lambda: self.updateWidget([self.updateRowAndColumns])
+        )
+        self.thread.task_completed.connect(
+            lambda: SendMessage(
+                "Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại"
+            )
         )
         self.thread.start()
         return
@@ -770,8 +820,13 @@ class ThongPage(QWidget):
         self.thread.task_completed.connect(
             lambda: self.updateWidget([self.updateRowAndColumns])
         )
+        self.thread.task_completed.connect(
+            lambda: SendMessage(
+                f"Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!"
+            )
+        )
         self.thread.start()
-        SendMessage(f"Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!")
+
         return
 
     def setting_type_click(self):

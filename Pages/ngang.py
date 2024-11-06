@@ -157,8 +157,9 @@ class NgangPage(QWidget):
         self.Change_number.setStyleSheet("font-size: 24px;line-height: 32px;")
         self.Change_number.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.Change_number)
-        for i in range(number):
-            self.Change_number.addItem(f"Chuyển Đổi {i}")
+        self.Change_number.addItem(f"Bộ chuyển đổi gốc")
+        for i in range(1, number):
+            self.Change_number.addItem(f"Bộ chuyển Đổi {i}")
 
         # / BackUp Button
         BackUp = QPushButton("Khôi Phục DL Gốc")

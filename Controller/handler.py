@@ -55,16 +55,16 @@ def changeNumber_old(number, value):
         return value
     elif number == 4:
         if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
-            if value == 1:
+            if value == 0:
                 return 5
-            elif value == 2:
-                return 6
-            elif value == 3:
+            elif value == 1:
                 return 7
-            elif value == 4:
+            elif value == 2:
                 return 8
-            elif value == 0:
+            elif value == 3:
                 return 9
+            elif value == 4:
+                return 6
             else:
                 return value
         return value
@@ -108,6 +108,8 @@ def changeNumber_old(number, value):
                 return 6
             elif value == 3:
                 return 5
+            elif value == 4:
+                return 9
             else:
                 return value
         return value
@@ -208,16 +210,16 @@ def changeNumber(number, value):
         return value
     elif number == 4:
         if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
-            if value == 1:
+            if value == 0:
                 return 5
-            elif value == 2:
-                return 6
-            elif value == 3:
+            elif value == 1:
                 return 7
-            elif value == 4:
+            elif value == 2:
                 return 8
-            elif value == 0:
+            elif value == 3:
                 return 9
+            elif value == 4:
+                return 6
             else:
                 return value
         return value
@@ -261,6 +263,8 @@ def changeNumber(number, value):
                 return 6
             elif value == 3:
                 return 5
+            elif value == 4:
+                return 9
             else:
                 return value
         return value
@@ -316,7 +320,7 @@ def changeNumber(number, value):
 def TachVaGhep(number, value):
     chuoiso = str(value)
     mangso = list(chuoiso)
-    chuSo = map(lambda i: str(changeNumber_old(number, int(i))), mangso)
+    chuSo = map(lambda i: str(changeNumber(number, int(i))), mangso)
     joined_string = "".join(list(chuSo))
     return joined_string
 
@@ -788,6 +792,51 @@ def backupThong(data):
         json.dump(number_change, file)
 
     return {"thong_info": thong_db, "thong_data": number_change}
+
+
+def saveBackupThong(data):
+    thong_path = Path().path_thong()
+    id = data["id"]
+    thong_data = data["thong_data"]
+    # / Load File thong db
+    with open(os.path.join(thong_path, "thongs.json"), "r") as file:
+        thong_db = json.load(file)
+
+    # / Make Data STT for thong data
+    stt_data = []
+    for i in range(11):
+        stt_col = []
+        for j in range(131):
+            value = f"{j:02}"
+            stt_col.append(value)
+        stt_data.append(stt_col)
+
+    thong_db["stt"] = stt_data
+    thong_db["change"] = []
+
+    # / Save Thong DB
+    with open(os.path.join(thong_path, "thongs.json"), "w") as file:
+        json.dump(thong_db, file)
+
+    # / Save new backup thong
+    with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
+        json.dump(thong_data, file)
+
+    # / re-render all bo chuyen doi
+    for i in range(11):
+        if i == 0:
+            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
+                json.dump(thong_data, file)
+        else:
+            number_change = list(
+                map(
+                    lambda item: list(map(lambda x: TachVaGhep(i, x), item)), thong_data
+                )
+            )
+            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
+                json.dump(number_change, file)
+
+    return {"thong_info": thong_db, "thong_data": thong_data}
 
 
 def saveAllThong(data):

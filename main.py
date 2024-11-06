@@ -164,10 +164,6 @@ class AppSelectionDialog(QDialog):
         self.show_recent_button.setStyleSheet(button_style)
 
     def create_button_click_handler(self, index):
-        if len(self.opened_apps) == 1:
-            SendMessage("Bạn chỉ có thể thao tác trên một PM")
-            return
-
         def handle_click():
             # Clear selection style from all buttons
             for i, button in enumerate(self.buttons):
@@ -194,6 +190,10 @@ class AppSelectionDialog(QDialog):
             # Close the dialog to launch the main app
             # self.accept()
             self.open_app(self.selected_app_index + 1, self.type_pm)
+            return
+        else:
+            SendMessage("Xin vui lòng chọn APP")
+            return
 
     def toggle_all_buttons(self):
         # Uncheck the recent button if "Show/Hide All" is checked
@@ -291,6 +291,11 @@ class AppSelectionDialog(QDialog):
         self.modify_text_file(index, type_count)
         # Modify your logic here if needed
         full_screen_app = FullScreenApp(index, self.opened_apps)
+        if len(self.opened_apps) > 0:
+            for i in range(len(self.opened_apps)):
+                app = self.opened_apps[i]
+                app.close()
+            self.opened_apps.clear()
         self.opened_apps.append(full_screen_app)  # Store reference to keep it alive
 
 
