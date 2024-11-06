@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QDateEdit, QDialog,
                                QLabel, QMenu, QMessageBox, QPushButton,
                                QScrollArea, QSpinBox, QSplitter,
                                QStackedWidget, QTableWidget, QTableWidgetItem,
+    QSpacerItem,
+    QSizePolicy,
                                QVBoxLayout, QWidget)
 
 from Controller.handler import (TachVaGhep, deleteFromToBan, deleteRowBan,
@@ -3048,6 +3050,11 @@ class TinhAndMauPage(QWidget):
 
         insert_from_l.addWidget(insert_thong_label, 3, 0)
         insert_from_l.addWidget(insert_thong_grid_w, 3, 1)
+
+        verticalSpacer2 = QSpacerItem(
+            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+        )
+        insert_from_l.addItem(verticalSpacer2)
 
         # / Button Insert
         submit = QPushButton("OK Toán")
