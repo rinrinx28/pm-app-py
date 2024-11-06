@@ -3,7 +3,7 @@ import json
 import os
 from functools import partial
 
-from PySide6.QtCore import QDate, QTimer
+from PySide6.QtCore import QDate, QTimer, QRect
 from PySide6.QtGui import QAction, QColor, QCursor, QFont, QIcon, Qt
 from PySide6.QtWidgets import (QApplication, QCheckBox, QDateEdit, QDialog,
                                QFrame, QGridLayout, QHBoxLayout, QHeaderView,
@@ -2610,7 +2610,7 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog()
         dialog.setWindowTitle("Bảng Nhập Liệu")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1300, 850)
+        # dialog.setFixedSize(1300, 850)
         dialog.show()
 
         # / Create Layout
@@ -2804,8 +2804,6 @@ class TinhAndMauPage(QWidget):
             else:
                 insert_ngang_edit.setStyleSheet("font-size:24px;")
 
-
-
         def changeThongTable(value):
             item = value.text()
             changeThongEdit(int(item))
@@ -2916,7 +2914,7 @@ class TinhAndMauPage(QWidget):
         exit.clicked.connect(exit_click)
         submit.clicked.connect(lambda: self.submit_insert(data, dialog))
         # Move and set the dialog size
-        self.move_to_right(dialog)
+        # self.move_to_center(dialog)
 
     def submit_insert(self, data, dialog):
         data["id"] = self.ban_info["id"]
@@ -2947,7 +2945,7 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog()
         dialog.setWindowTitle("Bảng Nhập Thông")
         dialog.setWindowIcon(QIcon(icon))
-        dialog.setFixedSize(1200, 850)
+        # dialog.setFixedSize(1200, 850)
         dialog.show()
 
         # / Create Layout
@@ -3013,7 +3011,7 @@ class TinhAndMauPage(QWidget):
         # / Insert From
         insert_from_w_2 = QWidget()
         insert_from_l_2 = QVBoxLayout(insert_from_w_2)
-        insert_from_l_2.setSpacing(100)
+        # insert_from_l_2.setSpacing(100)
         # insert_from_l_2.setContentsMargins(0,5,0,0)
         layout.addWidget(insert_from_w_2, 0, 1)
 
@@ -3112,7 +3110,7 @@ class TinhAndMauPage(QWidget):
         insert_thong_table.itemClicked.connect(changeThongTable)
         insert_thong_edit.valueChanged.connect(changeThongEdit)
 
-        self.move_to_right(dialog)
+        # self.move_to_right(dialog)
 
     def update_thong_insert(self, data, dialog):
         data_send = {}
@@ -7990,21 +7988,14 @@ class TinhAndMauPage(QWidget):
         dialog.setGeometry(x_pos, y_pos, dialog_width, dialog_height)
 
     def move_to_center(self, dialog):
-        # Get the screen geometry
+        # Center the dialog on the screen when it's shown
         screen_geometry = QApplication.primaryScreen().geometry()
-
-        # Set fixed size for the dialog
-        dialog_width = 1200
-        dialog_height = 1050
-
-        # Calculate the x and y position to move the dialog to the right
-        x_pos = (
-            screen_geometry.width() - dialog_width
-        ) // 2  # 20px padding from right edge
-        y_pos = (screen_geometry.height() - dialog_height) // 2  # Center vertically
-
-        # Move and set the dialog size
-        dialog.setGeometry(x_pos, y_pos, dialog_width, dialog_height)
+        dialog_geometry = dialog.geometry()
+        
+        # Calculate the center position
+        x = (screen_geometry.width() - dialog_geometry.width()) // 2
+        y = (screen_geometry.height() - dialog_geometry.height()) // 2
+        dialog.setGeometry(QRect(x, y, dialog_geometry.width(), dialog_geometry.height()))
 
     # TODO Handler Color Table
     # / M4 start

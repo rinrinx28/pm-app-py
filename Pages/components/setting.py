@@ -55,9 +55,13 @@ class SettingTable(QDialog):
 
         # Add the QTabWidget to the main layout
         dialog_main_layout.addWidget(tab_widget)
-
+        # Set the main layout as the dialog's layout
+        self.setLayout(dialog_main_layout)
+    
+    def showButton(self):
+        button_widget = QWidget()
         # Create custom buttons
-        button_layout = QHBoxLayout()  # Layout for the buttons
+        button_layout = QHBoxLayout(button_widget)  # Layout for the buttons
 
         ok_button = QPushButton("Lưu")  # Custom OK button
         ok_button.setFixedWidth(150)
@@ -132,20 +136,15 @@ class SettingTable(QDialog):
                 }
             )
         )  # Connect to reject action
-
         # Add buttons to the button layout
         horizontalSpacer = QSpacerItem(
-            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+            40, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
         button_layout.addItem(horizontalSpacer)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
         button_layout.addWidget(save_button)
-
-        dialog_main_layout.addLayout(button_layout)
-
-        # Set the main layout as the dialog's layout
-        self.setLayout(dialog_main_layout)
+        return button_widget
 
     def save_setting_all_app(self, data):
         msg = save_setting_tables(data)
@@ -265,11 +264,6 @@ class SettingTable(QDialog):
         s_value_change_spinbox_1.setStyleSheet(css_input)
         s_value_change_spinbox_1.setValue(self.ban_info["meta"]["number"])
 
-        verticalSpacer2 = QSpacerItem(
-            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
-        )
-        layout_tab.addItem(verticalSpacer2)
-
         # TODO Handler Func
         def value_table_count_color(value):
             value1 = s_table_count_color_spinbox_1.value()
@@ -309,6 +303,15 @@ class SettingTable(QDialog):
 
         # / Value Change Event Change
         s_value_change_spinbox_1.valueChanged.connect(value_change)
+
+        button = self.showButton()
+        layout_tab.addWidget(button)
+
+
+        verticalSpacer2 = QSpacerItem(
+            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+        )
+        layout_tab.addItem(verticalSpacer2)
 
         return tab
 
@@ -496,6 +499,9 @@ class SettingTable(QDialog):
         layout.addWidget(lable_m9, 4, 1)
         layout.addWidget(lable_m10, 5, 1)
 
+        button = self.showButton()
+        layout.addWidget(button)
+
         horizontalSpacer = QSpacerItem(
             40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
@@ -530,13 +536,15 @@ class SettingTable(QDialog):
             button_l.addWidget(button)
             i = i + 1
 
+        layout.addWidget(main)
+        layout.addWidget(button_w)
+        button = self.showButton()
+        layout.addWidget(button)
         # Add a vertical spacer to the layout
         verticalSpacer1 = QSpacerItem(
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         )
-        layout.addWidget(main)
         layout.addItem(verticalSpacer1)
-        layout.addWidget(button_w)
         return tab
 
     def clear_layout_main(self, layout):
@@ -593,7 +601,7 @@ class SettingTable(QDialog):
 
         # Tạo scroll area
         scroll_area = QScrollArea(widget)
-        scroll_area.setFixedHeight(500)
+        scroll_area.setMaximumHeight(500)
         scroll_area.setWidgetResizable(True)
 
         # Tạo widget chứa các nội dung để thêm vào scroll area
@@ -716,10 +724,10 @@ class SettingTable(QDialog):
         spin_boxes.append(config_col_spinBox_1)
         spin_boxes.append(config_col_spinBox_2)
 
-        verticalSpacer2 = QSpacerItem(
-            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
-        )
-        layout.addItem(verticalSpacer2)
+        # verticalSpacer2 = QSpacerItem(
+        #     20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+        # )
+        # layout.addItem(verticalSpacer2)
 
         # Tạo nút để bật/tắt tất cả SpinBox
         toggle_button = QPushButton("Bật Tắt Tùy Chỉnh D")
