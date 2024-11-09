@@ -417,7 +417,7 @@ class NgangPage(QWidget):
         with open(os.path.join(self.ngang_path, f"number_{number}.json"), "r") as file:
             data = json.load(file)
             self.ngang_data = data
-        SendMessage(f"Đã mở Bộ chuyển đổi {number}")
+        # SendMessage(f"Đã mở Bộ chuyển đổi {number}")
 
     def updateRows(self):
         self.table_main.clearSelection()

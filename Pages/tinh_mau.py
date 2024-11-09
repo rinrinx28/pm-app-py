@@ -242,7 +242,7 @@ class TinhAndMauPage(QWidget):
         ]
 
         title_text = (
-            f"{ban_thong_name}/30 ** Bảng Tính ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
+            f"{ban_thong_name} ** Bảng Tính ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} **  Bộ Chuyển Đổi: {change_number} ** "
             + f"Số dòng: {row_count}/{max_row} ** Bảng Màu: {','.join(list_table_color)}"
         )

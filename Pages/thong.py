@@ -798,7 +798,7 @@ class ThongPage(QWidget):
             data = json.load(file)
             self.thong_data = data
 
-        SendMessage(f"Đã mở Bộ chuyển đổi {number}")
+        # SendMessage(f"Đã mở Bộ chuyển đổi {number}")
 
     def copyRowThong(self, selceted_rows):
         row1 = selceted_rows[0]

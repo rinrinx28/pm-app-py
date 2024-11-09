@@ -74,7 +74,7 @@ class AppSelectionDialog(QDialog):
         )
         layout = QVBoxLayout(self)
         label = QLabel(
-            f"Đây là bảng chọn của Bộ {type_count}, Xin vui lòng chọn PM để sử dụng:"
+            f"Đây là bảng chọn của Bộ {type_count}, Xin vui lòng chọn Bản để sử dụng:"
         )
         label.setStyleSheet(css_title)
         layout.addWidget(label)
@@ -91,7 +91,7 @@ class AppSelectionDialog(QDialog):
 
         # Create 30 buttons, marking any that have been opened today
         for i in range(30):
-            button = QPushButton(f"Bản {type_count_label}.{i+1}")
+            button = QPushButton(f"Bản {i+1}")
             button.setCheckable(True)
             button.setStyleSheet(
                 css_button_notice if i in self.opened_apps_today else css_button_normal
@@ -331,7 +331,7 @@ class FullScreenApp(QMainWindow):
             if self.type_pm == 1
             else ("2" if self.type_pm == 2 else "0" if self.type_pm == 0 else "1b")
         )
-        label = QLabel(f"PM{type_count} - Bản {type_count}.{index}/30")
+        label = QLabel(f"Bộ {type_count} - Bản {index}")
         label.setStyleSheet(css_title)
         main_layout.addWidget(label)
 
