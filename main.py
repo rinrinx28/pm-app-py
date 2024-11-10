@@ -74,7 +74,7 @@ class AppSelectionDialog(QDialog):
         )
         layout = QVBoxLayout(self)
         label = QLabel(
-            f"Đây là bảng chọn của Bộ {type_count}, Xin vui lòng chọn Bản để sử dụng:"
+            f"Bộ {type_count}, Xin vui lòng chọn App:"
         )
         label.setStyleSheet(css_title)
         layout.addWidget(label)
@@ -91,14 +91,20 @@ class AppSelectionDialog(QDialog):
 
         # Create 30 buttons, marking any that have been opened today
         for i in range(30):
-            button = QPushButton(f"Bản {i+1}")
+            button = QPushButton()
             button.setCheckable(True)
-            button.setStyleSheet(
-                css_button_notice if i in self.opened_apps_today else css_button_normal
-            )
-            button.clicked.connect(
-                lambda _, index=i: self.create_button_click_handler(index)
-            )  # Pass index
+
+            # Check if the button has been opened today
+            if i in self.opened_apps_today:
+                last_opened_time = self.opened_apps_today[i]
+                button_text = f"App {i+1} - {last_opened_time}"  # Show last opened time
+                button.setStyleSheet(css_button_notice)  # Style for opened buttons
+            else:
+                button_text = f"App {i+1}"
+                button.setStyleSheet(css_button_normal)  # Style for unopened buttons
+
+            button.setText(button_text)
+            button.clicked.connect(lambda _, index=i: self.create_button_click_handler(index))  # Pass index
             button.setCursor(QCursor(Qt.PointingHandCursor))
             self.grid_layout.addWidget(button, i % 6, i // 6)
             self.buttons.append(button)
@@ -183,17 +189,18 @@ class AppSelectionDialog(QDialog):
     def confirm_selection(self):
         # Only proceed if an app is selected
         if self.selected_app_index is not None:
-            # Mark the app as opened in the file and update the button style
-            self.opened_apps_today.add(self.selected_app_index)
+            # Get the current time in HH:mm format
+            current_time = datetime.now().strftime("%H:%M")
+            
+            # Mark the app as opened with the current time
+            self.opened_apps_today[self.selected_app_index] = current_time
             self.update_opened_apps_file()
 
             # Close the dialog to launch the main app
             # self.accept()
             self.open_app(self.selected_app_index + 1, self.type_pm)
-            return
         else:
             SendMessage("Xin vui lòng chọn APP")
-            return
 
     def toggle_all_buttons(self):
         # Uncheck the recent button if "Show/Hide All" is checked
@@ -222,10 +229,8 @@ class AppSelectionDialog(QDialog):
     def cleanup_opened_apps_history(self):
         """Remove opened apps history older than a specified date."""
         file_path = os.path.join(data_sp_dir, f"{self.type_pm}", "button_clicks.txt")
-        today = datetime.today().date().isoformat()
-        cutoff_date = (
-            (datetime.today() - timedelta(days=1)).date().isoformat()
-        )  # 1 day ago
+        today = datetime.today().isoformat(sep=" ")[:10]  # Current date only
+        cutoff_date = (datetime.today() - timedelta(days=1)).isoformat(sep=" ")[:10]  # 1 day ago, date only
         opened_today = set()
 
         # Read the existing history
@@ -233,14 +238,12 @@ class AppSelectionDialog(QDialog):
             with open(file_path, "r") as file:
                 new_lines = []
                 for line in file:
-                    date, idx = line.strip().split(":")
-                    if date == today:
+                    date_time, idx = line.strip().rsplit(":", 1)  # Split only at the last ":"
+                    if date_time[:10] == today:  # Check by date only
                         opened_today.add(int(idx))  # Keep today's opened apps
                         new_lines.append(line.strip())
-                    elif date >= cutoff_date:
-                        new_lines.append(
-                            line.strip()
-                        )  # Keep apps opened in the last day
+                    elif date_time[:10] >= cutoff_date:
+                        new_lines.append(line.strip())  # Keep apps opened in the last day
 
             # Rewrite the file with updated history, removing old lines
             with open(file_path, "w") as file:
@@ -253,24 +256,31 @@ class AppSelectionDialog(QDialog):
         return opened_today
 
     def load_opened_apps(self):
+        """Load and display the last open time (HH:mm) for each app accessed today."""
         file_path = os.path.join(data_sp_dir, f"{self.type_pm}", "button_clicks.txt")
-        today = datetime.today().date().isoformat()
-        opened_today = set()
+        today = datetime.today().isoformat(sep=" ")[:10]  # Current date only
+        opened_today = {}
 
         try:
             with open(file_path, "r") as file:
                 for line in file:
-                    date, idx = line.strip().split(":")
-                    if date == today:
-                        opened_today.add(int(idx))
+                    date_time, idx = line.strip().rsplit(":", 1)  # Split only at the last ":"
+                    if date_time[:10] == today:  # Check by date only
+                        # Extract just the time in HH:mm format
+                        open_time = datetime.fromisoformat(date_time).strftime("%H:%M")
+                        opened_today[int(idx)] = open_time  # Store last open time for each app
         except FileNotFoundError:
             pass  # If the file does not exist, no apps have been opened today
+
+        # Display each app and its last open time in HH:mm format
+        # for app_id, last_opened in opened_today.items():
+        #     print(f"App {app_id} was last opened at {last_opened}")
 
         return opened_today
 
     def update_opened_apps_file(self):
         file_path = os.path.join(data_sp_dir, f"{self.type_pm}", "button_clicks.txt")
-        today = datetime.today().date().isoformat()
+        today = datetime.today().isoformat(sep=" ")  # Current date and time
 
         with open(file_path, "w") as file:
             for idx in sorted(self.opened_apps_today):
@@ -329,9 +339,11 @@ class FullScreenApp(QMainWindow):
         type_count = (
             "1a"
             if self.type_pm == 1
-            else ("2" if self.type_pm == 2 else "0" if self.type_pm == 0 else "1b")
+            else ("2" if self.type_pm == 2 else "Trắng" if self.type_pm == 0 else "1b")
         )
-        label = QLabel(f"Bộ {type_count} - Bản {index}")
+
+        type_app = ("Tập 1" if int(index) < 11 else "Tập 2" if int(index) < 21 else 'Tập 3')
+        label = QLabel(f"Bộ {type_count} - {type_app} - App {index}")
         label.setStyleSheet(css_title)
         main_layout.addWidget(label)
 

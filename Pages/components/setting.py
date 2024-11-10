@@ -769,7 +769,7 @@ class SettingTable(QDialog):
         )
 
         if self.current_widget:
-            self.clearLayoutMain(self.main_layout)
+            self.clear_layout_main(self.main_layout)
 
         self.current_widget = widget
         self.main_layout.addWidget(self.current_widget)

@@ -33,7 +33,7 @@ from Controller.handler import (
     saveAllThong,
     typeWithRecipe,
     TachVaGhep,
-    saveBackupThong,
+    saveBackupThong,convert_string_format
 )
 import os
 from Pages.common.loading import LoadingScreen
@@ -156,8 +156,10 @@ class ThongPage(QWidget):
         ban_thong_value = ban_info["thong"]["value"]
         ban_thong_name = ban_info["thong"]["name"]
 
+        
+        name = convert_string_format(ban_thong_name)
         title_text = (
-            f"{ban_thong_name} / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
+            f"{name} / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
             + f"Số dòng: {row_count}/{max_row} / "
             + f"Bảng Thông: {value_thong} Thông"

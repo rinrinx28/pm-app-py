@@ -4,6 +4,7 @@ from Pages.components.path import Path
 import secrets
 import glob
 from datetime import datetime
+import re
 
 
 # TODO Handler Data
@@ -1170,3 +1171,124 @@ def extract_index(s):
         index = parts[1]  # Phần trước dấu chấm
         return int(index)  # Chuyển đổi sang số nguyên
     return None  # Nếu không tìm thấy
+
+def save_ngang_backup(data):
+    thong_path = Path().path_thong()
+    id = data["id"]
+    thong_data = data["thong_data"]
+    # / Load File thong db
+    with open(os.path.join(thong_path, "thongs.json"), "r") as file:
+        thong_db = json.load(file)
+
+    # / Make Data STT for thong data
+    stt_data = []
+    for i in range(11):
+        stt_col = []
+        for j in range(131):
+            value = f"{j:02}"
+            stt_col.append(value)
+        stt_data.append(stt_col)
+
+    thong_db["stt"] = stt_data
+    thong_db["change"] = []
+
+    # / Save Thong DB
+    with open(os.path.join(thong_path, "thongs.json"), "w") as file:
+        json.dump(thong_db, file)
+
+    # / Save new backup thong
+    with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
+        json.dump(thong_data, file)
+
+    # / re-render all bo chuyen doi
+    for i in range(11):
+        if i == 0:
+            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
+                json.dump(thong_data, file)
+        else:
+            number_change = list(
+                map(
+                    lambda item: list(map(lambda x: TachVaGhep(i, x), item)), thong_data
+                )
+            )
+            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
+                json.dump(number_change, file)
+
+    return {"thong_info": thong_db, "thong_data": thong_data}
+
+def sync_ngang(data):
+    type_count = data["type_count"]
+    update = data["update"]
+    custom = data["custom"]
+    number = data["number"]
+    name = data["name"]
+    change = data["change"]
+    stt = data["stt"]
+    current_path = rf"C:\data"
+    index = extract_index(name)
+
+    # Xác định phạm vi index dựa trên type_count
+    if type_count == 1:
+        range_tuple = get_range_by_index(index, 0)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 2:
+        range_tuple = get_range_by_index(index, 30)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 3:
+        range_tuple = get_range_by_index(index, 60)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 0:
+        range_tuple = get_range_by_index(index, 90)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    else:
+        return "Type count không hợp lệ"
+
+    range_start, range_end = range_tuple
+
+    for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
+        file_type = i + 1
+        ngang_path = os.path.join(current_path, f"{file_type}", "number")
+        with open(os.path.join(ngang_path, "number.json"), "r") as file:
+            ngang_db = json.load(file)
+
+        ngang_db["stt"] = stt
+        ngang_db["change"] = []
+
+        # / Save Thong DB
+        with open(os.path.join(ngang_path, "thongs.json"), "w") as file:
+            json.dump(ngang_db, file)
+
+        # / Save thong data
+        with open(
+            os.path.join(ngang_path, f"thong_{number}.json"), "w"
+        ) as file:
+            json.dump(update, file)
+
+    type_count_label = (
+        "1a Số"
+        if type_count == 1
+        else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
+    )
+
+    return f"Đã đồng bộ dữ liệu Bộ {type_count_label}"
+
+
+def convert_string_format(input_string):
+    # Match the pattern "Bản Xb.Y" where X and Y are numbers
+    _, suffix = input_string.split(" ", 1)
+    bo, app = suffix.split(".")
+    
+    type_count = (
+            "Trắng"
+            if bo == "0"
+            else bo
+        )
+    # Assuming Tập is the same as App in this context
+    type_app = ("Tập 1" if int(app) < 11 else "Tập 2" if int(app) < 21 else 'Tập 3')
+
+    # Format the new string
+    return f"Bộ {type_count} - {type_app} - App {app}"

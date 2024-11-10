@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QDateEdit, QDialog,
                                QVBoxLayout, QWidget)
 
 from Controller.handler import (TachVaGhep, deleteFromToBan, deleteRowBan,
-                                updateBanInsert, updateColorInsert,
+                                updateBanInsert, convert_string_format,
                                 updateThongInsert)
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
@@ -241,8 +241,9 @@ class TinhAndMauPage(QWidget):
             f"M{i+1}" for i, v in enumerate(ban_info["meta"]["tables"]) if v["enable"]
         ]
 
+        name = convert_string_format(ban_thong_name)
         title_text = (
-            f"{ban_thong_name} ** Bảng Tính ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
+            f"{name} ** Bảng Tính ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} **  Bộ Chuyển Đổi: {change_number} ** "
             + f"Số dòng: {row_count}/{max_row} ** Bảng Màu: {','.join(list_table_color)}"
         )
