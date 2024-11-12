@@ -187,6 +187,11 @@ class AppSelectionDialog(QDialog):
         return
 
     def confirm_selection(self):
+        def handle_click(index):
+            # Clear selection style from all buttons
+            button = self.buttons[index]
+            current_time = self.opened_apps_today[index]
+            button.setText(f'App {int(index) + 1} - {current_time}')
         # Only proceed if an app is selected
         if self.selected_app_index is not None:
             # Get the current time in HH:mm format
@@ -195,6 +200,7 @@ class AppSelectionDialog(QDialog):
             # Mark the app as opened with the current time
             self.opened_apps_today[self.selected_app_index] = current_time
             self.update_opened_apps_file()
+            handle_click(self.selected_app_index)
 
             # Close the dialog to launch the main app
             # self.accept()

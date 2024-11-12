@@ -5,30 +5,59 @@ from functools import partial
 
 from PySide6.QtCore import QDate, QTimer, QRect
 from PySide6.QtGui import QAction, QColor, QCursor, QFont, QIcon, Qt
-from PySide6.QtWidgets import (QApplication, QCheckBox, QDateEdit, QDialog,
-                               QFrame, QGridLayout, QHBoxLayout, QHeaderView,
-                               QLabel, QMenu, QMessageBox, QPushButton,
-                               QScrollArea, QSpinBox, QSplitter,
-                               QStackedWidget, QTableWidget, QTableWidgetItem,
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QDateEdit,
+    QDialog,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QMenu,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
+    QSplitter,
+    QStackedWidget,
+    QTableWidget,
+    QTableWidgetItem,
     QSpacerItem,
     QSizePolicy,
-                               QVBoxLayout, QWidget)
+    QVBoxLayout,
+    QWidget,
+)
 
-from Controller.handler import (TachVaGhep, deleteFromToBan, deleteRowBan,
-                                updateBanInsert, convert_string_format,
-                                updateThongInsert)
+from Controller.handler import (
+    TachVaGhep,
+    deleteFromToBan,
+    deleteRowBan,
+    updateBanInsert,
+    convert_string_format,
+    updateThongInsert,
+)
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
 from Pages.components.path import Path
 from Pages.components.setting import SettingTable
-from Pages.components.stylesheet import (Font, Note, SendMessage,
-                                         css_button_cancel,
-                                         css_button_checkbox,
-                                         css_button_normal, css_button_notice,
-                                         css_button_submit, css_button_view,
-                                         css_customs_table, css_input,
-                                         css_lable, css_table_header,
-                                         css_title)
+from Pages.components.stylesheet import (
+    Font,
+    Note,
+    SendMessage,
+    css_button_cancel,
+    css_button_checkbox,
+    css_button_normal,
+    css_button_notice,
+    css_button_submit,
+    css_button_view,
+    css_customs_table,
+    css_input,
+    css_lable,
+    css_table_header,
+    css_title,
+)
 
 
 class TinhAndMauPage(QWidget):
@@ -2793,8 +2822,10 @@ class TinhAndMauPage(QWidget):
                 day = date.day()
                 insert_ngang_edit.setValue(day)
             else:
-                if old_data is None or old_data['date'] != date.toString("dd/MM/yyyy"):
-                    insert_day_edit.setStyleSheet("background-color: pink;font-size:24px;")
+                if old_data is None or old_data["date"] != date.toString("dd/MM/yyyy"):
+                    insert_day_edit.setStyleSheet(
+                        "background-color: pink;font-size:24px;"
+                    )
                 else:
                     insert_day_edit.setStyleSheet("font-size:24px;")
 
@@ -2802,8 +2833,10 @@ class TinhAndMauPage(QWidget):
             data["insert"]["ngang"] = value - 1
             number_value = self.number_info[value - 1]
             insert_ngang_edit_first.setText(f"{number_value[0]}")
-            if old_data is None or old_data['ngang'] != value - 1:
-                insert_ngang_edit.setStyleSheet("background-color: pink;font-size:24px;")
+            if old_data is None or old_data["ngang"] != value - 1:
+                insert_ngang_edit.setStyleSheet(
+                    "background-color: pink;font-size:24px;"
+                )
             else:
                 insert_ngang_edit.setStyleSheet("font-size:24px;")
 
@@ -2818,9 +2851,11 @@ class TinhAndMauPage(QWidget):
             if value == -1:
                 insert_thong_edit_first.setText(f"")
                 return
-            
-            if old_data is None or old_data['thong'] != value:
-                insert_thong_edit.setStyleSheet("background-color: pink;font-size:24px;")
+
+            if old_data is None or old_data["thong"] != value:
+                insert_thong_edit.setStyleSheet(
+                    "background-color: pink;font-size:24px;"
+                )
             else:
                 insert_thong_edit.setStyleSheet("font-size:24px;")
 
@@ -4655,7 +4690,7 @@ class TinhAndMauPage(QWidget):
                 header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M1")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_color.setItem(0, total_columns + j, header_item)
-                
+
                 col_header = QTableWidgetItem(f"{j + 1}")
                 col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_color.setHorizontalHeaderItem(
@@ -6282,10 +6317,17 @@ class TinhAndMauPage(QWidget):
                                     # / M2 Start
                                     if value1_2 <= col_e <= value2_2:
                                         math_count_handler_m2 = f"{col_e}:{i}:_color_m2"
-                                        if not math_count_handler_m2 in self.count_handler:
-                                            self.count_handler[math_count_handler_m2] = 1
+                                        if (
+                                            not math_count_handler_m2
+                                            in self.count_handler
+                                        ):
+                                            self.count_handler[
+                                                math_count_handler_m2
+                                            ] = 1
                                         else:
-                                            self.count_handler[math_count_handler_m2] += 1
+                                            self.count_handler[
+                                                math_count_handler_m2
+                                            ] += 1
 
                                         # / End check col_stt table count
                                         stt_count_with_d_m2 = self.count_handler[
@@ -6297,9 +6339,7 @@ class TinhAndMauPage(QWidget):
 
                                         if stt_count_with_d_m2 <= number_col_d_m2:
                                             # / Start count color with col_e
-                                            col_e_count_m2 = (
-                                                f"{col_e}:{stt_count_with_d_m2}:col_e_m2"
-                                            )
+                                            col_e_count_m2 = f"{col_e}:{stt_count_with_d_m2}:col_e_m2"
                                             if not col_e_count_m2 in self.count_handler:
                                                 self.count_handler[col_e_count_m2] = 1
                                             else:
@@ -6314,11 +6354,13 @@ class TinhAndMauPage(QWidget):
                                             )
                                             find_null_color_m2 = 0
                                             find_stt_color_m2 = stt_count_with_d_m2 - 1
-                                            find_next_color_m2 = self.find_column_by_index(
-                                                tables[1]["col_d"],
-                                                col_e - value1_2,
-                                                value1_2 - 1,
-                                                value2_2,
+                                            find_next_color_m2 = (
+                                                self.find_column_by_index(
+                                                    tables[1]["col_d"],
+                                                    col_e - value1_2,
+                                                    value1_2 - 1,
+                                                    value2_2,
+                                                )
                                             )
                                             col_color_m2 = (
                                                 find_next_color_m2
@@ -6381,14 +6423,19 @@ class TinhAndMauPage(QWidget):
                                                     ] += 1
 
                                                 # / End check col_stt table count
-                                                stt_count_with_d_m3 = self.count_handler[
-                                                    math_count_handler_m3
-                                                ]  # So thu tu cua so dem
+                                                stt_count_with_d_m3 = (
+                                                    self.count_handler[
+                                                        math_count_handler_m3
+                                                    ]
+                                                )  # So thu tu cua so dem
                                                 number_col_d_m3 = tables[2]["col_d"][
                                                     col_e_m2 - 1
                                                 ]
 
-                                                if stt_count_with_d_m3 <= number_col_d_m3:
+                                                if (
+                                                    stt_count_with_d_m3
+                                                    <= number_col_d_m3
+                                                ):
                                                     # / Start count color with col_e
                                                     col_e_count_m3 = f"{col_e_m2}:{stt_count_with_d_m3}:col_e_m3"
                                                     if (
@@ -6521,7 +6568,9 @@ class TinhAndMauPage(QWidget):
                                                                 object_m4[
                                                                     "isNoticeColor_m4"
                                                                 ],
-                                                                object_m4["col_color_m4"],
+                                                                object_m4[
+                                                                    "col_color_m4"
+                                                                ],
                                                             )
                                                             dataColorM4 = m4
                                                             # / M5 start
@@ -6530,44 +6579,44 @@ class TinhAndMauPage(QWidget):
                                                                 <= col_e_m4
                                                                 <= value2_5
                                                             ):
-                                                                data_m5 = (
-                                                                    self.handler_data_m5(
-                                                                        i,
-                                                                        t,
-                                                                        col_e_m3,
-                                                                        notice_colorM5,
-                                                                        value1_5,
-                                                                        value2_5,
-                                                                        countRow,
-                                                                        col_a,
-                                                                        thong_range_1,
-                                                                        stt_cot,
-                                                                        col_d,
-                                                                        col_t,
-                                                                        col_e,
-                                                                        col_e_m2,
-                                                                        col_e_m4,
-                                                                        isEqual,
-                                                                        total_column,
-                                                                        isNoticeCount,
-                                                                        col_color,
-                                                                        col_color_m2,
-                                                                        col_color_m3,
-                                                                        col_color_m4,
-                                                                        isNoticeColor,
-                                                                        isNoticeColor_m2,
-                                                                        isNoticeColor_m3,
-                                                                        isNoticeColor_m4,
-                                                                        item_date,
-                                                                        col_e5,
-                                                                        row_thong,
-                                                                        isDeleted,
-                                                                    )
+                                                                data_m5 = self.handler_data_m5(
+                                                                    i,
+                                                                    t,
+                                                                    col_e_m3,
+                                                                    notice_colorM5,
+                                                                    value1_5,
+                                                                    value2_5,
+                                                                    countRow,
+                                                                    col_a,
+                                                                    thong_range_1,
+                                                                    stt_cot,
+                                                                    col_d,
+                                                                    col_t,
+                                                                    col_e,
+                                                                    col_e_m2,
+                                                                    col_e_m4,
+                                                                    isEqual,
+                                                                    total_column,
+                                                                    isNoticeCount,
+                                                                    col_color,
+                                                                    col_color_m2,
+                                                                    col_color_m3,
+                                                                    col_color_m4,
+                                                                    isNoticeColor,
+                                                                    isNoticeColor_m2,
+                                                                    isNoticeColor_m3,
+                                                                    isNoticeColor_m4,
+                                                                    item_date,
+                                                                    col_e5,
+                                                                    row_thong,
+                                                                    isDeleted,
                                                                 )
                                                                 if data_m5:
                                                                     m5, object_m5 = (
                                                                         data_m5["m5"],
-                                                                        data_m5["object"],
+                                                                        data_m5[
+                                                                            "object"
+                                                                        ],
                                                                     )
                                                                     (
                                                                         col_e_m5,
@@ -6638,7 +6687,9 @@ class TinhAndMauPage(QWidget):
                                                                                     "object"
                                                                                 ],
                                                                             )
-                                                                            dataColorM6 = m6
+                                                                            dataColorM6 = (
+                                                                                m6
+                                                                            )
 
                                                                             (
                                                                                 col_e_m6,
@@ -6711,9 +6762,7 @@ class TinhAndMauPage(QWidget):
                                                                                             "object"
                                                                                         ],
                                                                                     )
-                                                                                    dataColorM7 = (
-                                                                                        m7
-                                                                                    )
+                                                                                    dataColorM7 = m7
 
                                                                                     (
                                                                                         col_e_m7,
@@ -7359,17 +7408,17 @@ class TinhAndMauPage(QWidget):
                                 # / End check col_c is first
                             else:
                                 self.dataCount.append(
-                                {
-                                    "row": countRow,
-                                    "col": total_column,
-                                    "color": isEqual,
-                                    "data": f"{col_a}/{col_d}",
-                                    "notice": isNoticeCount,
-                                    "date": item_date,
-                                    "color_value": col_d,
-                                    "isDeleted": isDeleted,
-                                }
-                            )
+                                    {
+                                        "row": countRow,
+                                        "col": total_column,
+                                        "color": isEqual,
+                                        "data": f"{col_a}/{col_d}",
+                                        "notice": isNoticeCount,
+                                        "date": item_date,
+                                        "color_value": col_d,
+                                        "isDeleted": isDeleted,
+                                    }
+                                )
                         else:
                             # / Add Data to Table count without math
                             self.dataCount.append(
@@ -7999,11 +8048,13 @@ class TinhAndMauPage(QWidget):
         # Center the dialog on the screen when it's shown
         screen_geometry = QApplication.primaryScreen().geometry()
         dialog_geometry = dialog.geometry()
-        
+
         # Calculate the center position
         x = (screen_geometry.width() - dialog_geometry.width()) // 2
         y = (screen_geometry.height() - dialog_geometry.height()) // 2
-        dialog.setGeometry(QRect(x, y, dialog_geometry.width(), dialog_geometry.height()))
+        dialog.setGeometry(
+            QRect(x, y, dialog_geometry.width(), dialog_geometry.height())
+        )
 
     # TODO Handler Color Table
     # / M4 start

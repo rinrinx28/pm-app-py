@@ -33,7 +33,7 @@ from Controller.handler import (
     saveAllThong,
     typeWithRecipe,
     TachVaGhep,
-    saveBackupThong,convert_string_format
+    saveBackupThong,convert_string_format,convert_string_format_type
 )
 import os
 from Pages.common.loading import LoadingScreen
@@ -158,6 +158,7 @@ class ThongPage(QWidget):
 
         
         name = convert_string_format(ban_thong_name)
+        self.name = convert_string_format_type(ban_thong_name)
         title_text = (
             f"{name} / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
@@ -434,7 +435,7 @@ class ThongPage(QWidget):
             self.updateRowAndColumns()
             if value != 0:
                 note = Note[value - 1]
-                self.note.setText(f"{note}")
+                self.note.setText(f"Bộ chuyển đổi {value} - {note}")
                 self.note.setScaledContents(True)
             else:
                 self.note.setText("")
@@ -460,7 +461,7 @@ class ThongPage(QWidget):
             data["type_count"] = self.thong_db["type_count"]
             msg = saveAllThong(data)
             self.delete_color_click()
-            SendMessage(msg)
+            SendMessage(f'{msg} {self.name}')
 
         def type_with_button():
             if self.thong_db["setting"] == 0:

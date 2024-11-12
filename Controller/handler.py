@@ -576,13 +576,13 @@ def save_setting_tables(data):
         with open(os.path.join(db_path, "index.json"), "w") as file:
             json.dump(db_index, file)
 
-    type_count_label = (
-        "1a Số"
-        if type_count == 1
-        else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
-    )
+    # type_count_label = (
+    #     "1a Số"
+    #     if type_count == 1
+    #     else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
+    # )
 
-    return f"Đã đồng bộ dữ liệu Bộ {type_count_label}"
+    return f"Đã đồng bộ dữ liệu"
 
 
 # TODO Handler Data Thong
@@ -894,13 +894,13 @@ def saveAllThong(data):
         ) as file:
             json.dump(update, file)
 
-    type_count_label = (
-        "1a Số"
-        if type_count == 1
-        else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
-    )
+    # type_count_label = (
+    #     "1a Số"
+    #     if type_count == 1
+    #     else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
+    # )
 
-    return f"Đã đồng bộ dữ liệu Bộ {type_count_label}"
+    return f"Đã đồng bộ dữ liệu"
 
 
 def typeWithRecipe(data):
@@ -1172,6 +1172,7 @@ def extract_index(s):
         return int(index)  # Chuyển đổi sang số nguyên
     return None  # Nếu không tìm thấy
 
+
 def save_ngang_backup(data):
     thong_path = Path().path_thong()
     id = data["id"]
@@ -1215,6 +1216,7 @@ def save_ngang_backup(data):
                 json.dump(number_change, file)
 
     return {"thong_info": thong_db, "thong_data": thong_data}
+
 
 def sync_ngang(data):
     type_count = data["type_count"]
@@ -1263,9 +1265,7 @@ def sync_ngang(data):
             json.dump(ngang_db, file)
 
         # / Save thong data
-        with open(
-            os.path.join(ngang_path, f"thong_{number}.json"), "w"
-        ) as file:
+        with open(os.path.join(ngang_path, f"thong_{number}.json"), "w") as file:
             json.dump(update, file)
 
     type_count_label = (
@@ -1281,14 +1281,23 @@ def convert_string_format(input_string):
     # Match the pattern "Bản Xb.Y" where X and Y are numbers
     _, suffix = input_string.split(" ", 1)
     bo, app = suffix.split(".")
-    
-    type_count = (
-            "Trắng"
-            if bo == "0"
-            else bo
-        )
+
+    type_count = "Trắng" if bo == "0" else bo
     # Assuming Tập is the same as App in this context
-    type_app = ("Tập 1" if int(app) < 11 else "Tập 2" if int(app) < 21 else 'Tập 3')
+    type_app = "Tập 1" if int(app) < 11 else "Tập 2" if int(app) < 21 else "Tập 3"
 
     # Format the new string
     return f"Bộ {type_count} - {type_app} - App {app}"
+
+
+def convert_string_format_type(input_string):
+    # Match the pattern "Bản Xb.Y" where X and Y are numbers
+    _, suffix = input_string.split(" ", 1)
+    bo, app = suffix.split(".")
+
+    type_count = "Trắng" if bo == "0" else bo
+    # Assuming Tập is the same as App in this context
+    type_app = "Tập 1" if int(app) < 11 else "Tập 2" if int(app) < 21 else "Tập 3"
+
+    # Format the new string
+    return f"Bộ {type_count} - {type_app}"

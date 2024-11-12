@@ -16,8 +16,19 @@ from PySide6.QtWidgets import (
 from Pages.components.path import Path
 from PySide6.QtGui import QIcon
 from PySide6.QtGui import Qt, QCursor
-from Controller.handler import updateColorInsert, enableTables, save_setting_tables
-from Pages.components.stylesheet import css_button_submit, css_input, SendMessage
+from Controller.handler import (
+    updateColorInsert,
+    enableTables,
+    save_setting_tables,
+    convert_string_format,
+    convert_string_format_type,
+)
+from Pages.components.stylesheet import (
+    css_button_submit,
+    css_input,
+    SendMessage,
+    css_title,
+)
 
 from functools import partial
 
@@ -35,6 +46,9 @@ class SettingTable(QDialog):
         self.col_thong = self.ban_info["thong"]
         self.maxRow = self.ban_info["meta"]
         self.buttons = self.ban_info["meta"]["buttons"]
+
+        self.name = convert_string_format(self.col_thong["name"])
+        self.name_type = convert_string_format_type(self.col_thong["name"])
         icon = self.path.path_logo()
         self.current_widget = None
 
@@ -45,6 +59,10 @@ class SettingTable(QDialog):
 
         # Create main layout
         dialog_main_layout = QVBoxLayout()
+
+        label = QLabel(f"Cài đặt - {self.name}")
+        label.setStyleSheet(css_title)
+        dialog_main_layout.addWidget(label)
 
         # Create a QTabWidget
         tab_widget = QTabWidget()
@@ -57,7 +75,7 @@ class SettingTable(QDialog):
         dialog_main_layout.addWidget(tab_widget)
         # Set the main layout as the dialog's layout
         self.setLayout(dialog_main_layout)
-    
+
     def showButton(self):
         button_widget = QWidget()
         # Create custom buttons
@@ -85,7 +103,7 @@ class SettingTable(QDialog):
             lambda: self.submit_click(self)
         )  # Connect the custom action
 
-        cancel_button = QPushButton("Hủy bỏ")  # Custom Cancel button
+        cancel_button = QPushButton("Thoát")  # Custom Cancel button
         cancel_button.setStyleSheet(
             """
             QPushButton {
@@ -113,16 +131,15 @@ class SettingTable(QDialog):
                 border-radius: 8px;
                 font-size: 24px;
                 font-weight: 600;
-                color: #111827;
-                background-color: #ffffff;
+                color: #ffffff;
+                background-color: #1D4ED8;
             }
             QPushButton:hover {
-                color: #1D4ED8;
-                background-color: #F3F4F6;
+                background-color: #1E40AF;
             }
-
         """
         )
+        save_button.setFixedWidth(200)
         save_button.setCursor(QCursor(Qt.PointingHandCursor))
         save_button.clicked.connect(
             lambda _: self.save_setting_all_app(
@@ -142,13 +159,13 @@ class SettingTable(QDialog):
         )
         button_layout.addItem(horizontalSpacer)
         button_layout.addWidget(ok_button)
-        button_layout.addWidget(cancel_button)
         button_layout.addWidget(save_button)
+        button_layout.addWidget(cancel_button)
         return button_widget
 
     def save_setting_all_app(self, data):
         msg = save_setting_tables(data)
-        return SendMessage(msg)
+        return SendMessage(f"{msg} {self.name_type}")
 
     def create_tab_main_setting(self):
         tab = QWidget()
@@ -306,7 +323,6 @@ class SettingTable(QDialog):
 
         button = self.showButton()
         layout_tab.addWidget(button)
-
 
         verticalSpacer2 = QSpacerItem(
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding

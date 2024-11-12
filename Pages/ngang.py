@@ -23,7 +23,7 @@ from Pages.components.stylesheet import (
 )
 import json
 import os
-from Controller.handler import backUpNgang, saveNgang,convert_string_format
+from Controller.handler import backUpNgang, saveNgang, convert_string_format
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
 
@@ -83,7 +83,7 @@ class NgangPage(QWidget):
         ban_col = ban_info["col"]
         ban_thong_value = ban_info["thong"]["value"]
         ban_thong_name = ban_info["thong"]["name"]
-        
+
         name = convert_string_format(ban_thong_name)
         title_text = (
             f"{name} / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
