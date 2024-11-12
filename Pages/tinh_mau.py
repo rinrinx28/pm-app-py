@@ -329,7 +329,7 @@ class TinhAndMauPage(QWidget):
         color_sorted = sorted(color_find_with_dCount, key=lambda x: x["col_d"])
         self.color_list = color_sorted
 
-        for label in range(6):
+        for label in range(10):
             if label < len(self.color_list):
                 isColor = self.color_list[label]
             else:
@@ -671,19 +671,7 @@ class TinhAndMauPage(QWidget):
 
         # / Insert Data row
         InsertData = QPushButton("Nhập Liệu")
-        InsertData.setStyleSheet(
-            """
-                QPushButton {
-                    padding: 10px;
-                    border-radius: 8px; 
-                    font-size: 24px;
-                    line-height: 32px;
-                    font-weight: 600; 
-                    color: #ffffff; 
-                    background-color: #7CFC00;
-                }
-            """
-        )
+        InsertData.setStyleSheet(css_button_submit)
         InsertData.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(InsertData)
 

@@ -188,7 +188,7 @@ class NgangPage(QWidget):
             self.updateRows()
             if value != 0:
                 note = Note[value - 1]
-                self.note.setText(f"{note}")
+                self.note.setText(f"Bộ chuyển đổi {value} - {note}")
                 self.note.setScaledContents(True)
             else:
                 self.note.setText("")

@@ -54,16 +54,16 @@ class AppSelectionDialog(QDialog):
         icon = QIcon(logo_path)
         self.setWindowIcon(icon)
         self.setWindowTitle(
-            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam - maikien06091966@gmail.com  - Chủ sáng lập, thiết kế và mã hóa dữ liệu: Mai Đình Kiên - Số Điện Thoại: 0964636709"
+            "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam - maikien06091966@gmail.com - Số Điện Thoại: 0964636709 - Chủ sáng lập, thiết kế và mã hóa dữ liệu: Mai Đình Kiên"
         )
 
         type_count = (
-            "1a Số"
+            "1a"
             if self.type_pm == 1
             else (
-                "2 Số"
+                "2"
                 if self.type_pm == 2
-                else "trắng" if self.type_pm == 0 else "1b Số"
+                else "trắng" if self.type_pm == 0 else "1b"
             )
         )
 
@@ -73,9 +73,7 @@ class AppSelectionDialog(QDialog):
             else ("2" if self.type_pm == 2 else "0" if self.type_pm == 0 else "1b")
         )
         layout = QVBoxLayout(self)
-        label = QLabel(
-            f"Bộ {type_count}, Xin vui lòng chọn App:"
-        )
+        label = QLabel(f"Bộ {type_count}, Mời chọn App:")
         label.setStyleSheet(css_title)
         layout.addWidget(label)
 
@@ -97,14 +95,16 @@ class AppSelectionDialog(QDialog):
             # Check if the button has been opened today
             if i in self.opened_apps_today:
                 last_opened_time = self.opened_apps_today[i]
-                button_text = f"App {i+1} - {last_opened_time}"  # Show last opened time
+                button_text = f"A{i+1} - {last_opened_time}"  # Show last opened time
                 button.setStyleSheet(css_button_notice)  # Style for opened buttons
             else:
-                button_text = f"App {i+1}"
+                button_text = f"A{i+1}"
                 button.setStyleSheet(css_button_normal)  # Style for unopened buttons
 
             button.setText(button_text)
-            button.clicked.connect(lambda _, index=i: self.create_button_click_handler(index))  # Pass index
+            button.clicked.connect(
+                lambda _, index=i: self.create_button_click_handler(index)
+            )  # Pass index
             button.setCursor(QCursor(Qt.PointingHandCursor))
             self.grid_layout.addWidget(button, i % 6, i // 6)
             self.buttons.append(button)
@@ -118,14 +118,14 @@ class AppSelectionDialog(QDialog):
         toggle_layout = QHBoxLayout()
 
         # "Show/Hide All" Button
-        self.show_all_button = QPushButton("Ẩn Hiện Tất Cả PM")
+        self.show_all_button = QPushButton("Ẩn Hiện Tất Cả App")
         self.show_all_button.setCheckable(True)
         self.show_all_button.clicked.connect(self.toggle_all_buttons)
         self.show_all_button.setCursor(QCursor(Qt.PointingHandCursor))
         toggle_layout.addWidget(self.show_all_button)
 
         # "Show/Hide Recently Opened" Button
-        self.show_recent_button = QPushButton("Ẩn Hiện PM đã mở gần đây")
+        self.show_recent_button = QPushButton("Ẩn Hiện App đã mở gần đây")
         self.show_recent_button.setCheckable(True)
         self.show_recent_button.clicked.connect(self.toggle_recent_buttons)
         self.show_recent_button.setCursor(QCursor(Qt.PointingHandCursor))
@@ -137,7 +137,7 @@ class AppSelectionDialog(QDialog):
         self.style_toggle_buttons()
 
         # Confirm button
-        self.confirm_button = QPushButton("Khởi Chạy PM")
+        self.confirm_button = QPushButton("Khởi Chạy App")
         self.confirm_button.setStyleSheet(css_button_submit)
         self.confirm_button.clicked.connect(self.confirm_selection)
         self.confirm_button.setCursor(QCursor(Qt.PointingHandCursor))
@@ -191,12 +191,13 @@ class AppSelectionDialog(QDialog):
             # Clear selection style from all buttons
             button = self.buttons[index]
             current_time = self.opened_apps_today[index]
-            button.setText(f'App {int(index) + 1} - {current_time}')
+            button.setText(f"App {int(index) + 1} - {current_time}")
+
         # Only proceed if an app is selected
         if self.selected_app_index is not None:
             # Get the current time in HH:mm format
             current_time = datetime.now().strftime("%H:%M")
-            
+
             # Mark the app as opened with the current time
             self.opened_apps_today[self.selected_app_index] = current_time
             self.update_opened_apps_file()
@@ -236,7 +237,9 @@ class AppSelectionDialog(QDialog):
         """Remove opened apps history older than a specified date."""
         file_path = os.path.join(data_sp_dir, f"{self.type_pm}", "button_clicks.txt")
         today = datetime.today().isoformat(sep=" ")[:10]  # Current date only
-        cutoff_date = (datetime.today() - timedelta(days=1)).isoformat(sep=" ")[:10]  # 1 day ago, date only
+        cutoff_date = (datetime.today() - timedelta(days=1)).isoformat(sep=" ")[
+            :10
+        ]  # 1 day ago, date only
         opened_today = set()
 
         # Read the existing history
@@ -244,12 +247,16 @@ class AppSelectionDialog(QDialog):
             with open(file_path, "r") as file:
                 new_lines = []
                 for line in file:
-                    date_time, idx = line.strip().rsplit(":", 1)  # Split only at the last ":"
+                    date_time, idx = line.strip().rsplit(
+                        ":", 1
+                    )  # Split only at the last ":"
                     if date_time[:10] == today:  # Check by date only
                         opened_today.add(int(idx))  # Keep today's opened apps
                         new_lines.append(line.strip())
                     elif date_time[:10] >= cutoff_date:
-                        new_lines.append(line.strip())  # Keep apps opened in the last day
+                        new_lines.append(
+                            line.strip()
+                        )  # Keep apps opened in the last day
 
             # Rewrite the file with updated history, removing old lines
             with open(file_path, "w") as file:
@@ -270,11 +277,15 @@ class AppSelectionDialog(QDialog):
         try:
             with open(file_path, "r") as file:
                 for line in file:
-                    date_time, idx = line.strip().rsplit(":", 1)  # Split only at the last ":"
+                    date_time, idx = line.strip().rsplit(
+                        ":", 1
+                    )  # Split only at the last ":"
                     if date_time[:10] == today:  # Check by date only
                         # Extract just the time in HH:mm format
                         open_time = datetime.fromisoformat(date_time).strftime("%H:%M")
-                        opened_today[int(idx)] = open_time  # Store last open time for each app
+                        opened_today[int(idx)] = (
+                            open_time  # Store last open time for each app
+                        )
         except FileNotFoundError:
             pass  # If the file does not exist, no apps have been opened today
 
@@ -348,8 +359,10 @@ class FullScreenApp(QMainWindow):
             else ("2" if self.type_pm == 2 else "Trắng" if self.type_pm == 0 else "1b")
         )
 
-        type_app = ("Tập 1" if int(index) < 11 else "Tập 2" if int(index) < 21 else 'Tập 3')
-        label = QLabel(f"Bộ {type_count} - {type_app} - App {index}")
+        type_app = (
+            "Tập 1" if int(index) < 11 else "Tập 2" if int(index) < 21 else "Tập 3"
+        )
+        label = QLabel(f"Bộ {type_count} - {type_app} - A{index}")
         label.setStyleSheet(css_title)
         main_layout.addWidget(label)
 

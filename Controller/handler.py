@@ -1287,7 +1287,7 @@ def convert_string_format(input_string):
     type_app = "Tập 1" if int(app) < 11 else "Tập 2" if int(app) < 21 else "Tập 3"
 
     # Format the new string
-    return f"Bộ {type_count} - {type_app} - App {app}"
+    return f"Bộ {type_count} - {type_app} - A{app}"
 
 
 def convert_string_format_type(input_string):
