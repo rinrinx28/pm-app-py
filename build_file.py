@@ -962,8 +962,16 @@ def createDB(thong, name, path):
     }
     os.makedirs(path, exist_ok=True)
 
+    stay = {
+        "thong": 0,
+        "ngang": 0
+    }
+
     with open(os.path.join(path, "index.json"), "w") as file:
         json.dump(data, file)
+
+    with open(os.path.join(path, "stay.json"), "w") as file:
+        json.dump(stay, file)
 
 
 def copy_files_into_folders(source_folder, destination_folder):

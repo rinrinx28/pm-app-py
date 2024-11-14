@@ -45,6 +45,12 @@ class ThongPage(QWidget):
     def __init__(self):
         super().__init__()
         self.path = Path()
+        current_dir = self.path.current_dir
+        self.stay_dir = os.path.join(current_dir, 'db', 'stay.json')
+        with open(self.stay_dir, 'r') as file:
+            self.stay_db = json.load(file)
+
+
         self.layout_thong = QVBoxLayout(self)
         self.setWindowTitle(
             "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam - maikien06091966@gmail.com  - Chủ sáng lập, thiết kế và mã hóa dữ liệu: Mai Đình Kiên - Số Điện Thoại: 0964636709"
@@ -128,9 +134,9 @@ class ThongPage(QWidget):
         self.layout_thong.addWidget(self.button_wid_main)
 
         # / Render Component
-        self.changeDataThongWithNumber(0)
-        self.renderThongButton()
+        self.changeDataThongWithNumber(self.stay_db["thong"])
         self.renderThongTable()
+        self.renderThongButton()
 
     # TODO Handler Render Component
     def renderThongTable(self):
@@ -159,16 +165,21 @@ class ThongPage(QWidget):
         
         name = convert_string_format(ban_thong_name)
         self.name = convert_string_format_type(ban_thong_name)
-        title_text = (
-            f"{name} / C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
+        title_text_stt = (
+            f"Trạng Thái Bảng Tính: C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
-            + f"Số dòng: {row_count}/{max_row} / "
-            + f"Bảng Thông: {value_thong} Thông"
+            + f"Số dòng: {row_count}/{max_row}"
         )
-        title = QLabel(title_text)
-        title.setStyleSheet(css_title)
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout_table.addWidget(title)
+        title_stt = QLabel(title_text_stt)
+        title_stt.setStyleSheet(css_title)
+        title_stt.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        title_text_table = f"Bảng Thông: {name} - {value_thong} Thông"
+        title_table = QLabel(title_text_table)
+        title_table.setStyleSheet(css_title)
+        title_table.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout_table.addWidget(title_table)
+        layout_table.addWidget(title_stt)
 
         # / Note
         self.note = QLabel("")
@@ -259,14 +270,14 @@ class ThongPage(QWidget):
                     #     for item in self.thong_db["change"]
                     #     if item["row"] != row
                     #     and item["column"] != column - 5
-                    #     and item["number"] != self.ChangeNumber.currentIndex()
+                    #     and item["number"] != self.stay_db["thong"]
                     # ]
                     # filter_data = [
                     #     item
                     #     for item in self.thong_db["change"]
                     #     if item["row"] == row
                     #     and item["column"] == column - 5
-                    #     and item["number"] == self.ChangeNumber.currentIndex()
+                    #     and item["number"] == self.stay_db["thong"]
                     # ]
                     # if len(filter_data) > 0:
                     #     filter_data[0]["new"] = item.text()
@@ -280,7 +291,7 @@ class ThongPage(QWidget):
                     #         {
                     #             "row": row,
                     #             "column": column - 5,
-                    #             "number": self.ChangeNumber.currentIndex(),
+                    #             "number": self.stay_db["thong"],
                     #             "new": item.text(),
                     #             "old": self.thong_data[column - 5][row],
                     #         }
@@ -431,6 +442,7 @@ class ThongPage(QWidget):
 
         def changeTableNumber():
             value = self.ChangeNumber.currentIndex()
+            self.save_stay(value)
             self.changeDataThongWithNumber(value)
             self.updateRowAndColumns()
             if value != 0:
@@ -454,7 +466,7 @@ class ThongPage(QWidget):
             data["update"] = self.thong_data
             data["custom"] = self.thong_db["data"]
             data["name"] = self.thong_db["name"]
-            data["number"] = self.ChangeNumber.currentIndex()
+            data["number"] = self.stay_db["thong"]
             data["stt"] = self.thong_db["stt"]
             data["change"] = self.thong_db["change"]
             data["type_count"] = self.thong_db["type_count"]
@@ -478,7 +490,7 @@ class ThongPage(QWidget):
                 for row in data_select:
                     data = {}
                     data["row"] = row
-                    data["number"] = self.ChangeNumber.currentIndex()
+                    data["number"] = self.stay_db["thong"]
                     data["setting"] = self.thong_db["setting"]
                     data["stt"] = self.thong_db["stt"]
                     data["update"] = self.thong_data
@@ -500,6 +512,15 @@ class ThongPage(QWidget):
         SettingType.clicked.connect(self.setting_type_click)
         ButtonType.clicked.connect(type_with_button)
         save_back_up.clicked.connect(self.saveBackUp)
+
+        
+        # Default value
+        self.ChangeNumber.setCurrentIndex(self.stay_db["thong"])
+    
+    def save_stay(self, value):
+        self.stay_db["thong"] = int(value)
+        with open(self.stay_dir, 'w') as file:
+            json.dump(self.stay_db, file)
 
     # TODO Handler Widgets
     def delete_color_click(self):
@@ -529,7 +550,9 @@ class ThongPage(QWidget):
             self.button_wid_main = None
 
     def updateRowAndColumns(self):
-        stt = self.thong_db["stt"][self.ChangeNumber.currentIndex()]
+        if self.table_main is None:
+            return
+        stt = self.thong_db["stt"][self.stay_db["thong"]]
         data_value = self.thong_db["data"]
         thong_data = self.thong_data
         # / Table Config
@@ -556,7 +579,7 @@ class ThongPage(QWidget):
             self.table_main.setItem(i, 1, item)
 
         # * Change data value with number change
-        number_change = self.ChangeNumber.currentIndex()
+        number_change = self.stay_db["thong"]
         if number_change != 0 and not self.isShow:
             data_value_new = map(
                 lambda values: list(
@@ -587,7 +610,7 @@ class ThongPage(QWidget):
                 #     for item in self.thong_db["change"]
                 #     if item["row"] == j
                 #     and item["column"] == i
-                #     and item["number"] == self.ChangeNumber.currentIndex()
+                #     and item["number"] == self.stay_db["thong"]
                 # ]
                 # if len(filter_changed) > 0:
                 #     item_new = filter_changed[0]["new"]
@@ -599,7 +622,7 @@ class ThongPage(QWidget):
 
     def delete_all_rows(self):
         rowCount = len(self.thong_data[0])
-        stt = self.thong_db["stt"][self.ChangeNumber.currentIndex()]
+        stt = self.thong_db["stt"][self.stay_db["thong"]]
         data_value = self.thong_db["data"]
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
@@ -641,7 +664,7 @@ class ThongPage(QWidget):
         self.thread.start()
 
     def saveBackUp(self):
-        number = self.ChangeNumber.currentIndex()
+        number = self.stay_db["thong"]
         if number != 0:
             SendMessage(f"Không thể đặt DL gốc ở bộ chuyển đổi {number}")
             return
@@ -672,7 +695,7 @@ class ThongPage(QWidget):
     def backUpRows(self):
         # / Load BackUp File with ID
         id = self.thong_db["id"]
-        data = backupThong({"number": self.ChangeNumber.currentIndex(), "id": id})
+        data = backupThong({"number": self.stay_db["thong"], "id": id})
         self.thong_db = data["thong_info"]
         self.thong_data = data["thong_data"]
 
@@ -699,7 +722,7 @@ class ThongPage(QWidget):
         data["update"] = self.thong_data
         data["custom"] = self.thong_db["data"]
         data["id"] = self.thong_db["id"]
-        data["number"] = self.ChangeNumber.currentIndex()
+        data["number"] = self.stay_db["thong"]
         data["stt"] = self.thong_db["stt"]
         data["change"] = self.thong_db["change"]
         data["setting"] = self.thong_db["setting"]
@@ -713,7 +736,7 @@ class ThongPage(QWidget):
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
         # / Thong Data and Thong info
-        stt = self.thong_db["stt"][self.ChangeNumber.currentIndex()]
+        stt = self.thong_db["stt"][self.stay_db["thong"]]
         data = self.thong_data
         # / Find Select Row
         # data_select = list(self.selected_row_indices)
@@ -742,7 +765,7 @@ class ThongPage(QWidget):
 
             shifted_data[i] = shifted_data_part1 + part2_data
 
-        self.thong_db["stt"][self.ChangeNumber.currentIndex()] = shifted_stt
+        self.thong_db["stt"][self.stay_db["thong"]] = shifted_stt
         self.thong_data = shifted_data
         # self.updateHeaderRow()
 

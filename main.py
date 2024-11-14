@@ -67,11 +67,11 @@ class AppSelectionDialog(QDialog):
             )
         )
 
-        type_count_label = (
-            "1a"
-            if self.type_pm == 1
-            else ("2" if self.type_pm == 2 else "0" if self.type_pm == 0 else "1b")
-        )
+        # type_count_label = (
+        #     "1a"
+        #     if self.type_pm == 1
+        #     else ("2" if self.type_pm == 2 else "0" if self.type_pm == 0 else "1b")
+        # )
         layout = QVBoxLayout(self)
         label = QLabel(f"Bộ {type_count}, Mời chọn App:")
         label.setStyleSheet(css_title)

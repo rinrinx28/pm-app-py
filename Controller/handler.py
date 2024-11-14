@@ -563,7 +563,7 @@ def save_setting_tables(data):
 
         # Cập nhật thông tin trong db_index
         db_index["col"] = col
-        db_index["thong"]["value"] = value
+        # db_index["thong"]["value"] = value
         db_index["meta"]["notice"] = meta["notice"]
         db_index["meta"]["features"] = meta["features"]
         db_index["meta"]["setting"] = meta["setting"]

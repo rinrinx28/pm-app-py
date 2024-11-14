@@ -329,6 +329,28 @@ class TinhAndMauPage(QWidget):
         color_sorted = sorted(color_find_with_dCount, key=lambda x: x["col_d"])
         self.color_list = color_sorted
 
+        notice_color_name = "M10"
+        if type == "m1":
+            notice_color_name = "M1"
+        elif type == "m2":
+            notice_color_name = "M2"
+        elif type == "m3":
+            notice_color_name = "M3"
+        elif type == "m4":
+            notice_color_name = "M4"
+        elif type == "m5":
+            notice_color_name = "M5"
+        elif type == "m6":
+            notice_color_name = "M6"
+        elif type == "m7":
+            notice_color_name = "M7"
+        elif type == "m8":
+            notice_color_name = "M8"
+        elif type == "m9":
+            notice_color_name = "M9"
+        else:
+            notice_color_name = "M10"
+
         for label in range(10):
             if label < len(self.color_list):
                 isColor = self.color_list[label]
@@ -336,7 +358,7 @@ class TinhAndMauPage(QWidget):
                 isColor = None  # Or any default value
             if isColor:
                 # / Add button to list of buttons
-                btn_label = isColor["data"]
+                btn_label = f'{notice_color_name} | {isColor["data"]}'
                 btn = QPushButton(btn_label)
                 btn.setStyleSheet(css_button_notice)
                 btn.setCursor(Qt.PointingHandCursor)
@@ -2626,6 +2648,8 @@ class TinhAndMauPage(QWidget):
         # / Config Icon Windows
         icon = self.path.path_logo()
 
+        self.isEnable_table_thong = True
+
         # / Create Dialog Windows
         dialog = QDialog()
         dialog.setWindowTitle("Bảng Nhập Liệu")
@@ -2707,7 +2731,15 @@ class TinhAndMauPage(QWidget):
         insert_day_edit = QDateEdit()
         insert_day_edit.setWrapping(False)
         insert_day_edit.setCalendarPopup(True)
-        insert_day_edit.setStyleSheet("background-color: pink;font-size:24px")
+        insert_day_edit.setStyleSheet(
+            """
+                QDateEdit {
+                    background-color: pink;
+                    color:#000
+                };
+                font-size: 24px; /* Set font size */
+            """
+        )
 
         insert_from_l.addWidget(insert_day_label, 1, 0)
         insert_from_l.addWidget(insert_day_edit, 1, 1)
@@ -2829,9 +2861,13 @@ class TinhAndMauPage(QWidget):
                 insert_ngang_edit.setStyleSheet("font-size:24px;")
 
         def changeThongTable(value):
-            item = value.text()
-            changeThongEdit(int(item))
-            insert_thong_edit.setValue(int(item))
+            if self.isEnable_table_thong:
+                item = value.text()
+                changeThongEdit(int(item))
+                insert_thong_edit.setValue(int(item))
+            else:
+                insert_thong_table.clearSelection()
+                SendMessage("Bạn không thể nhập thông rời tại đây!")
 
         def changeThongEdit(value):
             insert_thong_table.clearSelection()
@@ -2859,7 +2895,9 @@ class TinhAndMauPage(QWidget):
         def changeVirableOne(value):
             data["update"]["N:2"] = value
             insert_thong_edit.setDisabled(value)
-            insert_thong_table.setDisabled(value)
+            # insert_thong_table.setDisabled(value)
+            isEnable_table_thong_not = not self.isEnable_table_thong
+            self.isEnable_table_thong = isEnable_table_thong_not
             if value:
                 insert_thong_edit.setValue(-1)
                 insert_thong_edit_first.setText("")
@@ -2920,7 +2958,8 @@ class TinhAndMauPage(QWidget):
         if data["update"]["N:2"]:
             insert_thong_edit.setValue(-1)
             insert_thong_edit.setDisabled(True)
-            insert_thong_table.setDisabled(True)
+            # insert_thong_table.setDisabled(True)
+            self.isEnable_table_thong = False
             title_label.setText("Bảng Nhập Liệu - Nhập Rời")
         else:
             title_label.setText("Bảng Nhập Liệu - Nhập Liền")
