@@ -172,12 +172,12 @@ class ThongPage(QWidget):
         )
         title_stt = QLabel(title_text_stt)
         title_stt.setStyleSheet(css_title)
-        title_stt.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_stt.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         title_text_table = f"Bảng Thông: {name} - {value_thong} Thông"
         title_table = QLabel(title_text_table)
         title_table.setStyleSheet(css_title)
-        title_table.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_table.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout_table.addWidget(title_table)
         layout_table.addWidget(title_stt)
 
@@ -388,43 +388,43 @@ class ThongPage(QWidget):
         save_back_up = QPushButton("Đặt DL gốc")
         save_back_up.setStyleSheet(css_button_submit)
         save_back_up.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(save_back_up, 1, 0)
+        # layout.addWidget(save_back_up, 1, 0)
         # / Backup
         BackUp = QPushButton("Khôi phục DL gốc")
         BackUp.setStyleSheet(css_button_submit)
         BackUp.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(BackUp, 1, 1)
+        # layout.addWidget(BackUp, 1, 1)
 
         # / Create AutoSaveFiles
         SaveFile = QPushButton("Đồng Bộ DL")
         SaveFile.setStyleSheet(css_button_submit)
         SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(SaveFile, 1, 2)
+        layout.addWidget(SaveFile, 1, 0)
 
         # / Create HandlerData
         type_input = "Tắt Tùy Chỉnh"
         self.HandlerData = QPushButton(type_input)
         self.HandlerData.setStyleSheet(css_button_submit)
         self.HandlerData.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(self.HandlerData, 1, 3)
+        layout.addWidget(self.HandlerData, 1, 1)
 
         # / Create SaveData
         SaveData = QPushButton("Lưu")
         SaveData.setStyleSheet(css_button_submit)
         SaveData.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(SaveData, 1, 4)
+        layout.addWidget(SaveData, 1, 2)
 
         # / Create Backup
         ButtonType = QPushButton("Nhập Liệu B Thông")
         ButtonType.setStyleSheet(css_button_submit)
         ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(ButtonType, 1, 5)
+        layout.addWidget(ButtonType, 1, 3)
 
         # / Create SaveData
         SettingType = QPushButton("Cài Đặt App")
         SettingType.setStyleSheet(css_button_submit)
         SettingType.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(SettingType, 1, 6)
+        # layout.addWidget(SettingType, 1, 4)
 
         def changeTypeCount():
             types = self.HandlerData.text()
@@ -438,7 +438,10 @@ class ThongPage(QWidget):
         def saveChange():
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
-            self.saveThongRow()
+            if self.ChangeNumber.currentIndex() == 0:
+                self.saveBackUp()
+            else:
+                self.saveThongRow()
 
         def changeTableNumber():
             value = self.ChangeNumber.currentIndex()
@@ -476,24 +479,25 @@ class ThongPage(QWidget):
             SendMessage(f'{msg} {self.name}')
 
         def type_with_button():
-            if self.thong_db["setting"] == 0:
-                SendMessage(
-                    "Loại Nhập App hiện tại là 0 (Trắng), xin vui lòng chọn loại App khác để tiến hành nhập công thức"
-                )
-                return
+            # if self.thong_db["setting"] == 0:
+            #     SendMessage(
+            #         "Loại Nhập App hiện tại là 0 (Trắng), xin vui lòng chọn loại App khác để tiến hành nhập công thức"
+            #     )
+            #     return
             if self.selected_row_indices:
                 # / Find Select Row
                 data_select = list(self.selected_row_indices)
                 if len(data_select) < 1:
-                    SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
+                    SendMessage("Xin vui lòng chọn dòng để nhập liệu")
                     return
                 for row in data_select:
+                    setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
                     data = {}
                     data["row"] = row
                     data["number"] = self.stay_db["thong"]
-                    data["setting"] = self.thong_db["setting"]
+                    data["setting"] = setting
                     data["stt"] = self.thong_db["stt"]
-                    data["update"] = self.thong_data
+                    data["update"] = self.thong_data 
                     result = typeWithRecipe(data)
                     self.thong_data = result["update"]
                     self.updateRowAndColumns()

@@ -21,7 +21,7 @@ from Controller.handler import (
     enableTables,
     save_setting_tables,
     convert_string_format,
-    convert_string_format_type,
+    convert_string_format_type,async_setting_number_pm,async_setting_range_thong
 )
 from Pages.components.stylesheet import (
     css_button_submit,
@@ -124,7 +124,49 @@ class SettingTable(QDialog):
         cancel_button.setCursor(QCursor(Qt.PointingHandCursor))
         cancel_button.clicked.connect(self.reject)  # Connect to reject action
 
-        save_button = QPushButton("Đồng Bộ Cài Đặt")  # Custom save button
+        async_setting_number = QPushButton("Đặt Bộ Chuyển Đổi")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
+        async_setting_number.setStyleSheet(
+            """
+            QPushButton {
+                border-radius: 8px;
+                font-size: 24px;
+                font-weight: 600;
+                color: #111827;
+                background-color: #ffffff;
+            }
+            QPushButton:hover {
+                color: #1D4ED8;
+                background-color: #F3F4F6;
+            }
+
+        """
+        )
+        # async_setting_number.setFixedWidth(150)
+        async_setting_number.setCursor(QCursor(Qt.PointingHandCursor))
+        async_setting_number.clicked.connect(self.async_setting_number_all)
+
+        async_setting_thong = QPushButton("Đồng bộ Thông")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
+        async_setting_thong.setStyleSheet(
+            """
+            QPushButton {
+                border-radius: 8px;
+                font-size: 24px;
+                font-weight: 600;
+                color: #111827;
+                background-color: #ffffff;
+            }
+            QPushButton:hover {
+                color: #1D4ED8;
+                background-color: #F3F4F6;
+            }
+
+        """
+        )
+        # async_setting_thong.setFixedWidth(150)
+        async_setting_thong.setCursor(QCursor(Qt.PointingHandCursor))
+        async_setting_thong.clicked.connect(self.async_setting_thong_all)
+
+        save_button = QPushButton("Đồng Bộ Cài Đặt Tập")  # Custom save button
         save_button.setStyleSheet(
             """
             QPushButton {
@@ -139,7 +181,7 @@ class SettingTable(QDialog):
             }
         """
         )
-        save_button.setFixedWidth(200)
+        # save_button.setFixedWidth(200)
         save_button.setCursor(QCursor(Qt.PointingHandCursor))
         save_button.clicked.connect(
             lambda _: self.save_setting_all_app(
@@ -160,8 +202,25 @@ class SettingTable(QDialog):
         button_layout.addItem(horizontalSpacer)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(save_button)
+        button_layout.addWidget(async_setting_number)
+        button_layout.addWidget(async_setting_thong)
         button_layout.addWidget(cancel_button)
         return button_widget
+
+    def async_setting_number_all(self):
+        msg = async_setting_number_pm({
+            "name": self.col_thong["name"]
+        })
+        return SendMessage(msg)
+
+    def async_setting_thong_all(self):
+        msg = async_setting_range_thong({
+            "name": self.col_thong["name"],
+            "thong": {
+                        "value": self.ban_info["thong"]["value"],
+                    },
+        })
+        return SendMessage(msg)
 
     def save_setting_all_app(self, data):
         msg = save_setting_tables(data)

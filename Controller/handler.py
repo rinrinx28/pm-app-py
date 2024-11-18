@@ -515,76 +515,6 @@ def deleteFromToBan(fromdate, todate, id, isChecked):
 
     return {"status": True, "data": data_db, "msg": "Đã xóa dữ liệu thành công!"}
 
-
-def save_setting_tables(data):
-    col = data["col"]
-    value = data["thong"]["value"]
-    name = data["thong"]["name"]
-    meta = data["meta"]
-    index = extract_index(name)
-
-    path_thong = Path().path_thong()
-    with open(os.path.join(path_thong, "thongs.json"), "r") as file:
-        thong_db = json.load(file)
-
-    type_count = thong_db["type_count"]
-    current_path = rf"C:\data"
-
-    # Xác định phạm vi index dựa trên type_count
-    if type_count == 1:
-        range_tuple = get_range_by_index(index, 0)
-        if range_tuple is None:
-            return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 2:
-        range_tuple = get_range_by_index(index, 30)
-        if range_tuple is None:
-            return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 3:
-        range_tuple = get_range_by_index(index, 60)
-        if range_tuple is None:
-            return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 0:
-        range_tuple = get_range_by_index(index, 90)
-        if range_tuple is None:
-            return "Index không nằm trong phạm vi hợp lệ"
-    else:
-        return "Type count không hợp lệ"
-
-    range_start, range_end = range_tuple
-
-    # Tiến hành đồng bộ dữ liệu cho các index trong phạm vi xác định
-    for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
-        file_type = i + 1
-        db_path = os.path.join(current_path, f"{file_type}", "db")
-
-        # Đọc dữ liệu từ index.json
-        with open(os.path.join(db_path, "index.json"), "r") as file:
-            db_index = json.load(file)
-
-        # Cập nhật thông tin trong db_index
-        db_index["col"] = col
-        # db_index["thong"]["value"] = value
-        db_index["meta"]["notice"] = meta["notice"]
-        db_index["meta"]["features"] = meta["features"]
-        db_index["meta"]["setting"] = meta["setting"]
-        db_index["meta"]["tables"] = meta["tables"]
-        # db_index["meta"]["number"] = meta["number"]
-        db_index["meta"]["maxRow"] = meta["maxRow"]
-        db_index["meta"]["buttons"] = meta["buttons"]
-
-        # Ghi lại dữ liệu vào index.json
-        with open(os.path.join(db_path, "index.json"), "w") as file:
-            json.dump(db_index, file)
-
-    # type_count_label = (
-    #     "1a Số"
-    #     if type_count == 1
-    #     else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
-    # )
-
-    return f"Đã đồng bộ dữ liệu"
-
-
 # TODO Handler Data Thong
 def CreateNumber():
     path = Path()
@@ -1003,61 +933,6 @@ def typeWithRecipe(data):
                                 d = (int(first[1]) + c) % 10
                                 update[k + l][row] = f"{c}{d}"
 
-    # for i in range(0,col,60):
-    #     if i == 0:
-    #         for k in range(60):
-    #             if setting == 1:
-    #                 if k == 0:
-    #                     update[k + i][row] = int(line[0]) % 10
-    #                 elif k == 1:
-    #                     update[k + i][row] = int(line[1]) % 10
-    #                 else:
-    #                     update[k + i][row] = 0
-    #             elif setting == 2:
-    #                 if k == 0:
-    #                     update[k + i][row] = line
-    #                 else:
-    #                     update[k + i][row] = 0
-    #             else:
-    #                 update[k + i][row] = ''
-    #     else:
-    #         for k in range(60):
-    #             if setting == 1:
-    #                 if k == 0:
-    #                     update[k + i][row] = (int(update[(step - 1) * 60][row]) + 1) % 10
-    #                 elif k == 1:
-    #                     update[k + i][row] = (int(update[(step - 1) * 60 + 1][row]) + 1) % 10
-    #                 else:
-    #                     update[k + i][row] = 0
-    #             elif setting == 2:
-    #                 if k == 0:
-    #                     first = update[(step - 1 ) * 60][row]
-    #                     second = f'{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}'
-    #                     update[k + i][row] = second
-    #                 else:
-    #                     update[k + i][row] = 0
-    #             else:
-    #                 update[k + i][row] = ''
-    #     step+=1
-
-    # if setting == 1:
-    #     for i in range(0,col,60):
-    #         for k in range(60):
-    #             if k > 1:
-    #                 first = update[i + k - 2][row]
-    #                 second = update[i + k - 1][row]
-    #                 sum = (first + second) % 10
-    #                 update[i + k][row] = sum
-
-    # if setting == 2:
-    #     for i in range(0,col,60):
-    #         for k in range(60):
-    #             if k > 0:
-    #                 first = update[i + k - 1][row]
-    #                 c = (int(first[0]) + int(first[1])) % 10
-    #                 d = (int(first[1]) + c) % 10
-    #                 update[i + k][row] = f'{c}{d}'
-
     return data
 
 
@@ -1174,14 +1049,13 @@ def extract_index(s):
 
 
 def save_ngang_backup(data):
-    thong_path = Path().path_thong()
-    id = data["id"]
-    thong_data = data["thong_data"]
-    # / Load File thong db
-    with open(os.path.join(thong_path, "thongs.json"), "r") as file:
-        thong_db = json.load(file)
+    ngang_path = Path().path_number()
+    ngang_data = data["ngang_data"]
+    # / Load File ngang db
+    with open(os.path.join(ngang_path, "number.json"), "r") as file:
+        ngang_db = json.load(file)
 
-    # / Make Data STT for thong data
+    # / Make Data STT for ngang data
     stt_data = []
     for i in range(11):
         stt_col = []
@@ -1190,41 +1064,39 @@ def save_ngang_backup(data):
             stt_col.append(value)
         stt_data.append(stt_col)
 
-    thong_db["stt"] = stt_data
-    thong_db["change"] = []
+    ngang_db["stt"] = stt_data
+    ngang_db["change"] = []
 
-    # / Save Thong DB
-    with open(os.path.join(thong_path, "thongs.json"), "w") as file:
-        json.dump(thong_db, file)
+    # / Save ngang DB
+    with open(os.path.join(ngang_path, "number.json"), "w") as file:
+        json.dump(ngang_db, file)
 
-    # / Save new backup thong
-    with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
-        json.dump(thong_data, file)
+    # / Save new backup ngang
+    with open(os.path.join(ngang_path, f"number_backup.json"), "w") as file:
+        json.dump(ngang_data, file)
 
     # / re-render all bo chuyen doi
     for i in range(11):
         if i == 0:
-            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
-                json.dump(thong_data, file)
+            with open(os.path.join(ngang_path, f"ngang_{i}.json"), "w") as file:
+                json.dump(ngang_data, file)
         else:
             number_change = list(
                 map(
-                    lambda item: list(map(lambda x: TachVaGhep(i, x), item)), thong_data
+                    lambda item: list(map(lambda x: TachVaGhep(i, x), item)), ngang_data
                 )
             )
-            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
+            with open(os.path.join(ngang_path, f"ngang_{i}.json"), "w") as file:
                 json.dump(number_change, file)
 
-    return {"thong_info": thong_db, "thong_data": thong_data}
+    return {"ngang_info": ngang_db, "ngang_data": ngang_data}
 
 
 def sync_ngang(data):
     type_count = data["type_count"]
     update = data["update"]
-    custom = data["custom"]
     number = data["number"]
     name = data["name"]
-    change = data["change"]
     stt = data["stt"]
     current_path = rf"C:\data"
     index = extract_index(name)
@@ -1261,20 +1133,14 @@ def sync_ngang(data):
         ngang_db["change"] = []
 
         # / Save Thong DB
-        with open(os.path.join(ngang_path, "thongs.json"), "w") as file:
+        with open(os.path.join(ngang_path, "number.json"), "w") as file:
             json.dump(ngang_db, file)
 
         # / Save thong data
-        with open(os.path.join(ngang_path, f"thong_{number}.json"), "w") as file:
+        with open(os.path.join(ngang_path, f"number_{number}.json"), "w") as file:
             json.dump(update, file)
 
-    type_count_label = (
-        "1a Số"
-        if type_count == 1
-        else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
-    )
-
-    return f"Đã đồng bộ dữ liệu Bộ {type_count_label}"
+    return f"Đã đồng bộ dữ liệu"
 
 
 def convert_string_format(input_string):
@@ -1301,3 +1167,188 @@ def convert_string_format_type(input_string):
 
     # Format the new string
     return f"Bộ {type_count} - {type_app}"
+
+def convert_string_format_type_pm(input_string):
+    # Match the pattern "Bản Xb.Y" where X and Y are numbers
+    _, suffix = input_string.split(" ", 1)
+    bo, app = suffix.split(".")
+
+    type_count = "Trắng" if bo == "0" else bo
+
+    # Format the new string
+    return f"Bộ {type_count}"
+
+
+def convert_string_to_type_count(input_string):
+    # Match the pattern "Bản Xb.Y" where X and Y are numbers
+    _, suffix = input_string.split(" ", 1)
+    bo, app = suffix.split(".")
+
+    type_count = 0 if bo == "0" else bo
+
+    # Format the new string
+    return type_count
+
+
+# //TODO ———————————————[Setting Async]———————————————
+def async_setting_number_pm(data):
+    current_path = rf"C:\data"
+    name = data['name']
+    type_count_name = convert_string_to_type_count(name)
+    type_count = type_count_name if type_count_name == 0 else 1 if type_count_name == '1a' else 3 if type_count_name == '1b' else 2
+    index = extract_index(name)
+
+    # Xác định phạm vi index dựa trên type_count
+    if type_count == 1:
+        range_tuple = 1,30
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 2:
+        range_tuple = 31,60
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 3:
+        range_tuple = 61,90
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 0:
+        range_tuple = 91,120
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    else:
+        return "Type count không hợp lệ"
+    
+    range_start, range_end = range_tuple
+    step = 0
+    for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
+        step += 1
+        file_type = i + 1
+        db_path = os.path.join(current_path, f"{file_type}", "db")
+
+        with open(os.path.join(db_path, 'index.json') , 'r') as file:
+            db = json.load(file)
+
+        db['meta']['number'] = step
+        
+        with open(os.path.join(db_path, 'index.json') , 'w') as file:
+            json.dump(db, file)
+        if step == 10:
+            step = 0
+
+    name_pm = convert_string_format_type_pm(name)
+
+    return f"Đã đặt bộ chuyển đổi cho {name_pm}, xin vui lòng thoát Bảng Tính"
+
+def async_setting_range_thong(data):
+    current_path = rf"C:\data"
+    name = data['name']
+    range_thong = data['thong']['value']
+    type_count_name = convert_string_to_type_count(name)
+    type_count = type_count_name if type_count_name == 0 else 1 if type_count_name == '1a' else 3 if type_count_name == '1b' else 2
+    index = extract_index(name)
+
+    # Xác định phạm vi index dựa trên type_count
+    if type_count == 1:
+        range_tuple = 1,30
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 2:
+        range_tuple = 31,60
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 3:
+        range_tuple = 61,90
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 0:
+        range_tuple = 91,120
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    else:
+        return "Type count không hợp lệ"
+    
+    range_start, range_end = range_tuple
+    for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
+        file_type = i + 1
+        db_path = os.path.join(current_path, f"{file_type}", "db")
+
+        with open(os.path.join(db_path, 'index.json') , 'r') as file:
+            db = json.load(file)
+
+        db['thong']['value'] = range_thong
+        
+        with open(os.path.join(db_path, 'index.json') , 'w') as file:
+            json.dump(db,file)
+
+    name_pm = convert_string_format_type_pm(name)
+
+    return f"Đã đồng bộ khoảng thông cho {name_pm}, xin vui lòng thoát Bảng Tính"
+
+def save_setting_tables(data):
+    col = data["col"]
+    name = data["thong"]["name"]
+    meta = data["meta"]
+    index = extract_index(name)
+
+    path_thong = Path().path_thong()
+    with open(os.path.join(path_thong, "thongs.json"), "r") as file:
+        thong_db = json.load(file)
+
+    type_count = thong_db["type_count"]
+    current_path = rf"C:\data"
+
+    # Xác định phạm vi index dựa trên type_count
+    if type_count == 1:
+        range_tuple = get_range_by_index(index, 0)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 2:
+        range_tuple = get_range_by_index(index, 30)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 3:
+        range_tuple = get_range_by_index(index, 60)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif type_count == 0:
+        range_tuple = get_range_by_index(index, 90)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    else:
+        return "Type count không hợp lệ"
+
+    range_start, range_end = range_tuple
+
+    # Tiến hành đồng bộ dữ liệu cho các index trong phạm vi xác định
+    for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
+        file_type = i + 1
+        db_path = os.path.join(current_path, f"{file_type}", "db")
+
+        # Đọc dữ liệu từ index.json
+        with open(os.path.join(db_path, "index.json"), "r") as file:
+            db_index = json.load(file)
+
+        # Cập nhật thông tin trong db_index
+        db_index["col"] = col
+        # db_index["thong"]["value"] = value
+        db_index["meta"]["notice"] = meta["notice"]
+        db_index["meta"]["features"] = meta["features"]
+        db_index["meta"]["setting"] = meta["setting"]
+        db_index["meta"]["tables"] = meta["tables"]
+        # db_index["meta"]["number"] = meta["number"]
+        db_index["meta"]["maxRow"] = meta["maxRow"]
+        db_index["meta"]["buttons"] = meta["buttons"]
+
+        # Ghi lại dữ liệu vào index.json
+        with open(os.path.join(db_path, "index.json"), "w") as file:
+            json.dump(db_index, file)
+
+    # type_count_label = (
+    #     "1a Số"
+    #     if type_count == 1
+    #     else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
+    # )
+
+    return f"Đã đồng bộ dữ liệu"
+
+

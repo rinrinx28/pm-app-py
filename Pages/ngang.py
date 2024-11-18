@@ -23,7 +23,7 @@ from Pages.components.stylesheet import (
 )
 import json
 import os
-from Controller.handler import backUpNgang, saveNgang, convert_string_format
+from Controller.handler import backUpNgang, saveNgang, convert_string_format,sync_ngang, save_ngang_backup,convert_string_to_type_count
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
 
@@ -89,7 +89,7 @@ class NgangPage(QWidget):
         ban_thong_value = ban_info["thong"]["value"]
         ban_thong_name = ban_info["thong"]["name"]
 
-        name = convert_string_format(ban_thong_name)
+        self.name = convert_string_format(ban_thong_name)
         title_text = (
             f"Trạng Thái Bảng Tính: C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
@@ -97,12 +97,12 @@ class NgangPage(QWidget):
         )
         title = QLabel(title_text)
         title.setStyleSheet(css_title)
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        title_text_table = f"Bảng Ngang: {name} - 600 Cột"
+        title_text_table = f"Bảng Ngang: {self.name} - 600 Cột"
         title_table = QLabel(title_text_table)
         title_table.setStyleSheet(css_title)
-        title_table.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_table.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.layout_ngang.addWidget(title_table)
 
         self.layout_ngang.addWidget(title)
@@ -180,6 +180,12 @@ class NgangPage(QWidget):
         BackUp.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(BackUp)
 
+        # / Create AutoSaveFiles
+        SaveFile = QPushButton("Đồng Bộ DL")
+        SaveFile.setStyleSheet(css_button_submit)
+        SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
+        self.button_layout.addWidget(SaveFile)
+
         # / Create HandlerData
         type_input = "Tắt Tùy Chỉnh"
         self.HandlerData = QPushButton(type_input)
@@ -239,6 +245,21 @@ class NgangPage(QWidget):
             receiver = [item for item in self.current_select if item != sender][0]
             self.copyRowNgang([sender, receiver])
 
+        
+        def saveFile_click():
+            type_count = convert_string_to_type_count(self.ban_info["thong"]["name"])
+            data = {}
+            data["update"] = self.ngang_data
+            data["number"] = self.stay_db["ngang"]
+            data["stt"] = self.ngang_info["stt"]
+            data["change"] = self.ngang_info["change"]
+            data["type_count"] = type_count if type_count == 0 else 1 if type_count == '1a' else 3 if type_count == '1b' else 2
+            data['name'] = self.ban_info['thong']['name']
+            msg = sync_ngang(data)
+            self.delete_color_click()
+            SendMessage(f'{msg} {self.name}')
+
+
         self.Change_number.currentIndexChanged.connect(change_number_selected)
         SwapLine.clicked.connect(self.swapNgangRow)
         self.HandlerData.clicked.connect(changeTypeCount)
@@ -248,6 +269,7 @@ class NgangPage(QWidget):
         DeleteRow.clicked.connect(self.delete_one_row)
         CopyRow.clicked.connect(copyRow_Click)
         DeleteColor.clicked.connect(self.delete_color_click)
+        SaveFile.clicked.connect(saveFile_click)
 
         # Default value
         self.Change_number.setCurrentIndex(self.stay_db["ngang"])
