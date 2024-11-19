@@ -6,6 +6,7 @@ from Pages.listban import ListBanPage
 from Pages.tinh_mau import TinhAndMauPage
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
+from PySide6.QtGui import QGuiApplication
 
 
 class Controller:
@@ -55,3 +56,17 @@ class Controller:
         page = page_class()
         self.current_page = page
         page.show()
+        self.centerWidgetOnScreen(page)
+
+    def centerWidgetOnScreen(self, widget):
+        """Centers a widget on the screen."""
+        screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
+        widget_width = widget.width()
+        widget_height = widget.height()
+
+        # Calculate centered position
+        x = (screen_geometry.width() - widget_width) // 2
+        y = (screen_geometry.height() - widget_height) // 2
+
+        # Move widget to calculated position
+        widget.move(x, y)

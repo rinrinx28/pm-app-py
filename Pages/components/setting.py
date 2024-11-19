@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from Pages.components.path import Path
 from PySide6.QtGui import QIcon
 from PySide6.QtGui import Qt, QCursor
+from PySide6.QtGui import QGuiApplication
 from Controller.handler import (
     updateColorInsert,
     enableTables,
@@ -75,7 +76,6 @@ class SettingTable(QDialog):
         dialog_main_layout.addWidget(tab_widget)
         # Set the main layout as the dialog's layout
         self.setLayout(dialog_main_layout)
-
     def showButton(self):
         button_widget = QWidget()
         # Create custom buttons
@@ -91,6 +91,7 @@ class SettingTable(QDialog):
                 font-weight: 600;
                 color: #ffffff;
                 background-color: #1D4ED8;
+                padding: 2px 12px 2px 12px;
             }
             QPushButton:hover {
                 background-color: #1E40AF;
@@ -111,7 +112,8 @@ class SettingTable(QDialog):
                 font-size: 24px;
                 font-weight: 600;
                 color: #111827;
-                background-color: #ffffff;
+                background-color: #6B7280;
+                padding: 2px 12px 2px 12px;
             }
             QPushButton:hover {
                 color: #1D4ED8;
@@ -124,15 +126,16 @@ class SettingTable(QDialog):
         cancel_button.setCursor(QCursor(Qt.PointingHandCursor))
         cancel_button.clicked.connect(self.reject)  # Connect to reject action
 
-        async_setting_number = QPushButton("Đặt Bộ Chuyển Đổi")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
+        async_setting_number = QPushButton("Đặt bộ chuyển đổi")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
         async_setting_number.setStyleSheet(
             """
             QPushButton {
                 border-radius: 8px;
                 font-size: 24px;
                 font-weight: 600;
-                color: #111827;
-                background-color: #ffffff;
+                color: #ffffff;
+                background-color: #1D4ED8;
+                padding: 2px 12px 2px 12px;
             }
             QPushButton:hover {
                 color: #1D4ED8;
@@ -145,15 +148,16 @@ class SettingTable(QDialog):
         async_setting_number.setCursor(QCursor(Qt.PointingHandCursor))
         async_setting_number.clicked.connect(self.async_setting_number_all)
 
-        async_setting_thong = QPushButton("Đồng bộ Thông")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
+        async_setting_thong = QPushButton("Đồng bộ thông")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
         async_setting_thong.setStyleSheet(
             """
             QPushButton {
                 border-radius: 8px;
                 font-size: 24px;
                 font-weight: 600;
-                color: #111827;
-                background-color: #ffffff;
+                color: #ffffff;
+                background-color: #1D4ED8;
+                padding: 2px 12px 2px 12px;
             }
             QPushButton:hover {
                 color: #1D4ED8;
@@ -166,7 +170,7 @@ class SettingTable(QDialog):
         async_setting_thong.setCursor(QCursor(Qt.PointingHandCursor))
         async_setting_thong.clicked.connect(self.async_setting_thong_all)
 
-        save_button = QPushButton("Đồng Bộ Cài Đặt Tập")  # Custom save button
+        save_button = QPushButton("Đồng bộ cài đặt tập")  # Custom save button
         save_button.setStyleSheet(
             """
             QPushButton {
@@ -175,6 +179,7 @@ class SettingTable(QDialog):
                 font-weight: 600;
                 color: #ffffff;
                 background-color: #1D4ED8;
+                padding: 2px 12px 2px 12px;
             }
             QPushButton:hover {
                 background-color: #1E40AF;
@@ -230,6 +235,8 @@ class SettingTable(QDialog):
         tab = QWidget()
         layout_tab = QVBoxLayout(tab)
 
+        group_spin_box = []
+
         # / Setting Color Table Count
         s_table_count_color_w = QWidget()
         s_table_count_color_w.setStyleSheet("border: 1px solid #999;")
@@ -245,15 +252,19 @@ class SettingTable(QDialog):
         s_table_count_color_l.addWidget(s_table_count_color_spinbox_1, 1, 0)
         s_table_count_color_spinbox_1.setMinimum(0)
         s_table_count_color_spinbox_1.setMaximum(120)
-        s_table_count_color_spinbox_1.setStyleSheet(css_input)
+        s_table_count_color_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_table_count_color_spinbox_1.setValue(self.old_data["count"][0])
+        s_table_count_color_spinbox_1.setDisabled(True)
+        group_spin_box.append(s_table_count_color_spinbox_1)
 
         s_table_count_color_spinbox_2 = QSpinBox()
         s_table_count_color_l.addWidget(s_table_count_color_spinbox_2, 1, 1)
         s_table_count_color_spinbox_2.setMinimum(0)
         s_table_count_color_spinbox_2.setMaximum(120)
-        s_table_count_color_spinbox_2.setStyleSheet(css_input)
+        s_table_count_color_spinbox_2.setStyleSheet("font-size: 24px;border: 0px;")
         s_table_count_color_spinbox_2.setValue(self.old_data["count"][1])
+        s_table_count_color_spinbox_2.setDisabled(True)
+        group_spin_box.append(s_table_count_color_spinbox_2)
 
         # / Setting Values Thong Config
         s_values_thong_w = QWidget()
@@ -270,15 +281,19 @@ class SettingTable(QDialog):
         s_values_thong_l.addWidget(s_values_thong_spinbox_1, 1, 0)
         s_values_thong_spinbox_1.setMinimum(0)
         s_values_thong_spinbox_1.setMaximum(120)
-        s_values_thong_spinbox_1.setStyleSheet(css_input)
+        s_values_thong_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_1.setValue(self.col_thong["value"][0])
+        s_values_thong_spinbox_1.setDisabled(True)
+        group_spin_box.append(s_values_thong_spinbox_1)
 
         s_values_thong_spinbox_2 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_2, 1, 1)
         s_values_thong_spinbox_2.setMinimum(0)
         s_values_thong_spinbox_2.setMaximum(120)
-        s_values_thong_spinbox_2.setStyleSheet(css_input)
+        s_values_thong_spinbox_2.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_2.setValue(self.col_thong["value"][1])
+        s_values_thong_spinbox_2.setDisabled(True)
+        group_spin_box.append(s_values_thong_spinbox_2)
 
         # / Setting Value Ngang
         s_values_ngang_w = QWidget()
@@ -295,15 +310,19 @@ class SettingTable(QDialog):
         s_values_ngang_l.addWidget(s_values_ngang_spinbox_1, 1, 0)
         s_values_ngang_spinbox_1.setMinimum(0)
         s_values_ngang_spinbox_1.setMaximum(120)
-        s_values_ngang_spinbox_1.setStyleSheet(css_input)
+        s_values_ngang_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_ngang_spinbox_1.setValue(self.col_ngang["col"][0])
+        s_values_ngang_spinbox_1.setDisabled(True)
+        group_spin_box.append(s_values_ngang_spinbox_1)
 
         s_values_ngang_spinbox_2 = QSpinBox()
         s_values_ngang_l.addWidget(s_values_ngang_spinbox_2, 1, 1)
         s_values_ngang_spinbox_2.setMinimum(0)
         s_values_ngang_spinbox_2.setMaximum(120)
-        s_values_ngang_spinbox_2.setStyleSheet(css_input)
+        s_values_ngang_spinbox_2.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_ngang_spinbox_2.setValue(self.col_ngang["col"][1])
+        s_values_ngang_spinbox_2.setDisabled(True)
+        group_spin_box.append(s_values_ngang_spinbox_2)
 
         # / Setting Max row
         s_max_row_w = QWidget()
@@ -319,8 +338,10 @@ class SettingTable(QDialog):
         s_max_row_l.addWidget(s_max_row_spinbox_1, 1, 0)
         s_max_row_spinbox_1.setMinimum(1)
         s_max_row_spinbox_1.setMaximum(999)
-        s_max_row_spinbox_1.setStyleSheet(css_input)
+        s_max_row_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_max_row_spinbox_1.setValue(self.maxRow["maxRow"])
+        s_max_row_spinbox_1.setDisabled(True)
+        group_spin_box.append(s_max_row_spinbox_1)
 
         # / Setting Value Change
         s_value_change_w = QWidget()
@@ -337,8 +358,15 @@ class SettingTable(QDialog):
         s_value_change_l.addWidget(s_value_change_spinbox_1, 1, 0)
         s_value_change_spinbox_1.setMinimum(0)
         s_value_change_spinbox_1.setMaximum(10)
-        s_value_change_spinbox_1.setStyleSheet(css_input)
+        s_value_change_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_value_change_spinbox_1.setValue(self.ban_info["meta"]["number"])
+        s_value_change_spinbox_1.setDisabled(True)
+        group_spin_box.append(s_value_change_spinbox_1)
+
+        # / Setting Turn Off / On
+        turn_setting = QCheckBox("Bật Tùy Chỉnh")
+        turn_setting.setStyleSheet("border: 0px; font-size: 24px;")
+        layout_tab.addWidget(turn_setting)
 
         # TODO Handler Func
         def value_table_count_color(value):
@@ -362,6 +390,17 @@ class SettingTable(QDialog):
         def value_change(value):
             self.ban_info["meta"]["number"] = value
 
+        def turn_setting_e():
+            ischecked = turn_setting.isChecked()
+            if ischecked:
+                turn_setting.setText('Tắt Tùy Chỉnh')
+                for spin_box in group_spin_box:
+                    spin_box.setDisabled(False)
+            else:
+                turn_setting.setText('Bật Tùy Chỉnh')
+                for spin_box in group_spin_box:
+                    spin_box.setDisabled(True)
+
         # / Table Count Color Event Change
         s_table_count_color_spinbox_1.valueChanged.connect(value_table_count_color)
         s_table_count_color_spinbox_2.valueChanged.connect(value_table_count_color)
@@ -379,6 +418,9 @@ class SettingTable(QDialog):
 
         # / Value Change Event Change
         s_value_change_spinbox_1.valueChanged.connect(value_change)
+
+        # / Turn off / on setting
+        turn_setting.checkStateChanged.connect(turn_setting_e)
 
         button = self.showButton()
         layout_tab.addWidget(button)
@@ -575,7 +617,7 @@ class SettingTable(QDialog):
         layout.addWidget(lable_m10, 5, 1)
 
         button = self.showButton()
-        layout.addWidget(button)
+        layout.addWidget(button, 6,1)
 
         horizontalSpacer = QSpacerItem(
             40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
@@ -586,8 +628,8 @@ class SettingTable(QDialog):
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         )
 
-        layout.addItem(verticalSpacer1, 6, 0, 1, 1)
-        layout.addItem(horizontalSpacer, 6, 2, 1, 1)
+        layout.addItem(horizontalSpacer, 6, 0, 1, 1)
+        layout.addItem(verticalSpacer1, 7, 0, 1, 1)
         return tab
 
     def create_tab_3_setting_col_d_bm(self):
@@ -805,10 +847,10 @@ class SettingTable(QDialog):
         # layout.addItem(verticalSpacer2)
 
         # Tạo nút để bật/tắt tất cả SpinBox
-        toggle_button = QPushButton("Bật Tắt Tùy Chỉnh D")
-        toggle_button.setStyleSheet(css_button_submit)
-        toggle_button.clicked.connect(toggle_all_spinboxes)
-        layout.addWidget(toggle_button)
+        turn_setting = QCheckBox("Bật Tùy Chỉnh")
+        turn_setting.setStyleSheet("border: 0px; font-size: 24px;")
+        turn_setting.checkStateChanged.connect(toggle_all_spinboxes)
+        layout.addWidget(turn_setting)
 
         # TODO Handler Func
         # / Notice Color

@@ -145,7 +145,7 @@ class AppSelectionDialog(QDialog):
 
         # Track the selected app
         self.selected_app_index = None
-        self.show()
+        self.show() 
 
     def style_toggle_buttons(self):
         button_style = """
@@ -298,7 +298,6 @@ class AppSelectionDialog(QDialog):
     def update_opened_apps_file(self):
         file_path = os.path.join(data_sp_dir, f"{self.type_pm}", "button_clicks.txt")
         today = datetime.today().isoformat(sep=" ")  # Current date and time
-
         with open(file_path, "w") as file:
             for idx in sorted(self.opened_apps_today):
                 file.write(f"{today}:{idx}\n")

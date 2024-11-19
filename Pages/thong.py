@@ -45,10 +45,6 @@ class ThongPage(QWidget):
     def __init__(self):
         super().__init__()
         self.path = Path()
-        current_dir = self.path.current_dir
-        self.stay_dir = os.path.join(current_dir, 'db', 'stay.json')
-        with open(self.stay_dir, 'r') as file:
-            self.stay_db = json.load(file)
 
 
         self.layout_thong = QVBoxLayout(self)
@@ -134,7 +130,7 @@ class ThongPage(QWidget):
         self.layout_thong.addWidget(self.button_wid_main)
 
         # / Render Component
-        self.changeDataThongWithNumber(self.stay_db["thong"])
+        self.changeDataThongWithNumber(self.ban_info["meta"]['number'])
         self.renderThongTable()
         self.renderThongButton()
 
@@ -270,14 +266,14 @@ class ThongPage(QWidget):
                     #     for item in self.thong_db["change"]
                     #     if item["row"] != row
                     #     and item["column"] != column - 5
-                    #     and item["number"] != self.stay_db["thong"]
+                    #     and item["number"] != self.ban_info["meta"]['number']
                     # ]
                     # filter_data = [
                     #     item
                     #     for item in self.thong_db["change"]
                     #     if item["row"] == row
                     #     and item["column"] == column - 5
-                    #     and item["number"] == self.stay_db["thong"]
+                    #     and item["number"] == self.ban_info["meta"]['number']
                     # ]
                     # if len(filter_data) > 0:
                     #     filter_data[0]["new"] = item.text()
@@ -291,7 +287,7 @@ class ThongPage(QWidget):
                     #         {
                     #             "row": row,
                     #             "column": column - 5,
-                    #             "number": self.stay_db["thong"],
+                    #             "number": self.ban_info["meta"]['number'],
                     #             "new": item.text(),
                     #             "old": self.thong_data[column - 5][row],
                     #         }
@@ -469,7 +465,7 @@ class ThongPage(QWidget):
             data["update"] = self.thong_data
             data["custom"] = self.thong_db["data"]
             data["name"] = self.thong_db["name"]
-            data["number"] = self.stay_db["thong"]
+            data["number"] = self.ban_info["meta"]['number']
             data["stt"] = self.thong_db["stt"]
             data["change"] = self.thong_db["change"]
             data["type_count"] = self.thong_db["type_count"]
@@ -494,7 +490,7 @@ class ThongPage(QWidget):
                     setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
                     data = {}
                     data["row"] = row
-                    data["number"] = self.stay_db["thong"]
+                    data["number"] = self.ban_info["meta"]['number']
                     data["setting"] = setting
                     data["stt"] = self.thong_db["stt"]
                     data["update"] = self.thong_data 
@@ -519,12 +515,10 @@ class ThongPage(QWidget):
 
         
         # Default value
-        self.ChangeNumber.setCurrentIndex(self.stay_db["thong"])
+        self.ChangeNumber.setCurrentIndex(self.ban_info["meta"]['number'])
     
     def save_stay(self, value):
-        self.stay_db["thong"] = int(value)
-        with open(self.stay_dir, 'w') as file:
-            json.dump(self.stay_db, file)
+        self.ban_info["meta"]['number'] = int(value)
 
     # TODO Handler Widgets
     def delete_color_click(self):
@@ -556,7 +550,7 @@ class ThongPage(QWidget):
     def updateRowAndColumns(self):
         if self.table_main is None:
             return
-        stt = self.thong_db["stt"][self.stay_db["thong"]]
+        stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
         data_value = self.thong_db["data"]
         thong_data = self.thong_data
         # / Table Config
@@ -583,7 +577,7 @@ class ThongPage(QWidget):
             self.table_main.setItem(i, 1, item)
 
         # * Change data value with number change
-        number_change = self.stay_db["thong"]
+        number_change = self.ban_info["meta"]['number']
         if number_change != 0 and not self.isShow:
             data_value_new = map(
                 lambda values: list(
@@ -614,7 +608,7 @@ class ThongPage(QWidget):
                 #     for item in self.thong_db["change"]
                 #     if item["row"] == j
                 #     and item["column"] == i
-                #     and item["number"] == self.stay_db["thong"]
+                #     and item["number"] == self.ban_info["meta"]['number']
                 # ]
                 # if len(filter_changed) > 0:
                 #     item_new = filter_changed[0]["new"]
@@ -626,7 +620,7 @@ class ThongPage(QWidget):
 
     def delete_all_rows(self):
         rowCount = len(self.thong_data[0])
-        stt = self.thong_db["stt"][self.stay_db["thong"]]
+        stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
         data_value = self.thong_db["data"]
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
@@ -668,7 +662,7 @@ class ThongPage(QWidget):
         self.thread.start()
 
     def saveBackUp(self):
-        number = self.stay_db["thong"]
+        number = self.ban_info["meta"]['number']
         if number != 0:
             SendMessage(f"Không thể đặt DL gốc ở bộ chuyển đổi {number}")
             return
@@ -699,7 +693,7 @@ class ThongPage(QWidget):
     def backUpRows(self):
         # / Load BackUp File with ID
         id = self.thong_db["id"]
-        data = backupThong({"number": self.stay_db["thong"], "id": id})
+        data = backupThong({"number": self.ban_info["meta"]['number'], "id": id})
         self.thong_db = data["thong_info"]
         self.thong_data = data["thong_data"]
 
@@ -726,7 +720,7 @@ class ThongPage(QWidget):
         data["update"] = self.thong_data
         data["custom"] = self.thong_db["data"]
         data["id"] = self.thong_db["id"]
-        data["number"] = self.stay_db["thong"]
+        data["number"] = self.ban_info["meta"]['number']
         data["stt"] = self.thong_db["stt"]
         data["change"] = self.thong_db["change"]
         data["setting"] = self.thong_db["setting"]
@@ -740,7 +734,7 @@ class ThongPage(QWidget):
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
         # / Thong Data and Thong info
-        stt = self.thong_db["stt"][self.stay_db["thong"]]
+        stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
         data = self.thong_data
         # / Find Select Row
         # data_select = list(self.selected_row_indices)
@@ -769,7 +763,7 @@ class ThongPage(QWidget):
 
             shifted_data[i] = shifted_data_part1 + part2_data
 
-        self.thong_db["stt"][self.stay_db["thong"]] = shifted_stt
+        self.thong_db["stt"][self.ban_info["meta"]['number']] = shifted_stt
         self.thong_data = shifted_data
         # self.updateHeaderRow()
 

@@ -2,7 +2,7 @@ import bisect
 import json
 import os
 from functools import partial
-
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QDate, QTimer, QRect
 from PySide6.QtGui import QAction, QColor, QCursor, QFont, QIcon, Qt
 from PySide6.QtWidgets import (
@@ -2654,7 +2654,6 @@ class TinhAndMauPage(QWidget):
         dialog = QDialog()
         dialog.setWindowTitle("Bảng Nhập Liệu")
         dialog.setWindowIcon(QIcon(icon))
-        # dialog.setFixedSize(1300, 850)
         dialog.show()
 
         # / Create Layout
@@ -2979,7 +2978,13 @@ class TinhAndMauPage(QWidget):
         exit.clicked.connect(exit_click)
         submit.clicked.connect(lambda: self.submit_insert(data, dialog))
         # Move and set the dialog size
-        # self.move_to_center(dialog)
+        screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
+        dialog_width = 1000 + 300  # Use the dialog's width (e.g., from table)
+        dialog_height = 780 + 100  # Add space for other content
+        x = (screen_geometry.width() - dialog_width) // 2
+        y = (screen_geometry.height() - dialog_height) // 2
+        dialog.setFixedSize(dialog_width, dialog_height)  # Fix size
+        dialog.move(x, y)
 
     def submit_insert(self, data, dialog):
         data["id"] = self.ban_info["id"]
@@ -3180,7 +3185,14 @@ class TinhAndMauPage(QWidget):
         insert_thong_table.itemClicked.connect(changeThongTable)
         insert_thong_edit.valueChanged.connect(changeThongEdit)
 
-        # self.move_to_right(dialog)
+        # Move and set the dialog size
+        screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
+        dialog_width = 1000 + 300  # Use the dialog's width (e.g., from table)
+        dialog_height = 780 + 100  # Add space for other content
+        x = (screen_geometry.width() - dialog_width) // 2
+        y = (screen_geometry.height() - dialog_height) // 2
+        dialog.setFixedSize(dialog_width, dialog_height)  # Fix size
+        dialog.move(x, y)
 
     def update_thong_insert(self, data, dialog):
         data_send = {}

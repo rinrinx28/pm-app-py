@@ -35,10 +35,6 @@ class NgangPage(QWidget):
     def __init__(self):
         super().__init__()
         self.path = Path()
-        current_dir = self.path.current_dir
-        self.stay_dir = os.path.join(current_dir, 'db', 'stay.json')
-        with open(self.stay_dir, 'r') as file:
-            self.stay_db = json.load(file)
         
         self.layout_ngang = QVBoxLayout(self)
         self.setWindowTitle(
@@ -126,7 +122,7 @@ class NgangPage(QWidget):
         self.layout_ngang.addWidget(button_Wid_main)
 
         # / Render Component
-        defult_number = self.stay_db["ngang"]
+        defult_number = self.ban_info["meta"]['number']
         self.changeDataNgangWithNumber(defult_number)
         self.renderButton()
         self.renderTable()
@@ -250,7 +246,7 @@ class NgangPage(QWidget):
             type_count = convert_string_to_type_count(self.ban_info["thong"]["name"])
             data = {}
             data["update"] = self.ngang_data
-            data["number"] = self.stay_db["ngang"]
+            data["number"] = self.ban_info["meta"]['number']
             data["stt"] = self.ngang_info["stt"]
             data["change"] = self.ngang_info["change"]
             data["type_count"] = type_count if type_count == 0 else 1 if type_count == '1a' else 3 if type_count == '1b' else 2
@@ -272,7 +268,7 @@ class NgangPage(QWidget):
         SaveFile.clicked.connect(saveFile_click)
 
         # Default value
-        self.Change_number.setCurrentIndex(self.stay_db["ngang"])
+        self.Change_number.setCurrentIndex(self.ban_info["meta"]['number'])
 
     def renderTable(self):
         data = self.ngang_data
@@ -364,14 +360,14 @@ class NgangPage(QWidget):
                         for item in self.ngang_info["change"]
                         if item["row"] != row
                         and item["column"] != column - 1
-                        and item["number"] != self.stay_db["ngang"]
+                        and item["number"] != self.ban_info["meta"]['number']
                     ]
                     filter_data = [
                         item
                         for item in self.ngang_info["change"]
                         if item["row"] == row
                         and item["column"] == column - 1
-                        and item["number"] == self.stay_db["ngang"]
+                        and item["number"] == self.ban_info["meta"]['number']
                     ]
                     if len(filter_data) > 0:
                         filter_data[0]["new"] = item.text()
@@ -385,7 +381,7 @@ class NgangPage(QWidget):
                             {
                                 "row": row,
                                 "column": column - 1,
-                                "number": self.stay_db["ngang"],
+                                "number": self.ban_info["meta"]['number'],
                                 "new": item.text(),
                                 "old": self.ngang_data[row][column - 1],
                             }
@@ -397,9 +393,7 @@ class NgangPage(QWidget):
         self.table_main.cellChanged.connect(changeValue)
 
     def save_stay(self, value):
-        self.stay_db["ngang"] = int(value)
-        with open(self.stay_dir, 'w') as file:
-            json.dump(self.stay_db, file)
+        self.ban_info["meta"]['number'] = int(value)
     # TODO Handler Events
     def delete_color_click(self):
         self.table_main.clearSelection()
@@ -423,7 +417,7 @@ class NgangPage(QWidget):
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
         # / Ngang Data and Ngang stt
-        stt = self.stt_ngang[self.stay_db["ngang"]]
+        stt = self.stt_ngang[self.ban_info["meta"]['number']]
         data = self.ngang_data
         # Tạo một danh sách mới để lưu trữ các phần tử sau khi dịch chuyển
         # Tạo 2 danh sách mới để lưu trữ các phần tử
@@ -445,7 +439,7 @@ class NgangPage(QWidget):
 
         shifted_data = shifted_part1_data + part2_data
 
-        self.stt_ngang[self.stay_db["ngang"]] = shifted_stt
+        self.stt_ngang[self.ban_info["meta"]['number']] = shifted_stt
         self.ngang_data = shifted_data
         SendMessage("Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại")
 
@@ -467,7 +461,7 @@ class NgangPage(QWidget):
             return
         self.table_main.clearSelection()
         data = self.ngang_data
-        stt = self.stt_ngang[self.stay_db["ngang"]]
+        stt = self.stt_ngang[self.ban_info["meta"]['number']]
         colCount = len(data[0])
         rowCount = len(data)
         self.table_main.setRowCount(0)
@@ -488,7 +482,7 @@ class NgangPage(QWidget):
                     for item in self.ngang_info["change"]
                     if item["row"] == i
                     and item["column"] == j
-                    and item["number"] == self.stay_db["ngang"]
+                    and item["number"] == self.ban_info["meta"]['number']
                 ]
                 if len(filter_changed) > 0:
                     item_new = filter_changed[0]["new"]
@@ -500,7 +494,7 @@ class NgangPage(QWidget):
 
     def backUpNgang(self):
         data = {}
-        data["number"] = self.stay_db["ngang"]
+        data["number"] = self.ban_info["meta"]['number']
         result = backUpNgang(data)
 
         self.ngang_info = result["stt"]
@@ -517,7 +511,7 @@ class NgangPage(QWidget):
     def saveRowNgang(self):
         data = {}
         data["update"] = self.ngang_data
-        data["number"] = self.stay_db["ngang"]
+        data["number"] = self.ban_info["meta"]['number']
         data["stt"] = self.stt_ngang
         data["change"] = self.ngang_info["change"]
         saveNgang(data)
@@ -526,7 +520,7 @@ class NgangPage(QWidget):
 
     def delete_all_row(self):
         rowCount = len(self.ngang_data)
-        stt = self.stt_ngang[self.stay_db["ngang"]]
+        stt = self.stt_ngang[self.ban_info["meta"]['number']]
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
