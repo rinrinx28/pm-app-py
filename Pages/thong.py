@@ -161,9 +161,10 @@ class ThongPage(QWidget):
         
         name = convert_string_format(ban_thong_name)
         self.name = convert_string_format_type(ban_thong_name)
+        co_so = change_number if change_number != 0 else "Gốc"
         title_text_stt = (
             f"Trạng Thái Bảng Tính: C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
-            + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
+            + f"T{ban_thong_value[1]} /  Cơ: {co_so} / "
             + f"Số dòng: {row_count}/{max_row}"
         )
         title_stt = QLabel(title_text_stt)
@@ -261,43 +262,12 @@ class ThongPage(QWidget):
             else:
                 if column > 4:
                     item = self.table_main.item(row, column)
-                    # filter_db = [
-                    #     item
-                    #     for item in self.thong_db["change"]
-                    #     if item["row"] != row
-                    #     and item["column"] != column - 5
-                    #     and item["number"] != self.ban_info["meta"]['number']
-                    # ]
-                    # filter_data = [
-                    #     item
-                    #     for item in self.thong_db["change"]
-                    #     if item["row"] == row
-                    #     and item["column"] == column - 5
-                    #     and item["number"] == self.ban_info["meta"]['number']
-                    # ]
-                    # if len(filter_data) > 0:
-                    #     filter_data[0]["new"] = item.text()
-                    #     self.thong_db["change"] = filter_db + filter_data
-                    # if filter_data[0]["new"] != filter_data[0]["old"]:
-                    #     item.setBackground(self.cyan)
-                    # else:
-                    #     item.setBackground(self.normal)
-                    # else:
-                    #     self.thong_db["change"].append(
-                    #         {
-                    #             "row": row,
-                    #             "column": column - 5,
-                    #             "number": self.ban_info["meta"]['number'],
-                    #             "new": item.text(),
-                    #             "old": self.thong_data[column - 5][row],
-                    #         }
-                    #     )
-                    #     # item.setBackground(self.cyan)
                     self.thong_data[column - 5][row] = item.text()
 
                 if 1 < column < 5:
                     item = self.table_main.item(row, column)
                     self.thong_db["data"][column - 2][row] = item.text()
+                    print(self.thong_db["data"][column - 2][row])
 
         def selectedRow():
             selected_items = self.table_main.selectedItems()
@@ -373,9 +343,9 @@ class ThongPage(QWidget):
         self.ChangeNumber = QComboBox()
         self.ChangeNumber.setStyleSheet("font-size: 24px;line-height: 32px;")
         self.ChangeNumber.setCursor(QCursor(Qt.PointingHandCursor))
-        self.ChangeNumber.addItem(f"Bộ chuyển đổi gốc")
+        self.ChangeNumber.addItem(f"Cơ gốc")
         for i in range(1, 11):
-            self.ChangeNumber.addItem(f"Bộ chuyển Đổi {i}")
+            self.ChangeNumber.addItem(f"Cơ {i}")
         layout.addWidget(self.ChangeNumber, 0, 5)
 
         # TODO Line 2
@@ -446,7 +416,7 @@ class ThongPage(QWidget):
             self.updateRowAndColumns()
             if value != 0:
                 note = Note[value - 1]
-                self.note.setText(f"Bộ chuyển đổi {value} - {note}")
+                self.note.setText(f"Cơ {value} - {note}")
                 self.note.setScaledContents(True)
             else:
                 self.note.setText("")
@@ -669,6 +639,7 @@ class ThongPage(QWidget):
         data = {}
         data["id"] = self.thong_db["id"]
         data["thong_data"] = self.thong_data
+        data["custom"] = self.thong_db["data"]
 
         # / Check isEditor
         isEditor = self.table_main.editTriggers()
@@ -724,6 +695,7 @@ class ThongPage(QWidget):
         data["stt"] = self.thong_db["stt"]
         data["change"] = self.thong_db["change"]
         data["setting"] = self.thong_db["setting"]
+
         msg = saveThong(data)
         SendMessage(msg)
 

@@ -77,17 +77,18 @@ class TinhAndMauPage(QWidget):
         icon = QIcon(logo_path)
         self.setWindowIcon(icon)
 
-        font_ac = QFont()
-        font_ac.setPointSize(24)
-        font_ac.setBold(True)
-        self.font_action = font_ac
-
         # / Load Data Bans
         self.bans_path = self.path.path_db()
         with open(self.bans_path, "r") as file:
             self.bans_db = json.load(file)
 
         self.ban_info = self.bans_db
+        self.ban_info['size'] = self.bans_db.get('size', 28)
+
+        font_ac = QFont()
+        font_ac.setPointSize(24)
+        font_ac.setBold(True)
+        self.font_action = font_ac
 
         # / Load data Thong and Number
         self.thong_info = None
@@ -98,11 +99,17 @@ class TinhAndMauPage(QWidget):
         self.noticeView = []
         self.analysis_data = ""
 
+        # / Current name table
+        self.current_table = "Bảng Tính"
+
         # / Config LoadingScreen
         self.loadingScreen = LoadingScreen(self.path.path_loading())
 
         # / Config Font
-        self.font = Font()
+        font = QFont()
+        font.setWeight(QFont.DemiBold)
+        font.setPointSize(self.ban_info.get('size', 28))
+        self.font = font
 
         # / Config Color
         self.red = QColor(255, 0, 0)
@@ -128,7 +135,7 @@ class TinhAndMauPage(QWidget):
         self.note = QLabel("")
         self.note.setFont(self.font)
         self.note.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.layout.addWidget(self.note)
+        self.note_l.addWidget(self.note)
 
         if change_number != 0:
             note = Note[change_number - 1]
@@ -136,7 +143,7 @@ class TinhAndMauPage(QWidget):
         else:
             self.note.setText("")
 
-        self.note_color = f"a = sbáo; b = th; c = cột; d = sđếm; s = số trong thông; m1; m2; m3; m4; m5; m6; m7; m8; m9; m10"
+        self.note_color = f"a = sbáo; b = th; c = cột; d = sđếm; s = số trong thông"
         self.note_color_label = QLabel(self.note_color)
         self.note_color_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.note_l.addWidget(self.note_color_label)
@@ -259,23 +266,10 @@ class TinhAndMauPage(QWidget):
         # / Config Ban info
         ban_info = self.ban_info
         lastDate = ban_info["data"][-1]["date"] if ban_info["data"] else None
-        filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
-        row_count = len(filter_data)
-        max_row = ban_info["meta"]["maxRow"]
-        change_number = ban_info["meta"]["number"]
-        ban_col = ban_info["col"]
-        ban_thong_value = ban_info["thong"]["value"]
-        ban_thong_name = ban_info["thong"]["name"]
-        list_table_color = [
-            f"M{i+1}" for i, v in enumerate(ban_info["meta"]["tables"]) if v["enable"]
-        ]
 
-        name = convert_string_format(ban_thong_name)
-        title_text = (
-            f"{name} ** Bảng Tính ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
-            + f"T{ban_thong_value[1]} **  Bộ Chuyển Đổi: {change_number} ** "
-            + f"Số dòng: {row_count}/{max_row} ** Bảng Màu: {','.join(list_table_color)}"
-        )
+        title_text = self.get_title_text(type)
+
+        
 
         self.status_w = QWidget()
         self.status_l = QVBoxLayout(self.status_w)
@@ -358,7 +352,8 @@ class TinhAndMauPage(QWidget):
                 isColor = None  # Or any default value
             if isColor:
                 # / Add button to list of buttons
-                btn_label = f'{notice_color_name} | {isColor["data"]}'
+                btn_name_label = f"{notice_color_name} |" if label == 0 else ""
+                btn_label = f'{btn_name_label} {isColor["data"]}'
                 btn = QPushButton(btn_label)
                 btn.setStyleSheet(css_button_notice)
                 btn.setCursor(Qt.PointingHandCursor)
@@ -491,6 +486,34 @@ class TinhAndMauPage(QWidget):
         # Render row
         self.updateTableCount()
 
+    def get_title_text(self, type=None):
+        if type is None:
+            table_enabel = [
+            i for i, x in enumerate(self.ban_info["meta"]["tables"]) if x["enable"]
+            ]
+            last_index = table_enabel[-1] if table_enabel else None
+            current_color = last_index
+        else:
+            current_color = int(type.split('m')[1]) - 1
+        # / Config Ban info
+        ban_info = self.ban_info
+        filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
+        row_count = len(filter_data)
+        max_row = ban_info["meta"]["maxRow"]
+        change_number = ban_info["meta"]["number"]
+        ban_col = ban_info["col"]
+        ban_thong_value = ban_info["thong"]["value"]
+        ban_thong_name = ban_info["thong"]["name"]
+        co_so = change_number if change_number != 0 else "Gốc"
+        index = current_color + 1 if current_color != 0 else ''
+        thong_ke_d_m = self.ban_info['meta']['setting'][f'col_e{index}']
+        name = convert_string_format(ban_thong_name)
+        return (
+            f"{self.current_table}: {name} ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
+            + f"T{ban_thong_value[1]} **  Cơ: {co_so} ** "
+            + f"Số dòng: {row_count}/{max_row} ** Thống kê D M{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))}"
+        )
+
     # / Update function for horizontal scrollbar value change
 
     def update_count(self, value):
@@ -567,13 +590,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_color()
 
-        height_of_row = self.frozen_table_color.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_color.horizontalHeader().sectionSize(0)
-        self.frozen_table_color.setMaximumHeight(height_of_row)
-        self.frozen_table_color.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_color.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_left.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_left.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_color.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_left.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_left.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_color.horizontalHeader().sectionSize(0)
+        self.frozen_table_color.setMaximumHeight(50)
+        self.frozen_table_color.setMinimumHeight(50)
+
+        self.frozen_table_left.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_left.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_left.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_left.horizontalHeader().setStretchLastSection(True)
@@ -647,6 +675,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_color, self.frozen_table_left]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -672,6 +701,12 @@ class TinhAndMauPage(QWidget):
         button_main_2_w = QWidget()
         button_main_2_l = QHBoxLayout(button_main_2_w)
         self.button_layout.addWidget(button_main_2_w)
+
+        # / Back to first row
+        backToFirst = QPushButton("Về Cột Đầu")
+        backToFirst.setStyleSheet(css_button_submit)
+        backToFirst.setCursor(QCursor(Qt.PointingHandCursor))
+        button_main_1_l.addWidget(backToFirst)
 
         # / Delete new row
         DeleteNewRow = QPushButton("Xóa Dòng Mới")
@@ -703,6 +738,12 @@ class TinhAndMauPage(QWidget):
         self.TableChange.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(self.TableChange)
 
+        # / Skip to end row
+        skipToEnd = QPushButton("Về Cột Cuối")
+        skipToEnd.setStyleSheet(css_button_submit)
+        skipToEnd.setCursor(QCursor(Qt.PointingHandCursor))
+        button_main_1_l.addWidget(skipToEnd)
+
         def insertData_Click():
             data = self.ban_info["data"]
             if len(data) == 0:
@@ -716,281 +757,70 @@ class TinhAndMauPage(QWidget):
                 self.insertData()
 
         def changeTable():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_count)
+            self.current_table = "Bảng Tính"
             self.renderNavigation()
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Tính")
-                    self.title.setText(new_title)
-                    return
+            return
 
         def changeTableM1():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_color)
+            self.current_table = "Bảng Màu 1"
             self.renderNavigation("m1")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 1")
-                    self.title.setText(new_title)
-                    return
+            return
 
         def changeTableM2():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM2)
+            self.current_table = "Bảng Màu 2"
             self.renderNavigation("m2")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 2")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM3():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM3)
+            self.current_table = "Bảng Màu 3"
             self.renderNavigation("m3")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 3")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM4():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM4)
+            self.current_table = "Bảng Màu 4"
             self.renderNavigation("m4")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 4")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM5():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM5)
+            self.current_table = "Bảng Màu 5"
             self.renderNavigation("m5")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 5")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM6():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM6)
+            self.current_table = "Bảng Màu 6"
             self.renderNavigation("m6")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 6")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM7():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM7)
+            self.current_table = "Bảng Màu 7"
             self.renderNavigation("m7")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 7")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM8():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM8)
+            self.current_table = "Bảng Màu 8"
             self.renderNavigation("m8")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 8")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM9():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM9)
+            self.current_table = "Bảng Màu 9"
             self.renderNavigation("m9")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 9")
-                    self.title.setText(new_title)
+            return
 
         def changeTableM10():
-            old_title = self.title.text()
             self.widget_main.setCurrentWidget(self.table_main_colorM10)
+            self.current_table = "Bảng Màu 10"
             self.renderNavigation("m10")
-            for text in sorted(
-                [
-                    "Bảng Màu 10",
-                    "Bảng Màu 9",
-                    "Bảng Màu 8",
-                    "Bảng Màu 7",
-                    "Bảng Màu 6",
-                    "Bảng Màu 5",
-                    "Bảng Màu 4",
-                    "Bảng Màu 3",
-                    "Bảng Màu 2",
-                    "Bảng Màu 1",
-                    "Bảng Tính",
-                ],
-                key=len,
-                reverse=True,
-            ):
-                if text in old_title:
-                    new_title = old_title.replace(text, "Bảng Màu 10")
-                    self.title.setText(new_title)
+            return
 
         for i in range(10):
             info_data = self.ban_info["meta"]["tables"][i]
@@ -998,71 +828,70 @@ class TinhAndMauPage(QWidget):
                 match i:
                     case 0:
                         # / Bảng Màu 1
-                        self.TableM1 = QPushButton("BM M1")
+                        self.TableM1 = QPushButton("BM 1")
                         self.TableM1.setStyleSheet(css_button_submit)
                         self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM1)
                         self.TableM1.clicked.connect(changeTableM1)
                     case 1:
-
                         # / BM 2
-                        self.TableM2 = QPushButton("BM M2")
+                        self.TableM2 = QPushButton("BM 2")
                         self.TableM2.setStyleSheet(css_button_submit)
                         self.TableM2.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM2)
                         self.TableM2.clicked.connect(changeTableM2)
                     case 2:
                         # / BM 3
-                        self.TableM3 = QPushButton("BM M3")
+                        self.TableM3 = QPushButton("BM 3")
                         self.TableM3.setStyleSheet(css_button_submit)
                         self.TableM3.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM3)
                         self.TableM3.clicked.connect(changeTableM3)
                     case 3:
                         # / BM 4
-                        self.TableM4 = QPushButton("BM M4")
+                        self.TableM4 = QPushButton("BM 4")
                         self.TableM4.setStyleSheet(css_button_submit)
                         self.TableM4.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM4)
                         self.TableM4.clicked.connect(changeTableM4)
                     case 4:
                         # / BM 5
-                        self.TableM5 = QPushButton("BM M5")
+                        self.TableM5 = QPushButton("BM 5")
                         self.TableM5.setStyleSheet(css_button_submit)
                         self.TableM5.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM5)
                         self.TableM5.clicked.connect(changeTableM5)
                     case 5:
                         # / BM 6
-                        self.TableM6 = QPushButton("BM M6")
+                        self.TableM6 = QPushButton("BM 6")
                         self.TableM6.setStyleSheet(css_button_submit)
                         self.TableM6.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM6)
                         self.TableM6.clicked.connect(changeTableM6)
                     case 6:
                         # / BM 7
-                        self.TableM7 = QPushButton("BM M7")
+                        self.TableM7 = QPushButton("BM 7")
                         self.TableM7.setStyleSheet(css_button_submit)
                         self.TableM7.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM7)
                         self.TableM7.clicked.connect(changeTableM7)
                     case 7:
                         # / BM 8
-                        self.TableM8 = QPushButton("BM M8")
+                        self.TableM8 = QPushButton("BM 8")
                         self.TableM8.setStyleSheet(css_button_submit)
                         self.TableM8.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM8)
                         self.TableM8.clicked.connect(changeTableM8)
                     case 8:
                         # / BM 9
-                        self.TableM9 = QPushButton("BM M9")
+                        self.TableM9 = QPushButton("BM 9")
                         self.TableM9.setStyleSheet(css_button_submit)
                         self.TableM9.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM9)
                         self.TableM9.clicked.connect(changeTableM9)
                     case 9:
                         # / BM 10
-                        self.TableM10 = QPushButton("BM M10")
+                        self.TableM10 = QPushButton("BM 10")
                         self.TableM10.setStyleSheet(css_button_submit)
                         self.TableM10.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM10)
@@ -1070,11 +899,140 @@ class TinhAndMauPage(QWidget):
                     case _:
                         pass
 
+        def back_to_first():
+            if self.current_table == "Bảng Tính":
+                row = self.table_scroll_count.rowCount() - 2  # Get the current row
+                item = self.table_scroll_count.item(row, 0)  # Get the first column item
+                self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 1':
+                row = self.table_scroll_color.rowCount() - 2  # Get the current row
+                item = self.table_scroll_color.item(row, 0)  # Get the first column item
+                self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 2':
+                row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM2.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 3':
+                row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM3.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 4':
+                row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM4.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 5':
+                row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM5.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 6':
+                row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM6.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 7':
+                row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM7.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 8':
+                row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM8.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 9':
+                row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM9.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 10':
+                row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
+                item = self.table_scroll_colorM10.item(row, 0)  # Get the first column item
+                self.table_scroll_colorM10.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            else:
+                return
+
+        def skip_to_end():
+            if self.current_table == "Bảng Tính":
+                row = self.table_scroll_count.rowCount() - 2  # Get the current row
+                col = self.table_scroll_count.columnCount() - 1  # Get the current row
+                item = self.table_scroll_count.item(row, col)  # Get the first column item
+                self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            elif self.current_table == 'Bảng Màu 1':
+                row = self.table_scroll_color.rowCount() - 2  # Get the current row
+                col = self.table_scroll_color.columnCount() - 1  # Get the current row
+                item = self.table_scroll_color.item(row, col)  # Get the first column item
+                self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 2':
+                row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM2.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM2.item(row, col)  # Get the first column item
+                self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 3':
+                row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM3.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM3.item(row, col)  # Get the first column item
+                self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 4':
+                row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM4.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM4.item(row, col)  # Get the first column item
+                self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 5':
+                row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM5.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM5.item(row, col)  # Get the first column item
+                self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 6':
+                row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM6.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM6.item(row, col)  # Get the first column item
+                self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 7':
+                row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM7.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM7.item(row, col)  # Get the first column item
+                self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 8':
+                row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM8.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM8.item(row, col)  # Get the first column item
+                self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+
+            elif self.current_table == 'Bảng Màu 9':
+                row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM9.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM9.item(row, col)  # Get the first column item
+                self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+                
+            elif self.current_table == 'Bảng Màu 10':
+                row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
+                col = self.table_scroll_colorM10.columnCount() - 1  # Get the current row
+                item = self.table_scroll_colorM10.item(row, col)  # Get the first column item
+                self.table_scroll_colorM10.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            else:
+                return
+
+
         InsertData.clicked.connect(insertData_Click)
         self.TableChange.clicked.connect(changeTable)
         SettingTable.clicked.connect(self.changeSettingColor)
         DeleteNewRow.clicked.connect(self.deleteNewRow)
         DeleteFromTo.clicked.connect(self.deleteFromToRow)
+        backToFirst.clicked.connect(back_to_first)
+        skipToEnd.clicked.connect(skip_to_end)
         # JumpFisrtColumn.clicked.connect(self.jump_fisrt_column)
 
     # TODO Handle Table M2
@@ -1122,13 +1080,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM2()
 
-        height_of_row = self.frozen_table_colorM2.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM2.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM2.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM2.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM2.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM2.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM2.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM2.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM2.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM2.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM2.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM2.setMaximumHeight(50)
+        self.frozen_table_colorM2.setMinimumHeight(50)
+
+        self.frozen_table_leftM2.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM2.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM2.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM2.horizontalHeader().setStretchLastSection(True)
@@ -1202,6 +1165,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM2, self.frozen_table_leftM2]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -1264,13 +1228,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM3()
 
-        height_of_row = self.frozen_table_colorM3.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM3.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM3.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM3.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM3.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM3.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM3.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM3.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM3.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM3.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM3.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM3.setMaximumHeight(50)
+        self.frozen_table_colorM3.setMinimumHeight(50)
+
+        self.frozen_table_leftM3.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM3.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM3.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM3.horizontalHeader().setStretchLastSection(True)
@@ -1344,6 +1313,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM3, self.frozen_table_leftM3]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -1406,13 +1376,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM4()
 
-        height_of_row = self.frozen_table_colorM4.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM4.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM4.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM4.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM4.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM4.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM4.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM4.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM4.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM4.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM4.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM4.setMaximumHeight(50)
+        self.frozen_table_colorM4.setMinimumHeight(50)
+
+        self.frozen_table_leftM4.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM4.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM4.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM4.horizontalHeader().setStretchLastSection(True)
@@ -1486,6 +1461,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM4, self.frozen_table_leftM4]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -1548,13 +1524,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM5()
 
-        height_of_row = self.frozen_table_colorM5.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM5.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM5.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM5.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM5.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM5.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM5.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM5.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM5.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM5.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM5.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM5.setMaximumHeight(50)
+        self.frozen_table_colorM5.setMinimumHeight(50)
+
+        self.frozen_table_leftM5.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM5.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM5.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM5.horizontalHeader().setStretchLastSection(True)
@@ -1628,6 +1609,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM5, self.frozen_table_leftM5]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -1690,13 +1672,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM6()
 
-        height_of_row = self.frozen_table_colorM6.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM6.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM6.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM6.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM6.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM6.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM6.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM6.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM6.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM6.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM6.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM6.setMaximumHeight(50)
+        self.frozen_table_colorM6.setMinimumHeight(50)
+
+        self.frozen_table_leftM6.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM6.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM6.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM6.horizontalHeader().setStretchLastSection(True)
@@ -1770,6 +1757,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM6, self.frozen_table_leftM6]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -1832,13 +1820,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM7()
 
-        height_of_row = self.frozen_table_colorM7.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM7.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM7.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM7.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM7.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM7.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM7.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM7.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM7.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM7.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM7.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM7.setMaximumHeight(50)
+        self.frozen_table_colorM7.setMinimumHeight(50)
+
+        self.frozen_table_leftM7.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM7.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM7.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM7.horizontalHeader().setStretchLastSection(True)
@@ -1912,6 +1905,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM7, self.frozen_table_leftM7]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -1974,13 +1968,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM8()
 
-        height_of_row = self.frozen_table_colorM8.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM8.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM8.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM8.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM8.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM8.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM8.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM8.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM8.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM8.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM8.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM8.setMaximumHeight(50)
+        self.frozen_table_colorM8.setMinimumHeight(50)
+
+        self.frozen_table_leftM8.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM8.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM8.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM8.horizontalHeader().setStretchLastSection(True)
@@ -2054,6 +2053,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM8, self.frozen_table_leftM8]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -2116,13 +2116,18 @@ class TinhAndMauPage(QWidget):
         # / Config Header
         self.configheader_table_colorM9()
 
-        height_of_row = self.frozen_table_colorM9.verticalHeader().sectionSize(0)
-        width_of_row = self.frozen_table_colorM9.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM9.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM9.setMinimumHeight(height_of_row)
+        
+        self.frozen_table_colorM9.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM9.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM9.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM9.horizontalHeader().setDefaultSectionSize(100)
 
-        self.frozen_table_leftM9.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM9.setMinimumSize(width_of_row + 90, height_of_row)
+        width_of_row = self.frozen_table_colorM9.horizontalHeader().sectionSize(0)
+        self.frozen_table_colorM9.setMaximumHeight(50)
+        self.frozen_table_colorM9.setMinimumHeight(50)
+
+        self.frozen_table_leftM9.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM9.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM9.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM9.horizontalHeader().setStretchLastSection(True)
@@ -2196,6 +2201,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM9, self.frozen_table_leftM9]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -2257,14 +2263,18 @@ class TinhAndMauPage(QWidget):
 
         # / Config Header
         self.configheader_table_colorM10()
+        
+        self.frozen_table_colorM10.horizontalHeader().setDefaultSectionSize(100)
+        self.frozen_table_leftM10.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_leftM10.horizontalHeader().setDefaultSectionSize(100)
+        self.table_scroll_colorM10.horizontalHeader().setDefaultSectionSize(100)
 
-        height_of_row = self.frozen_table_colorM10.verticalHeader().sectionSize(0)
         width_of_row = self.frozen_table_colorM10.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM10.setMaximumHeight(height_of_row)
-        self.frozen_table_colorM10.setMinimumHeight(height_of_row)
+        self.frozen_table_colorM10.setMaximumHeight(50)
+        self.frozen_table_colorM10.setMinimumHeight(50)
 
-        self.frozen_table_leftM10.setMaximumSize(width_of_row + 90, height_of_row)
-        self.frozen_table_leftM10.setMinimumSize(width_of_row + 90, height_of_row)
+        self.frozen_table_leftM10.setMaximumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM10.setMinimumSize(width_of_row + 90, 50)
 
         self.frozen_table_leftM10.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM10.horizontalHeader().setStretchLastSection(True)
@@ -2338,6 +2348,7 @@ class TinhAndMauPage(QWidget):
             # / Header
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
+            table.setWordWrap(False)
             if table not in [self.frozen_table_colorM10, self.frozen_table_leftM10]:
                 table.verticalHeader().setSectionResizeMode(
                     QHeaderView.ResizeMode.ResizeToContents
@@ -2402,7 +2413,7 @@ class TinhAndMauPage(QWidget):
             notice = matching_item["notice"]
 
             if "_m10" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 10", "Bảng Màu 10")
+                self.changeStatusBar("Bảng Màu 10", "m10")
                 if current_widget != self.table_main_colorM10:
                     self.widget_main.setCurrentWidget(self.table_main_colorM10)
                 button.setStyleSheet(css_button_view)
@@ -2424,7 +2435,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m1" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 1", "Bảng Màu 1")
+                self.changeStatusBar("Bảng Màu 1", "m1")
                 if current_widget != self.table_main_color:
                     self.widget_main.setCurrentWidget(self.table_main_color)
                 button.setStyleSheet(css_button_view)
@@ -2446,7 +2457,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m2" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 2", "Bảng Màu 2")
+                self.changeStatusBar("Bảng Màu 2", "m2")
                 if current_widget != self.table_main_colorM2:
                     self.widget_main.setCurrentWidget(self.table_main_colorM2)
                 button.setStyleSheet(css_button_view)
@@ -2468,7 +2479,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m3" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 3", "Bảng Màu 3")
+                self.changeStatusBar("Bảng Màu 3", "m3")
                 if current_widget != self.table_main_colorM3:
                     self.widget_main.setCurrentWidget(self.table_main_colorM3)
                 button.setStyleSheet(css_button_view)
@@ -2490,7 +2501,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m4" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 4", "Bảng Màu 4")
+                self.changeStatusBar("Bảng Màu 4", "m4")
                 if current_widget != self.table_main_colorM4:
                     self.widget_main.setCurrentWidget(self.table_main_colorM4)
                 button.setStyleSheet(css_button_view)
@@ -2512,7 +2523,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m5" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 5", "Bảng Màu 5")
+                self.changeStatusBar("Bảng Màu 5", "m5")
                 if current_widget != self.table_main_colorM5:
                     self.widget_main.setCurrentWidget(self.table_main_colorM5)
                 button.setStyleSheet(css_button_view)
@@ -2534,7 +2545,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m6" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 6", "Bảng Màu 6")
+                self.changeStatusBar("Bảng Màu 6", "m6")
                 if current_widget != self.table_main_colorM6:
                     self.widget_main.setCurrentWidget(self.table_main_colorM6)
                 button.setStyleSheet(css_button_view)
@@ -2556,7 +2567,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m7" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 7", "Bảng Màu 7")
+                self.changeStatusBar("Bảng Màu 7", "m7")
                 if current_widget != self.table_main_colorM7:
                     self.widget_main.setCurrentWidget(self.table_main_colorM7)
                 button.setStyleSheet(css_button_view)
@@ -2578,7 +2589,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m8" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 8", "Bảng Màu 8")
+                self.changeStatusBar("Bảng Màu 8", "m8")
                 if current_widget != self.table_main_colorM8:
                     self.widget_main.setCurrentWidget(self.table_main_colorM8)
                 button.setStyleSheet(css_button_view)
@@ -2600,7 +2611,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m9" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 9", "Bảng Màu 9")
+                self.changeStatusBar("Bảng Màu 9", "m9")
                 if current_widget != self.table_main_colorM9:
                     self.widget_main.setCurrentWidget(self.table_main_colorM9)
                 button.setStyleSheet(css_button_view)
@@ -4491,8 +4502,8 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_count.setRowCount(0)
 
         # / Config table
-        self.frozen_table_count.setRowCount(rowCount)
-        self.table_scroll_count.setRowCount(rowCount)
+        self.frozen_table_count.setRowCount(rowCount + 1)
+        self.table_scroll_count.setRowCount(rowCount + 1)
         thong_range = ban_info["thong"]["value"]
         thong_range_1 = thong_range[0] - 1
         thong_range_2 = thong_range[1]
@@ -4620,8 +4631,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_color.setRowCount(rowCount)
-        self.table_scroll_left.setRowCount(rowCount)
+        self.table_scroll_color.setRowCount(rowCount + 1)
+        self.table_scroll_left.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -4649,7 +4660,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                    QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_color.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -4726,21 +4737,18 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M1")
+                header_item = QTableWidgetItem(f"M1: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_color.setItem(0, total_columns + j, header_item)
-
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_color.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
-            )  # Đặt màu nền là màu trắng
+                QColor(80, 200, 120)
+            )  # Đặt màu nền là màu xanh
             self.table_scroll_color.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
             )
@@ -4759,8 +4767,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM2.setRowCount(rowCount)
-        self.table_scroll_leftM2.setRowCount(rowCount)
+        self.table_scroll_colorM2.setRowCount(rowCount + 1)
+        self.table_scroll_leftM2.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -4789,7 +4797,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM2.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -4874,19 +4882,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M2")
+                header_item = QTableWidgetItem(f"M2: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM2.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM2.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM2.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -4906,8 +4912,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM3.setRowCount(rowCount)
-        self.table_scroll_leftM3.setRowCount(rowCount)
+        self.table_scroll_colorM3.setRowCount(rowCount + 1)
+        self.table_scroll_leftM3.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -4936,7 +4942,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM3.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -5023,19 +5029,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M3")
+                header_item = QTableWidgetItem(f"M3: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM3.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM3.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM3.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -5055,8 +5059,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM4.setRowCount(rowCount)
-        self.table_scroll_leftM4.setRowCount(rowCount)
+        self.table_scroll_colorM4.setRowCount(rowCount + 1)
+        self.table_scroll_leftM4.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -5085,7 +5089,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM4.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -5172,19 +5176,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M4")
+                header_item = QTableWidgetItem(f"M4: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM4.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM4.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM4.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -5204,8 +5206,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM5.setRowCount(rowCount)
-        self.table_scroll_leftM5.setRowCount(rowCount)
+        self.table_scroll_colorM5.setRowCount(rowCount + 1)
+        self.table_scroll_leftM5.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -5234,7 +5236,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM5.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -5321,19 +5323,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M5")
+                header_item = QTableWidgetItem(f"M5: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM5.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM5.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM5.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -5353,8 +5353,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM6.setRowCount(rowCount)
-        self.table_scroll_leftM6.setRowCount(rowCount)
+        self.table_scroll_colorM6.setRowCount(rowCount + 1)
+        self.table_scroll_leftM6.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -5383,7 +5383,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM6.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -5470,19 +5470,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M6")
+                header_item = QTableWidgetItem(f"M6: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM6.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM6.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM6.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -5502,8 +5500,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM7.setRowCount(rowCount)
-        self.table_scroll_leftM7.setRowCount(rowCount)
+        self.table_scroll_colorM7.setRowCount(rowCount + 1)
+        self.table_scroll_leftM7.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -5532,7 +5530,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM7.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -5619,19 +5617,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M7")
+                header_item = QTableWidgetItem(f"M7: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM7.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM7.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM7.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -5651,8 +5647,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM8.setRowCount(rowCount)
-        self.table_scroll_leftM8.setRowCount(rowCount)
+        self.table_scroll_colorM8.setRowCount(rowCount + 1)
+        self.table_scroll_leftM8.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -5681,7 +5677,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM8.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -5768,19 +5764,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M8")
+                header_item = QTableWidgetItem(f"M8: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM8.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM8.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM8.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -5800,8 +5794,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM9.setRowCount(rowCount)
-        self.table_scroll_leftM9.setRowCount(rowCount)
+        self.table_scroll_colorM9.setRowCount(rowCount + 1)
+        self.table_scroll_leftM9.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -5830,7 +5824,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM9.setItem(i, total_columns + num_cols, col_null)
                 # Cập nhật tổng số cột
@@ -5917,19 +5911,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M9")
+                header_item = QTableWidgetItem(f"M9: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM9.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM9.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM9.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -5949,8 +5941,8 @@ class TinhAndMauPage(QWidget):
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM10.setRowCount(rowCount)
-        self.table_scroll_leftM10.setRowCount(rowCount)
+        self.table_scroll_colorM10.setRowCount(rowCount + 1)
+        self.table_scroll_leftM10.setRowCount(rowCount + 1)
         for i in range(rowCount):
             # date = filter_data[i]["date"].split("/")
             # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
@@ -5979,7 +5971,7 @@ class TinhAndMauPage(QWidget):
                 # Tạo ô trống ở cột cuối cùng
                 col_null = QTableWidgetItem()
                 col_null.setBackground(
-                    QColor(Qt.GlobalColor.white)
+                     QColor(80, 200, 120)
                 )  # Đặt màu nền là màu trắng
                 self.table_scroll_colorM10.setItem(
                     i, total_columns + num_cols, col_null
@@ -6066,19 +6058,17 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"{j+1}/D{i + 1}/M10")
+                header_item = QTableWidgetItem(f"M10: {j+1}/d{i + 1}")
                 header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.frozen_table_colorM10.setItem(0, total_columns + j, header_item)
-                col_header = QTableWidgetItem(f"{j + 1}")
-                col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_scroll_colorM10.setHorizontalHeaderItem(
-                    total_columns + j, col_header
+                    total_columns + j, header_item
                 )
 
             # Tạo ô trống ở cột cuối cùng
             col_null = QTableWidgetItem()
             col_null.setBackground(
-                QColor(Qt.GlobalColor.white)
+                 QColor(80, 200, 120)
             )  # Đặt màu nền là màu trắng
             self.table_scroll_colorM10.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
@@ -7585,7 +7575,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m1")
-            self.changeStatusBar("Bảng Màu 1", "Bảng Màu 1")
+            self.changeStatusBar("Bảng Màu 1", "m1")
             return
         elif ac == "vbm2":
             action = data["actionM2"]
@@ -7612,7 +7602,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m2")
-            self.changeStatusBar("Bảng Màu 2", "Bảng Màu 2")
+            self.changeStatusBar("Bảng Màu 2", "m2")
             # self.note_color_label.setText(self.note_color)
         elif ac == "vbm3":
             action = data["actionM3"]
@@ -7639,7 +7629,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m3")
-            self.changeStatusBar("Bảng Màu 3", "Bảng Màu 3")
+            self.changeStatusBar("Bảng Màu 3", "m3")
         elif ac == "vbm4":
             action = data["actionM4"]
             row = action["row"]
@@ -7665,7 +7655,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m4")
-            self.changeStatusBar("Bảng Màu 4", "Bảng Màu 4")
+            self.changeStatusBar("Bảng Màu 4", "m4")
         elif ac == "vbm5":
             action = data["actionM5"]
             row = action["row"]
@@ -7691,7 +7681,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m5")
-            self.changeStatusBar("Bảng Màu 5", "Bảng Màu 5")
+            self.changeStatusBar("Bảng Màu 5", "m5")
         elif ac == "vbm6":
             action = data["actionM6"]
             row = action["row"]
@@ -7717,7 +7707,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m6")
-            self.changeStatusBar("Bảng Màu 6", "Bảng Màu 6")
+            self.changeStatusBar("Bảng Màu 6", "m6")
         elif ac == "vbm7":
             action = data["actionM7"]
             row = action["row"]
@@ -7743,7 +7733,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m7")
-            self.changeStatusBar("Bảng Màu 7", "Bảng Màu 7")
+            self.changeStatusBar("Bảng Màu 7", "m7")
         elif ac == "vbm8":
             action = data["actionM8"]
             row = action["row"]
@@ -7769,7 +7759,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m8")
-            self.changeStatusBar("Bảng Màu 8", "Bảng Màu 8")
+            self.changeStatusBar("Bảng Màu 8", "m8")
         elif ac == "vbm9":
             action = data["actionM9"]
             row = action["row"]
@@ -7795,7 +7785,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m9")
-            self.changeStatusBar("Bảng Màu 9", "Bảng Màu 9")
+            self.changeStatusBar("Bảng Màu 9", "m9")
         elif ac == "vbm10":
             action = data["actionM10"]
             row = action["row"]
@@ -7821,7 +7811,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m10")
-            self.changeStatusBar("Bảng Màu 10", "Bảng Màu 10")
+            self.changeStatusBar("Bảng Màu 10", "m10")
         elif ac == "vbt":
 
             action = data["action"]
@@ -7848,7 +7838,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation()
-            self.changeStatusBar("Bảng Tính", "Bảng Tính")
+            self.changeStatusBar("Bảng Tính", None)
             # self.note_color_label.setText("")
         else:
             thong = data["thong"]
@@ -7867,7 +7857,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight_Thong(new_data)
             # / Config status bar
             self.renderNavigation()
-            self.changeStatusBar("Bảng Thông", "Bảng Thông")
+            self.changeStatusBar("Bảng Thông", None)
         return
 
     # TODO Add-on: GUI Thong Table
@@ -8011,28 +8001,10 @@ class TinhAndMauPage(QWidget):
             self.value_col = value
 
     def changeStatusBar(self, status, next):
-        old_title = self.title.text()
-        for text in sorted(
-            [
-                "Bảng Màu 10",
-                "Bảng Màu 9",
-                "Bảng Màu 8",
-                "Bảng Màu 7",
-                "Bảng Màu 6",
-                "Bảng Màu 5",
-                "Bảng Màu 4",
-                "Bảng Màu 3",
-                "Bảng Màu 2",
-                "Bảng Màu 1",
-                "Bảng Tính",
-            ],
-            key=len,
-            reverse=True,
-        ):
-            if text in old_title:
-                new_title = old_title.replace(text, status)
-                self.title.setText(new_title)
-                return
+        self.current_table = status
+        title_text = self.get_title_text(next)
+        self.title.setText(title_text)
+        return
 
     def reload_widget(self):
         self.handlerData()
@@ -9160,7 +9132,7 @@ class TinhAndMauPage(QWidget):
             find_stt_color_m10 = stt_count_with_d_m10 - 1
             find_next_color_m10 = self.find_column_by_index(
                 self.ban_info["meta"]["tables"][9]["col_d"],
-                col_e_m8 - value1_10,
+                col_e_m9 - value1_10,
                 value1_10 - 1,
                 value2_10,
             )

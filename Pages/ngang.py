@@ -86,9 +86,10 @@ class NgangPage(QWidget):
         ban_thong_name = ban_info["thong"]["name"]
 
         self.name = convert_string_format(ban_thong_name)
+        co_so = change_number if change_number != 0 else "Gốc"
         title_text = (
             f"Trạng Thái Bảng Tính: C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
-            + f"T{ban_thong_value[1]} /  Bộ Chuyển Đổi: {change_number} / "
+            + f"T{ban_thong_value[1]} /  Cơ: {co_so} / "
             + f"Số dòng: {row_count}/{max_row}"
         )
         title = QLabel(title_text)
@@ -166,9 +167,9 @@ class NgangPage(QWidget):
         self.Change_number.setStyleSheet("font-size: 24px;line-height: 32px;")
         self.Change_number.setCursor(QCursor(Qt.PointingHandCursor))
         self.button_layout.addWidget(self.Change_number)
-        self.Change_number.addItem(f"Bộ chuyển đổi gốc")
+        self.Change_number.addItem(f"Cơ gốc")
         for i in range(1, number):
-            self.Change_number.addItem(f"Bộ chuyển Đổi {i}")
+            self.Change_number.addItem(f"Cơ {i}")
 
         # / BackUp Button
         BackUp = QPushButton("Khôi Phục DL Gốc")
@@ -203,7 +204,7 @@ class NgangPage(QWidget):
             self.updateRows()
             if value != 0:
                 note = Note[value - 1]
-                self.note.setText(f"Bộ chuyển đổi {value} - {note}")
+                self.note.setText(f"Cơ {value} - {note}")
                 self.note.setScaledContents(True)
             else:
                 self.note.setText("")

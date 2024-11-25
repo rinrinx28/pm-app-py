@@ -40,6 +40,40 @@ try:
 except ImportError:
     pass
 
+css_custom_view = """
+    QPushButton {
+        border-radius: 8px;
+        font-size: 32px;
+        line-height: 32px;
+        font-weight: 600;
+        background-color: rgb(178, 255, 255);
+        padding: 8px;
+        color: #000;
+    }
+"""
+css_custom_normal = """
+    QPushButton {
+        border-radius: 8px;
+        font-size: 32px;
+        line-height: 32px;
+        font-weight: 600;
+        background-color: #D3D3D3;
+        padding: 8px;
+        color: #000;
+    }
+"""
+
+css_custom_opened = """
+    QPushButton {
+        border-radius: 8px;
+        font-size: 32px;
+        line-height: 32px;
+        font-weight: 600;
+        background-color: #FFD700;
+        padding: 8px;
+        color: #000;
+    }
+"""
 
 class AppSelectionDialog(QDialog):
     def __init__(self, opened_apps):
@@ -96,10 +130,10 @@ class AppSelectionDialog(QDialog):
             if i in self.opened_apps_today:
                 last_opened_time = self.opened_apps_today[i]
                 button_text = f"A{i+1} - {last_opened_time}"  # Show last opened time
-                button.setStyleSheet(css_button_notice)  # Style for opened buttons
+                button.setStyleSheet(css_custom_opened)  # Style for opened buttons
             else:
                 button_text = f"A{i+1}"
-                button.setStyleSheet(css_button_normal)  # Style for unopened buttons
+                button.setStyleSheet(css_custom_normal)  # Style for unopened buttons
 
             button.setText(button_text)
             button.clicked.connect(
@@ -174,13 +208,13 @@ class AppSelectionDialog(QDialog):
             # Clear selection style from all buttons
             for i, button in enumerate(self.buttons):
                 button.setStyleSheet(
-                    css_button_notice
+                    css_custom_opened
                     if i in self.opened_apps_today
-                    else css_button_normal
+                    else css_custom_normal
                 )
 
             # Apply selection style to the clicked button
-            self.buttons[index].setStyleSheet(css_button_view)
+            self.buttons[index].setStyleSheet(css_custom_view)
             self.selected_app_index = index
 
         handle_click()
@@ -334,7 +368,7 @@ class FullScreenApp(QMainWindow):
         # Load type_pm from file
         file_path = os.path.join(basedir, "type_pm.txt")
         with open(file_path, "r") as file:
-            self.type_pm = int(file.read().strip())
+            self.type_pm = int(file.read().strip()) 
 
         # Set window properties
         logo_path = Path().path_logo()
@@ -371,18 +405,11 @@ class FullScreenApp(QMainWindow):
 
         # Controller to manage page switching
         self.controller = Controller(self.stacked_widget)
-        # self.controller.set_main_widget()
-
-        # Initially show the home page
-        # self.controller.show_home_page()
 
         # Add Navbar widget
         navbar = Navbar(self.controller, self)
         main_layout.addWidget(navbar)
-        # Set focus to the main window or another widget to remove focus from the button
         self.setFocus()
-
-        # Make the window fullscreen
         self.show()
 
 

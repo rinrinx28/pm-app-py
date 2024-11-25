@@ -431,6 +431,7 @@ def updateColorInsert(data):
     maxRow = data["maxRow"]
     buttons = data["buttons"]
     tables = data["tables"]
+    size = data["size"]
     # / Save insert date
     data_db["meta"]["notice"] = update
     data_db["meta"]["setting"]["col_e"] = col_e
@@ -449,6 +450,7 @@ def updateColorInsert(data):
     data_db["meta"]["maxRow"] = maxRow
     data_db["meta"]["buttons"] = buttons
     data_db["meta"]["tables"] = tables
+    data_db['size'] = size
     # / Write File JSON
     with open(path_db, "w") as file:
         json.dump(data_db, file)
@@ -729,6 +731,7 @@ def saveBackupThong(data):
     thong_path = Path().path_thong()
     id = data["id"]
     thong_data = data["thong_data"]
+    custom = data["custom"]
     # / Load File thong db
     with open(os.path.join(thong_path, "thongs.json"), "r") as file:
         thong_db = json.load(file)
@@ -744,6 +747,7 @@ def saveBackupThong(data):
 
     thong_db["stt"] = stt_data
     thong_db["change"] = []
+    thong_db["data"] = custom
 
     # / Save Thong DB
     with open(os.path.join(thong_path, "thongs.json"), "w") as file:
@@ -823,6 +827,26 @@ def saveAllThong(data):
             os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
         ) as file:
             json.dump(update, file)
+        
+        # / Save new backup thong
+        with open(os.path.join(thong_path, f"thong_{thong_id}_backup.json"), "w") as file:
+            json.dump(update, file)
+
+        # / re-render all bo chuyen doi
+        for k in range(11):
+            if k == 0:
+                with open(os.path.join(thong_path, f"thong_{thong_id}_{k}.json"), "w") as file:
+                    json.dump(update, file)
+            else:
+                number_change = list(
+                    map(
+                        lambda item: list(map(lambda x: TachVaGhep(k, x), item)), update
+                    )
+                )
+                with open(os.path.join(thong_path, f"thong_{thong_id}_{k}.json"), "w") as file:
+                    json.dump(number_change, file)
+        
+
 
     # type_count_label = (
     #     "1a Số"
@@ -1153,7 +1177,7 @@ def convert_string_format(input_string):
     type_app = "Tập 1" if int(app) < 11 else "Tập 2" if int(app) < 21 else "Tập 3"
 
     # Format the new string
-    return f"Bộ {type_count} - {type_app} - A{app}"
+    return f"A{app} - {type_app} - Bộ {type_count}"
 
 
 def convert_string_format_type(input_string):

@@ -67,6 +67,11 @@ class SettingTable(QDialog):
 
         # Create a QTabWidget
         tab_widget = QTabWidget()
+        tab_widget.setStyleSheet("""
+            QTabBar::tab {
+                font-size: 24px;  /* Set font size */
+            }
+        """)
         # Add tabs
         tab_widget.addTab(self.create_tab_main_setting(), "Cài Đặt Chung")
         tab_widget.addTab(self.create_tab_2_setting_bm(), "Tùy Chọn Bảng Màu")
@@ -111,13 +116,13 @@ class SettingTable(QDialog):
                 border-radius: 8px;
                 font-size: 24px;
                 font-weight: 600;
-                color: #111827;
-                background-color: #6B7280;
+                color: #fff;
+                background-color: #EE4B2B;
                 padding: 2px 12px 2px 12px;
             }
             QPushButton:hover {
-                color: #1D4ED8;
-                background-color: #F3F4F6;
+                color: #EE4B2B;
+                background-color: #fff;
             }
 
         """
@@ -126,7 +131,7 @@ class SettingTable(QDialog):
         cancel_button.setCursor(QCursor(Qt.PointingHandCursor))
         cancel_button.clicked.connect(self.reject)  # Connect to reject action
 
-        async_setting_number = QPushButton("Đặt bộ chuyển đổi")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
+        async_setting_number = QPushButton("Đặt bộ chuyển đổi của Bộ")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
         async_setting_number.setStyleSheet(
             """
             QPushButton {
@@ -148,7 +153,7 @@ class SettingTable(QDialog):
         async_setting_number.setCursor(QCursor(Qt.PointingHandCursor))
         async_setting_number.clicked.connect(self.async_setting_number_all)
 
-        async_setting_thong = QPushButton("Đồng bộ thông")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
+        async_setting_thong = QPushButton("Đồng bộ Số Thông của Tập")  # Đồng bộ dữ liệu cài đặt Bộ chuyển đổi cho tập
         async_setting_thong.setStyleSheet(
             """
             QPushButton {
@@ -170,7 +175,7 @@ class SettingTable(QDialog):
         async_setting_thong.setCursor(QCursor(Qt.PointingHandCursor))
         async_setting_thong.clicked.connect(self.async_setting_thong_all)
 
-        save_button = QPushButton("Đồng bộ cài đặt tập")  # Custom save button
+        save_button = QPushButton("Đồng bộ cài đặt của Tập")  # Custom save button
         save_button.setStyleSheet(
             """
             QPushButton {
@@ -207,8 +212,8 @@ class SettingTable(QDialog):
         button_layout.addItem(horizontalSpacer)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(save_button)
-        button_layout.addWidget(async_setting_number)
         button_layout.addWidget(async_setting_thong)
+        button_layout.addWidget(async_setting_number)
         button_layout.addWidget(cancel_button)
         return button_widget
 
@@ -350,7 +355,7 @@ class SettingTable(QDialog):
         s_value_change_l = QGridLayout(s_value_change_w)
 
         # / Setting Max row > Lable | SpinBox
-        s_value_change_lable = QLabel("Bộ Chuyển Đổi")
+        s_value_change_lable = QLabel("Cơ")
         s_value_change_lable.setStyleSheet("border: 0px;font-size: 24px;")
         s_value_change_l.addWidget(s_value_change_lable, 0, 0)
 
@@ -363,8 +368,27 @@ class SettingTable(QDialog):
         s_value_change_spinbox_1.setDisabled(True)
         group_spin_box.append(s_value_change_spinbox_1)
 
+        # / Setting Size table
+        s_size_table = QWidget()
+        s_size_table.setStyleSheet("border: 1px solid #999;")
+        layout_tab.addWidget(s_size_table)
+        s_size_table_l = QGridLayout(s_size_table)
+
+        # / Setting Max row > Lable | SpinBox
+        s_size_table_lable = QLabel("Kích Thước Chữ")
+        s_size_table_lable.setStyleSheet("border: 0px;font-size: 24px;")
+        s_size_table_l.addWidget(s_size_table_lable, 0, 0)
+
+        s_size_table_spinbox_1 = QSpinBox()
+        s_size_table_l.addWidget(s_size_table_spinbox_1, 1, 0)
+        s_size_table_spinbox_1.setMinimum(24)
+        s_size_table_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
+        s_size_table_spinbox_1.setValue(self.ban_info.get('size', 28))
+        s_size_table_spinbox_1.setDisabled(True)
+        group_spin_box.append(s_size_table_spinbox_1)
+
         # / Setting Turn Off / On
-        turn_setting = QCheckBox("Bật Tùy Chỉnh")
+        turn_setting = QCheckBox("Tắt Tùy Chỉnh")
         turn_setting.setStyleSheet("border: 0px; font-size: 24px;")
         layout_tab.addWidget(turn_setting)
 
@@ -390,14 +414,17 @@ class SettingTable(QDialog):
         def value_change(value):
             self.ban_info["meta"]["number"] = value
 
+        def size_change(value):
+            self.ban_info['size'] = value
+
         def turn_setting_e():
             ischecked = turn_setting.isChecked()
             if ischecked:
-                turn_setting.setText('Tắt Tùy Chỉnh')
+                turn_setting.setText('Bật Tùy Chỉnh')
                 for spin_box in group_spin_box:
                     spin_box.setDisabled(False)
             else:
-                turn_setting.setText('Bật Tùy Chỉnh')
+                turn_setting.setText('Tắt Tùy Chỉnh')
                 for spin_box in group_spin_box:
                     spin_box.setDisabled(True)
 
@@ -418,6 +445,9 @@ class SettingTable(QDialog):
 
         # / Value Change Event Change
         s_value_change_spinbox_1.valueChanged.connect(value_change)
+
+        # / Size change Event Change
+        s_size_table_spinbox_1.valueChanged.connect(size_change)
 
         # / Turn off / on setting
         turn_setting.checkStateChanged.connect(turn_setting_e)
@@ -616,19 +646,19 @@ class SettingTable(QDialog):
         layout.addWidget(lable_m9, 4, 1)
         layout.addWidget(lable_m10, 5, 1)
 
-        button = self.showButton()
-        layout.addWidget(button, 6,1)
+        # button = self.showButton()
+        # layout.addWidget(button, 6,1)
 
-        horizontalSpacer = QSpacerItem(
-            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
-        )
+        # horizontalSpacer = QSpacerItem(
+        #     40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        # )
 
         # Add a vertical spacer to the layout
         verticalSpacer1 = QSpacerItem(
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         )
 
-        layout.addItem(horizontalSpacer, 6, 0, 1, 1)
+        # layout.addItem(horizontalSpacer, 6, 0, 1, 1)
         layout.addItem(verticalSpacer1, 7, 0, 1, 1)
         return tab
 
@@ -655,8 +685,8 @@ class SettingTable(QDialog):
 
         layout.addWidget(main)
         layout.addWidget(button_w)
-        button = self.showButton()
-        layout.addWidget(button)
+        # button = self.showButton()
+        # layout.addWidget(button)
         # Add a vertical spacer to the layout
         verticalSpacer1 = QSpacerItem(
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
@@ -691,6 +721,7 @@ class SettingTable(QDialog):
             "maxRow": self.maxRow["maxRow"],
             "buttons": self.ban_info["meta"]["buttons"],
             "tables": self.ban_info["meta"]["tables"],
+            "size": self.ban_info['size']
         }
         msg = updateColorInsert(data)
         SendMessage(msg["msg"])
@@ -734,6 +765,13 @@ class SettingTable(QDialog):
             all_enabled = any(spinbox.isEnabled() for spinbox in spin_boxes)
             for spinbox in spin_boxes:
                 spinbox.setEnabled(not all_enabled)
+            
+            isChecked = turn_setting.isChecked()
+            if isChecked:
+                turn_setting.setText('Bật Tùy Chỉnh')
+            else:
+                turn_setting.setText('Tắt Tùy Chỉnh')
+
 
         # Thêm các widget vào lưới 4 cột
         for i in range(120):
@@ -847,7 +885,7 @@ class SettingTable(QDialog):
         # layout.addItem(verticalSpacer2)
 
         # Tạo nút để bật/tắt tất cả SpinBox
-        turn_setting = QCheckBox("Bật Tùy Chỉnh")
+        turn_setting = QCheckBox("Tắt Tùy Chỉnh")
         turn_setting.setStyleSheet("border: 0px; font-size: 24px;")
         turn_setting.checkStateChanged.connect(toggle_all_spinboxes)
         layout.addWidget(turn_setting)
