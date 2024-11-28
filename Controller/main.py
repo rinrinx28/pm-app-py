@@ -6,7 +6,7 @@ from Pages.listban import ListBanPage
 from Pages.tinh_mau import TinhAndMauPage
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtWidgets import QApplication
 
 
 class Controller:
@@ -43,8 +43,9 @@ class Controller:
     def show_page(self, page_class):
         self.show_loading_screen()
         if self.current_page:
+            self.current_page.hide()  # Ẩn trước khi xóa
             self.main_widget.layout().removeWidget(self.current_page)
-            self.current_page.deleteLater()
+        #     self.current_page.deleteLater()  # Đảm bảo widget được giải phóng bộ nhớ
             self.current_page = None
 
         self.thread = Thread()
@@ -60,13 +61,14 @@ class Controller:
 
     def centerWidgetOnScreen(self, widget):
         """Centers a widget on the screen."""
-        screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
-        widget_width = widget.width()
-        widget_height = widget.height()
-
-        # Calculate centered position
-        x = (screen_geometry.width() - widget_width) // 2
-        y = (screen_geometry.height() - widget_height) // 2
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        x = (
+            screen_geometry.width() - widget.width()
+        ) // 2  # Canh giữa theo chiều ngang
+        y = (
+            screen_geometry.height() - widget.height()
+        ) // 2  # Canh giữa theo chiều dọc
 
         # Move widget to calculated position
         widget.move(x, y)

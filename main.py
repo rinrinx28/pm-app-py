@@ -21,11 +21,9 @@ from Pages.components.path import Path
 from Pages.components.stylesheet import (
     css_button_submit,
     css_title,
-    css_button_normal,
-    css_button_notice,
-    css_button_view,
     SendMessage,
 )
+from PySide6.QtCore import QRect
 
 basedir = os.path.dirname(__file__)
 data_sp_dir = "C:/data_sp"
@@ -75,6 +73,7 @@ css_custom_opened = """
     }
 """
 
+
 class AppSelectionDialog(QDialog):
     def __init__(self, opened_apps):
         super().__init__()
@@ -90,15 +89,16 @@ class AppSelectionDialog(QDialog):
         self.setWindowTitle(
             "Phần Mềm Hỗ Trợ Dự Án Làm Sạch Môi Trường Thềm Lục Địa Biển Việt Nam - maikien06091966@gmail.com - Số Điện Thoại: 0964636709 - Chủ sáng lập, thiết kế và mã hóa dữ liệu: Mai Đình Kiên"
         )
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        x = (screen_geometry.width() - self.width()) // 2  # Canh giữa theo chiều ngang
+        y = (screen_geometry.height() - self.height()) // 2  # Canh giữa theo chiều dọc
+        self.move(x, y)
 
         type_count = (
             "1a"
             if self.type_pm == 1
-            else (
-                "2"
-                if self.type_pm == 2
-                else "trắng" if self.type_pm == 0 else "1b"
-            )
+            else ("2" if self.type_pm == 2 else "trắng" if self.type_pm == 0 else "1b")
         )
 
         # type_count_label = (
@@ -179,7 +179,7 @@ class AppSelectionDialog(QDialog):
 
         # Track the selected app
         self.selected_app_index = None
-        self.show() 
+        self.show()
 
     def style_toggle_buttons(self):
         button_style = """
@@ -368,7 +368,7 @@ class FullScreenApp(QMainWindow):
         # Load type_pm from file
         file_path = os.path.join(basedir, "type_pm.txt")
         with open(file_path, "r") as file:
-            self.type_pm = int(file.read().strip()) 
+            self.type_pm = int(file.read().strip())
 
         # Set window properties
         logo_path = Path().path_logo()
@@ -381,6 +381,11 @@ class FullScreenApp(QMainWindow):
         # Set up main layout
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+        screen = QApplication.primaryScreen()
+        screen_geometry = screen.geometry()
+        x = (screen_geometry.width() - self.width()) // 2  # Canh giữa theo chiều ngang
+        y = (screen_geometry.height() - self.height()) // 4  # Canh giữa theo chiều dọc
+        self.move(x, y)
 
         # Main layout containing stacked widget and navbar
         main_layout = QVBoxLayout(self.central_widget)

@@ -274,7 +274,7 @@ class NgangPage(QWidget):
     def renderTable(self):
         data = self.ngang_data
         # TODO Data configuration
-        colCount = len(data[0])
+        colCount = len(data[0][:300])
         self.start_col = 0
         self.value_col = 0
 
@@ -464,7 +464,7 @@ class NgangPage(QWidget):
         data = self.ngang_data
         stt = self.stt_ngang[self.ban_info["meta"]['number']]
         colCount = len(data[0])
-        rowCount = len(data)
+        rowCount = len(data[:35])
         self.table_main.setRowCount(0)
         self.table_main.setRowCount(rowCount)
 

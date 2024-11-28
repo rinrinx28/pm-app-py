@@ -68,6 +68,8 @@ class ThongPage(QWidget):
 
         with open(os.path.join(self.thong_path, "thongs.json"), "r") as file:
             self.thong_db = json.load(file)
+            for i in range(len(self.thong_db['data'])):
+                self.thong_db['data'][i] = self.thong_db['data'][i][:120]
         # / Config LoadingScreen
         self.loadingScreen = LoadingScreen(self.path.path_loading())
 
@@ -138,7 +140,7 @@ class ThongPage(QWidget):
     def renderThongTable(self):
         self.start_col = 1
         self.value_col = 1
-        colCount = self.thong_db["value"]
+        colCount = 180
         # / Title and table
         widget_table = QWidget()
         layout_table = QVBoxLayout(widget_table)
@@ -171,7 +173,7 @@ class ThongPage(QWidget):
         title_stt.setStyleSheet(css_title)
         title_stt.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        title_text_table = f"Bảng Thông: {name} - {value_thong} Thông"
+        title_text_table = f"Bảng Thông: {name} - 180 Thông"
         title_table = QLabel(title_text_table)
         title_table.setStyleSheet(css_title)
         title_table.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -193,7 +195,7 @@ class ThongPage(QWidget):
 
         self.table_main = QTableWidget()
         layout_table.addWidget(self.table_main)
-        self.table_main.setColumnCount(colCount + 5)
+        self.table_main.setColumnCount(colCount + 6)
 
         # self.updateHeaderRow()
 
@@ -219,13 +221,17 @@ class ThongPage(QWidget):
                 item_c.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table_main.setHorizontalHeaderItem(4, item_c)
 
+                item_d = QTableWidgetItem(f"D")
+                item_d.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main.setHorizontalHeaderItem(5, item_d)
+
                 item = QTableWidgetItem(f"T.{i+1}")
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(i + 5, item)
+                self.table_main.setHorizontalHeaderItem(i + 6, item)
             else:
                 item = QTableWidgetItem(f"T.{i+1}")
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(i + 5, item)
+                self.table_main.setHorizontalHeaderItem(i + 6, item)
 
         self.updateRowAndColumns()
 
@@ -260,12 +266,17 @@ class ThongPage(QWidget):
             if isEdit == QTableWidget.EditTrigger.NoEditTriggers:
                 return
             else:
-                if column > 4:
+                if column > 5:
                     item = self.table_main.item(row, column)
-                    self.thong_data[column - 5][row] = item.text()
+                    self.thong_data[column - 6][row] = item.text()
 
-                if 1 < column < 5:
+                if 1 < column < 6:
                     item = self.table_main.item(row, column)
+                    # Đảm bảo `self.thong_db["data"]` đủ dài
+                    while len(self.thong_db["data"]) <= column - 2:
+                        # Khởi tạo cột mới với dữ liệu mẫu 131 dòng, mỗi dòng là chuỗi rỗng
+                        self.thong_db["data"].append(["" for _ in range(132)])
+
                     self.thong_db["data"][column - 2][row] = item.text()
                     print(self.thong_db["data"][column - 2][row])
 
@@ -498,13 +509,30 @@ class ThongPage(QWidget):
         self.current_select = []
 
     def freeze_col_stt(self, value):
-        if value >= self.start_col:
-            self.table_main.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
-        elif value < self.start_col:
-            value = self.start_col
-            self.table_main.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
+        total_columns = self.table_main.columnCount()  # Tổng số cột trong bảng
+        fixed_columns = 6  # Số lượng cột cần di chuyển
+        value_col = 0  # Cột bắt đầu di chuyển
+
+        # Di chuyển cột lên nếu giá trị cuộn lớn hơn 1
+        if value > 1:
+            for i in range(fixed_columns):
+                # Tính toán vị trí đích
+                destination = min(total_columns - 1, value + i)
+                # Di chuyển cột nếu trong phạm vi hợp lệ
+                if destination < total_columns:
+                    self.table_main.horizontalHeader().moveSection(value_col, destination)
+                    value_col = destination
+
+        # Di chuyển cột xuống nếu giá trị cuộn nhỏ hơn 1
+        elif value < 1:
+            for i in range(fixed_columns):
+                # Tính toán vị trí đích
+                destination = max(0, value - i)
+                # Di chuyển cột nếu trong phạm vi hợp lệ
+                if destination >= 0:
+                    self.table_main.horizontalHeader().moveSection(value_col, destination)
+                    value_col = destination
+
 
     def deleteOldWidgetThongs(self):
         # / Delete old table main and buttons
@@ -522,11 +550,11 @@ class ThongPage(QWidget):
             return
         stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
         data_value = self.thong_db["data"]
-        thong_data = self.thong_data
+        thong_data = [i[:120] for i in self.thong_data][:180]
         # / Table Config
         self.table_main.clearContents()
         self.table_main.setRowCount(0)
-        rowCount = len(self.thong_data[0])
+        rowCount = len(thong_data[0])
         # / Add Header Table
         self.table_main.setRowCount(rowCount)
 
@@ -559,7 +587,7 @@ class ThongPage(QWidget):
 
         # * Render Rows Custom First
         for i in range(len(data_value)):
-            value_col = data_value[i]
+            value_col = data_value[i][:120]
             for j in range(len(value_col)):
                 item = QTableWidgetItem(f"{value_col[j]}")
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -585,7 +613,7 @@ class ThongPage(QWidget):
                 #     item_old = filter_changed[0]["old"]
                 # if item_new != item_old:
                 # item.setBackground(self.cyan)
-                self.table_main.setItem(j, i + 5, item)
+                self.table_main.setItem(j, i + 6, item)
         self.delete_color_click()
 
     def delete_all_rows(self):

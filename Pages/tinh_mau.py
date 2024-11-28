@@ -764,61 +764,61 @@ class TinhAndMauPage(QWidget):
 
         def changeTableM1():
             self.widget_main.setCurrentWidget(self.table_main_color)
-            self.current_table = "Bảng Màu 1"
+            self.current_table = "Bảng màu 1"
             self.renderNavigation("m1")
             return
 
         def changeTableM2():
             self.widget_main.setCurrentWidget(self.table_main_colorM2)
-            self.current_table = "Bảng Màu 2"
+            self.current_table = "Bảng màu 2"
             self.renderNavigation("m2")
             return
 
         def changeTableM3():
             self.widget_main.setCurrentWidget(self.table_main_colorM3)
-            self.current_table = "Bảng Màu 3"
+            self.current_table = "Bảng màu 3"
             self.renderNavigation("m3")
             return
 
         def changeTableM4():
             self.widget_main.setCurrentWidget(self.table_main_colorM4)
-            self.current_table = "Bảng Màu 4"
+            self.current_table = "Bảng màu 4"
             self.renderNavigation("m4")
             return
 
         def changeTableM5():
             self.widget_main.setCurrentWidget(self.table_main_colorM5)
-            self.current_table = "Bảng Màu 5"
+            self.current_table = "Bảng màu 5"
             self.renderNavigation("m5")
             return
 
         def changeTableM6():
             self.widget_main.setCurrentWidget(self.table_main_colorM6)
-            self.current_table = "Bảng Màu 6"
+            self.current_table = "Bảng màu 6"
             self.renderNavigation("m6")
             return
 
         def changeTableM7():
             self.widget_main.setCurrentWidget(self.table_main_colorM7)
-            self.current_table = "Bảng Màu 7"
+            self.current_table = "Bảng màu 7"
             self.renderNavigation("m7")
             return
 
         def changeTableM8():
             self.widget_main.setCurrentWidget(self.table_main_colorM8)
-            self.current_table = "Bảng Màu 8"
+            self.current_table = "Bảng màu 8"
             self.renderNavigation("m8")
             return
 
         def changeTableM9():
             self.widget_main.setCurrentWidget(self.table_main_colorM9)
-            self.current_table = "Bảng Màu 9"
+            self.current_table = "Bảng màu 9"
             self.renderNavigation("m9")
             return
 
         def changeTableM10():
             self.widget_main.setCurrentWidget(self.table_main_colorM10)
-            self.current_table = "Bảng Màu 10"
+            self.current_table = "Bảng màu 10"
             self.renderNavigation("m10")
             return
 
@@ -828,70 +828,70 @@ class TinhAndMauPage(QWidget):
                 match i:
                     case 0:
                         # / Bảng Màu 1
-                        self.TableM1 = QPushButton("BM 1")
+                        self.TableM1 = QPushButton("Bm 1")
                         self.TableM1.setStyleSheet(css_button_submit)
                         self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM1)
                         self.TableM1.clicked.connect(changeTableM1)
                     case 1:
                         # / BM 2
-                        self.TableM2 = QPushButton("BM 2")
+                        self.TableM2 = QPushButton("Bm 2")
                         self.TableM2.setStyleSheet(css_button_submit)
                         self.TableM2.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM2)
                         self.TableM2.clicked.connect(changeTableM2)
                     case 2:
                         # / BM 3
-                        self.TableM3 = QPushButton("BM 3")
+                        self.TableM3 = QPushButton("Bm 3")
                         self.TableM3.setStyleSheet(css_button_submit)
                         self.TableM3.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM3)
                         self.TableM3.clicked.connect(changeTableM3)
                     case 3:
                         # / BM 4
-                        self.TableM4 = QPushButton("BM 4")
+                        self.TableM4 = QPushButton("Bm 4")
                         self.TableM4.setStyleSheet(css_button_submit)
                         self.TableM4.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM4)
                         self.TableM4.clicked.connect(changeTableM4)
                     case 4:
                         # / BM 5
-                        self.TableM5 = QPushButton("BM 5")
+                        self.TableM5 = QPushButton("Bm 5")
                         self.TableM5.setStyleSheet(css_button_submit)
                         self.TableM5.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM5)
                         self.TableM5.clicked.connect(changeTableM5)
                     case 5:
                         # / BM 6
-                        self.TableM6 = QPushButton("BM 6")
+                        self.TableM6 = QPushButton("Bm 6")
                         self.TableM6.setStyleSheet(css_button_submit)
                         self.TableM6.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM6)
                         self.TableM6.clicked.connect(changeTableM6)
                     case 6:
                         # / BM 7
-                        self.TableM7 = QPushButton("BM 7")
+                        self.TableM7 = QPushButton("Bm 7")
                         self.TableM7.setStyleSheet(css_button_submit)
                         self.TableM7.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM7)
                         self.TableM7.clicked.connect(changeTableM7)
                     case 7:
                         # / BM 8
-                        self.TableM8 = QPushButton("BM 8")
+                        self.TableM8 = QPushButton("Bm 8")
                         self.TableM8.setStyleSheet(css_button_submit)
                         self.TableM8.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM8)
                         self.TableM8.clicked.connect(changeTableM8)
                     case 8:
                         # / BM 9
-                        self.TableM9 = QPushButton("BM 9")
+                        self.TableM9 = QPushButton("Bm 9")
                         self.TableM9.setStyleSheet(css_button_submit)
                         self.TableM9.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM9)
                         self.TableM9.clicked.connect(changeTableM9)
                     case 9:
                         # / BM 10
-                        self.TableM10 = QPushButton("BM 10")
+                        self.TableM10 = QPushButton("Bm 10")
                         self.TableM10.setStyleSheet(css_button_submit)
                         self.TableM10.setCursor(QCursor(Qt.PointingHandCursor))
                         button_main_2_l.addWidget(self.TableM10)
@@ -905,52 +905,52 @@ class TinhAndMauPage(QWidget):
                 item = self.table_scroll_count.item(row, 0)  # Get the first column item
                 self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 1':
+            elif self.current_table == 'Bảng màu 1':
                 row = self.table_scroll_color.rowCount() - 2  # Get the current row
                 item = self.table_scroll_color.item(row, 0)  # Get the first column item
                 self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 2':
+            elif self.current_table == 'Bảng màu 2':
                 row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM2.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 3':
+            elif self.current_table == 'Bảng màu 3':
                 row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM3.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 4':
+            elif self.current_table == 'Bảng màu 4':
                 row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM4.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 5':
+            elif self.current_table == 'Bảng màu 5':
                 row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM5.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 6':
+            elif self.current_table == 'Bảng màu 6':
                 row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM6.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 7':
+            elif self.current_table == 'Bảng màu 7':
                 row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM7.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 8':
+            elif self.current_table == 'Bảng màu 8':
                 row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM8.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 9':
+            elif self.current_table == 'Bảng màu 9':
                 row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM9.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 10':
+            elif self.current_table == 'Bảng màu 10':
                 row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
                 item = self.table_scroll_colorM10.item(row, 0)  # Get the first column item
                 self.table_scroll_colorM10.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
@@ -963,61 +963,61 @@ class TinhAndMauPage(QWidget):
                 col = self.table_scroll_count.columnCount() - 1  # Get the current row
                 item = self.table_scroll_count.item(row, col)  # Get the first column item
                 self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            elif self.current_table == 'Bảng Màu 1':
+            elif self.current_table == 'Bảng màu 1':
                 row = self.table_scroll_color.rowCount() - 2  # Get the current row
                 col = self.table_scroll_color.columnCount() - 1  # Get the current row
                 item = self.table_scroll_color.item(row, col)  # Get the first column item
                 self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 2':
+            elif self.current_table == 'Bảng màu 2':
                 row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM2.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM2.item(row, col)  # Get the first column item
                 self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 3':
+            elif self.current_table == 'Bảng màu 3':
                 row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM3.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM3.item(row, col)  # Get the first column item
                 self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 4':
+            elif self.current_table == 'Bảng màu 4':
                 row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM4.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM4.item(row, col)  # Get the first column item
                 self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 5':
+            elif self.current_table == 'Bảng màu 5':
                 row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM5.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM5.item(row, col)  # Get the first column item
                 self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 6':
+            elif self.current_table == 'Bảng màu 6':
                 row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM6.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM6.item(row, col)  # Get the first column item
                 self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 7':
+            elif self.current_table == 'Bảng màu 7':
                 row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM7.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM7.item(row, col)  # Get the first column item
                 self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 8':
+            elif self.current_table == 'Bảng màu 8':
                 row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM8.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM8.item(row, col)  # Get the first column item
                 self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
-            elif self.current_table == 'Bảng Màu 9':
+            elif self.current_table == 'Bảng màu 9':
                 row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM9.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM9.item(row, col)  # Get the first column item
                 self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
                 
-            elif self.current_table == 'Bảng Màu 10':
+            elif self.current_table == 'Bảng màu 10':
                 row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM10.columnCount() - 1  # Get the current row
                 item = self.table_scroll_colorM10.item(row, col)  # Get the first column item
@@ -2413,7 +2413,7 @@ class TinhAndMauPage(QWidget):
             notice = matching_item["notice"]
 
             if "_m10" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 10", "m10")
+                self.changeStatusBar("Bảng màu 10", "m10")
                 if current_widget != self.table_main_colorM10:
                     self.widget_main.setCurrentWidget(self.table_main_colorM10)
                 button.setStyleSheet(css_button_view)
@@ -2435,7 +2435,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m1" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 1", "m1")
+                self.changeStatusBar("Bảng màu 1", "m1")
                 if current_widget != self.table_main_color:
                     self.widget_main.setCurrentWidget(self.table_main_color)
                 button.setStyleSheet(css_button_view)
@@ -2457,7 +2457,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m2" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 2", "m2")
+                self.changeStatusBar("Bảng màu 2", "m2")
                 if current_widget != self.table_main_colorM2:
                     self.widget_main.setCurrentWidget(self.table_main_colorM2)
                 button.setStyleSheet(css_button_view)
@@ -2479,7 +2479,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m3" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 3", "m3")
+                self.changeStatusBar("Bảng màu 3", "m3")
                 if current_widget != self.table_main_colorM3:
                     self.widget_main.setCurrentWidget(self.table_main_colorM3)
                 button.setStyleSheet(css_button_view)
@@ -2501,7 +2501,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m4" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 4", "m4")
+                self.changeStatusBar("Bảng màu 4", "m4")
                 if current_widget != self.table_main_colorM4:
                     self.widget_main.setCurrentWidget(self.table_main_colorM4)
                 button.setStyleSheet(css_button_view)
@@ -2523,7 +2523,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m5" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 5", "m5")
+                self.changeStatusBar("Bảng màu 5", "m5")
                 if current_widget != self.table_main_colorM5:
                     self.widget_main.setCurrentWidget(self.table_main_colorM5)
                 button.setStyleSheet(css_button_view)
@@ -2545,7 +2545,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m6" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 6", "m6")
+                self.changeStatusBar("Bảng màu 6", "m6")
                 if current_widget != self.table_main_colorM6:
                     self.widget_main.setCurrentWidget(self.table_main_colorM6)
                 button.setStyleSheet(css_button_view)
@@ -2567,7 +2567,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m7" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 7", "m7")
+                self.changeStatusBar("Bảng màu 7", "m7")
                 if current_widget != self.table_main_colorM7:
                     self.widget_main.setCurrentWidget(self.table_main_colorM7)
                 button.setStyleSheet(css_button_view)
@@ -2589,7 +2589,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m8" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 8", "m8")
+                self.changeStatusBar("Bảng màu 8", "m8")
                 if current_widget != self.table_main_colorM8:
                     self.widget_main.setCurrentWidget(self.table_main_colorM8)
                 button.setStyleSheet(css_button_view)
@@ -2611,7 +2611,7 @@ class TinhAndMauPage(QWidget):
                 return
 
             if "_m9" in matching_item["label"]:
-                self.changeStatusBar("Bảng Màu 9", "m9")
+                self.changeStatusBar("Bảng màu 9", "m9")
                 if current_widget != self.table_main_colorM9:
                     self.widget_main.setCurrentWidget(self.table_main_colorM9)
                 button.setStyleSheet(css_button_view)
@@ -2644,7 +2644,7 @@ class TinhAndMauPage(QWidget):
         ]
         row_aline = len(filter_data)
         current_widget = self.TableChange.text()
-        if current_widget == "Bảng Màu":
+        if current_widget == "Bảng màu":
             item = self.table_scroll_count.item(row_aline - 1, 0)
             self.table_scroll_count.scrollToItem(
                 item, hint=QTableWidget.ScrollHint.PositionAtCenter
@@ -4752,6 +4752,9 @@ class TinhAndMauPage(QWidget):
             self.table_scroll_color.setHorizontalHeaderItem(
                 total_columns + num_cols, col_null
             )
+
+            # self.table_scroll_color.setColumnWidth(total_columns + num_cols, 5)
+            # self.frozen_table_color.setColumnWidth(total_columns + num_cols, 5)
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
@@ -7575,7 +7578,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m1")
-            self.changeStatusBar("Bảng Màu 1", "m1")
+            self.changeStatusBar("Bảng màu 1", "m1")
             return
         elif ac == "vbm2":
             action = data["actionM2"]
@@ -7602,7 +7605,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m2")
-            self.changeStatusBar("Bảng Màu 2", "m2")
+            self.changeStatusBar("Bảng màu 2", "m2")
             # self.note_color_label.setText(self.note_color)
         elif ac == "vbm3":
             action = data["actionM3"]
@@ -7629,7 +7632,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m3")
-            self.changeStatusBar("Bảng Màu 3", "m3")
+            self.changeStatusBar("Bảng màu 3", "m3")
         elif ac == "vbm4":
             action = data["actionM4"]
             row = action["row"]
@@ -7655,7 +7658,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m4")
-            self.changeStatusBar("Bảng Màu 4", "m4")
+            self.changeStatusBar("Bảng màu 4", "m4")
         elif ac == "vbm5":
             action = data["actionM5"]
             row = action["row"]
@@ -7681,7 +7684,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m5")
-            self.changeStatusBar("Bảng Màu 5", "m5")
+            self.changeStatusBar("Bảng màu 5", "m5")
         elif ac == "vbm6":
             action = data["actionM6"]
             row = action["row"]
@@ -7707,7 +7710,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m6")
-            self.changeStatusBar("Bảng Màu 6", "m6")
+            self.changeStatusBar("Bảng màu 6", "m6")
         elif ac == "vbm7":
             action = data["actionM7"]
             row = action["row"]
@@ -7733,7 +7736,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m7")
-            self.changeStatusBar("Bảng Màu 7", "m7")
+            self.changeStatusBar("Bảng màu 7", "m7")
         elif ac == "vbm8":
             action = data["actionM8"]
             row = action["row"]
@@ -7759,7 +7762,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m8")
-            self.changeStatusBar("Bảng Màu 8", "m8")
+            self.changeStatusBar("Bảng màu 8", "m8")
         elif ac == "vbm9":
             action = data["actionM9"]
             row = action["row"]
@@ -7785,7 +7788,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m9")
-            self.changeStatusBar("Bảng Màu 9", "m9")
+            self.changeStatusBar("Bảng màu 9", "m9")
         elif ac == "vbm10":
             action = data["actionM10"]
             row = action["row"]
@@ -7811,7 +7814,7 @@ class TinhAndMauPage(QWidget):
             self.setHighlight(new_data)
             # / Config status bar
             self.renderNavigation("m10")
-            self.changeStatusBar("Bảng Màu 10", "m10")
+            self.changeStatusBar("Bảng màu 10", "m10")
         elif ac == "vbt":
 
             action = data["action"]
