@@ -138,8 +138,8 @@ class ThongPage(QWidget):
 
     # TODO Handler Render Component
     def renderThongTable(self):
-        self.start_col = 1
-        self.value_col = 1
+        self.start_col = 0
+        self.value_col = 0
         colCount = 180
         # / Title and table
         widget_table = QWidget()
@@ -320,35 +320,47 @@ class ThongPage(QWidget):
         self.button_layout.addWidget(layout_w)
 
         # TODO Line 1
+        # / Back to first row
+        backToFirst = QPushButton("Về Cột Đầu")
+        backToFirst.setStyleSheet(css_button_submit)
+        backToFirst.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(backToFirst, 0, 0)
         # / Create MathCount
         swapRow = QPushButton("Đổi Dòng DL")
         swapRow.setStyleSheet(css_button_cancel)
         swapRow.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(swapRow, 0, 0)
+        layout.addWidget(swapRow, 0, 1)
 
         # / Copy Row Button
         CopyRow = QPushButton("Chép Dòng DL")
         CopyRow.setStyleSheet(css_button_cancel)
         CopyRow.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(CopyRow, 0, 1)
+        layout.addWidget(CopyRow, 0, 2)
+        
+
+        # / Skip to mid row
+        skipToMind = QPushButton("Về Cột Giữa")
+        skipToMind.setStyleSheet(css_button_submit)
+        skipToMind.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(skipToMind, 0, 3)
 
         # / Create Delete
         DeleteRow = QPushButton("Xóa DL dòng")
         DeleteRow.setStyleSheet(css_button_cancel)
         DeleteRow.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(DeleteRow, 0, 2)
+        layout.addWidget(DeleteRow, 0, 4)
 
         # / Create Delete
         Delete = QPushButton("Xóa tất cả DL")
         Delete.setStyleSheet(css_button_cancel)
         Delete.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(Delete, 0, 3)
+        layout.addWidget(Delete, 0, 5)
 
         # / Create Delete
         DeleteColor = QPushButton("Xóa Màu")
         DeleteColor.setStyleSheet(css_button_cancel)
         DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(DeleteColor, 0, 4)
+        layout.addWidget(DeleteColor, 0, 6)
 
         # / Create ChangeNumber
         self.ChangeNumber = QComboBox()
@@ -357,7 +369,13 @@ class ThongPage(QWidget):
         self.ChangeNumber.addItem(f"Cơ gốc")
         for i in range(1, 11):
             self.ChangeNumber.addItem(f"Cơ {i}")
-        layout.addWidget(self.ChangeNumber, 0, 5)
+        layout.addWidget(self.ChangeNumber, 0, 7)
+
+        # / Skip to end row
+        skipToEnd = QPushButton("Về Cột Cuối")
+        skipToEnd.setStyleSheet(css_button_submit)
+        skipToEnd.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(skipToEnd, 0, 8)
 
         # TODO Line 2
 
@@ -480,6 +498,27 @@ class ThongPage(QWidget):
                     self.updateRowAndColumns()
                 self.selected_row_indices = None
 
+        def back_to_first():
+            # row = self.table_main.rowCount() - 2  # Get the current row
+            item = self.table_main.item(0, 0)  # Get the first column item
+            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            return
+
+        def skip_to_end():
+            # row = self.table_main.rowCount() - 2  # Get the current row
+            col = self.table_main.columnCount() - 1  # Get the current row
+            item = self.table_main.item(0, col)  # Get the first column item
+            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            return
+        
+        def skip_to_mid():
+            # row = self.table_main.rowCount() - 2  # Get the current row
+            col = self.table_main.columnCount() - 1  # Get the current row
+            item = self.table_main.item(0, col // 2)  # Get the first column item
+            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            return
+
+
         self.HandlerData.clicked.connect(changeTypeCount)
         SaveData.clicked.connect(saveChange)
         self.ChangeNumber.currentIndexChanged.connect(changeTableNumber)
@@ -493,6 +532,9 @@ class ThongPage(QWidget):
         SettingType.clicked.connect(self.setting_type_click)
         ButtonType.clicked.connect(type_with_button)
         save_back_up.clicked.connect(self.saveBackUp)
+        backToFirst.clicked.connect(back_to_first)
+        skipToEnd.clicked.connect(skip_to_end)
+        skipToMind.clicked.connect(skip_to_mid)
 
         
         # Default value
@@ -509,30 +551,13 @@ class ThongPage(QWidget):
         self.current_select = []
 
     def freeze_col_stt(self, value):
-        total_columns = self.table_main.columnCount()  # Tổng số cột trong bảng
-        fixed_columns = 6  # Số lượng cột cần di chuyển
-        value_col = 0  # Cột bắt đầu di chuyển
-
-        # Di chuyển cột lên nếu giá trị cuộn lớn hơn 1
-        if value > 1:
-            for i in range(fixed_columns):
-                # Tính toán vị trí đích
-                destination = min(total_columns - 1, value + i)
-                # Di chuyển cột nếu trong phạm vi hợp lệ
-                if destination < total_columns:
-                    self.table_main.horizontalHeader().moveSection(value_col, destination)
-                    value_col = destination
-
-        # Di chuyển cột xuống nếu giá trị cuộn nhỏ hơn 1
-        elif value < 1:
-            for i in range(fixed_columns):
-                # Tính toán vị trí đích
-                destination = max(0, value - i)
-                # Di chuyển cột nếu trong phạm vi hợp lệ
-                if destination >= 0:
-                    self.table_main.horizontalHeader().moveSection(value_col, destination)
-                    value_col = destination
-
+        if value >= self.start_col:
+            self.table_main.horizontalHeader().moveSection(self.value_col, value)
+            self.value_col = value
+        elif value < self.start_col:
+            value = self.start_col
+            self.table_main.horizontalHeader().moveSection(self.value_col, value)
+            self.value_col = value
 
     def deleteOldWidgetThongs(self):
         # / Delete old table main and buttons

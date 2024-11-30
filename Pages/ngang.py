@@ -130,35 +130,66 @@ class NgangPage(QWidget):
 
     # TODO Handler render component
     def renderButton(self):
+        group_button_widget = QWidget()
+        self.button_layout.addWidget(group_button_widget)
+        group_button_layout = QVBoxLayout(group_button_widget)
+
+        widget_button_first = QWidget()
+        group_button_layout.addWidget(widget_button_first)
+        widget_button_first_layout = QHBoxLayout(widget_button_first)
+        # / Back to first row
+        backToFirst = QPushButton("Về Cột Đầu")
+        backToFirst.setStyleSheet(css_button_submit)
+        backToFirst.setCursor(QCursor(Qt.PointingHandCursor))
+        widget_button_first_layout.addWidget(backToFirst)
+
         # / SwapLine Button
         SwapLine = QPushButton("Đổi Dòng DL")
         SwapLine.setStyleSheet(css_button_cancel)
         SwapLine.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(SwapLine)
+        widget_button_first_layout.addWidget(SwapLine)
 
         # / Copy Row Button
         CopyRow = QPushButton("Chép Dòng DL")
         CopyRow.setStyleSheet(css_button_cancel)
         CopyRow.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(CopyRow)
+        widget_button_first_layout.addWidget(CopyRow)
+        
+
+        # / Skip to mid row
+        skipToMind = QPushButton("Về Cột Giữa")
+        skipToMind.setStyleSheet(css_button_submit)
+        skipToMind.setCursor(QCursor(Qt.PointingHandCursor))
+        widget_button_first_layout.addWidget(skipToMind)
 
         # / Create Delete
         DeleteRow = QPushButton("Xóa DL dòng")
         DeleteRow.setStyleSheet(css_button_cancel)
         DeleteRow.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(DeleteRow)
+        widget_button_first_layout.addWidget(DeleteRow)
 
         # / Delete Button
         Delete = QPushButton("Xóa Tất Cả DL")
         Delete.setStyleSheet(css_button_cancel)
         Delete.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(Delete)
+        widget_button_first_layout.addWidget(Delete)
 
         # / Delete Button
         DeleteColor = QPushButton("Xóa Màu")
         DeleteColor.setStyleSheet(css_button_cancel)
         DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(DeleteColor)
+        widget_button_first_layout.addWidget(DeleteColor)
+
+        # / Skip to end row
+        skipToEnd = QPushButton("Về Cột Cuối")
+        skipToEnd.setStyleSheet(css_button_submit)
+        skipToEnd.setCursor(QCursor(Qt.PointingHandCursor))
+        widget_button_first_layout.addWidget(skipToEnd)
+
+        
+        widget_button_second = QWidget()
+        group_button_layout.addWidget(widget_button_second)
+        widget_button_second_layout = QHBoxLayout(widget_button_second)
 
         # / Change_number Button
         # TODO Config Change Number
@@ -166,7 +197,7 @@ class NgangPage(QWidget):
         self.Change_number = QComboBox()
         self.Change_number.setStyleSheet("font-size: 24px;line-height: 32px;")
         self.Change_number.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.Change_number)
+        widget_button_second_layout.addWidget(self.Change_number)
         self.Change_number.addItem(f"Cơ gốc")
         for i in range(1, number):
             self.Change_number.addItem(f"Cơ {i}")
@@ -175,26 +206,26 @@ class NgangPage(QWidget):
         BackUp = QPushButton("Khôi Phục DL Gốc")
         BackUp.setStyleSheet(css_button_submit)
         BackUp.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(BackUp)
+        widget_button_second_layout.addWidget(BackUp)
 
         # / Create AutoSaveFiles
         SaveFile = QPushButton("Đồng Bộ DL")
         SaveFile.setStyleSheet(css_button_submit)
         SaveFile.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(SaveFile)
+        widget_button_second_layout.addWidget(SaveFile)
 
         # / Create HandlerData
         type_input = "Tắt Tùy Chỉnh"
         self.HandlerData = QPushButton(type_input)
         self.HandlerData.setStyleSheet(css_button_submit)
         self.HandlerData.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(self.HandlerData)
+        widget_button_second_layout.addWidget(self.HandlerData)
 
         # / Save Button
         Save = QPushButton("Lưu")
         Save.setStyleSheet(css_button_submit)
         Save.setCursor(QCursor(Qt.PointingHandCursor))
-        self.button_layout.addWidget(Save)
+        widget_button_second_layout.addWidget(Save)
 
         # TODO Handler Button
         def change_number_selected():
@@ -241,7 +272,6 @@ class NgangPage(QWidget):
             sender = self.prev_selected_row
             receiver = [item for item in self.current_select if item != sender][0]
             self.copyRowNgang([sender, receiver])
-
         
         def saveFile_click():
             type_count = convert_string_to_type_count(self.ban_info["thong"]["name"])
@@ -256,6 +286,26 @@ class NgangPage(QWidget):
             self.delete_color_click()
             SendMessage(f'{msg} {self.name}')
 
+        def back_to_first():
+            row = self.table_main.rowCount() - 2  # Get the current row
+            item = self.table_main.item(0, 0)  # Get the first column item
+            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            return
+
+        def skip_to_end():
+            row = self.table_main.rowCount() - 2  # Get the current row
+            col = self.table_main.columnCount() - 1  # Get the current row
+            item = self.table_main.item(0, col)  # Get the first column item
+            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            return
+        
+        def skip_to_mid():
+            row = self.table_main.rowCount() - 2  # Get the current row
+            col = self.table_main.columnCount() - 1  # Get the current row
+            item = self.table_main.item(0, col // 2)  # Get the first column item
+            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+            return
+
 
         self.Change_number.currentIndexChanged.connect(change_number_selected)
         SwapLine.clicked.connect(self.swapNgangRow)
@@ -267,6 +317,9 @@ class NgangPage(QWidget):
         CopyRow.clicked.connect(copyRow_Click)
         DeleteColor.clicked.connect(self.delete_color_click)
         SaveFile.clicked.connect(saveFile_click)
+        backToFirst.clicked.connect(back_to_first)
+        skipToEnd.clicked.connect(skip_to_end)
+        skipToMind.clicked.connect(skip_to_mid)
 
         # Default value
         self.Change_number.setCurrentIndex(self.ban_info["meta"]['number'])

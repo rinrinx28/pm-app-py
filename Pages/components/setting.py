@@ -381,7 +381,7 @@ class SettingTable(QDialog):
 
         s_size_table_spinbox_1 = QSpinBox()
         s_size_table_l.addWidget(s_size_table_spinbox_1, 1, 0)
-        s_size_table_spinbox_1.setMinimum(24)
+        s_size_table_spinbox_1.setMinimum(12)
         s_size_table_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_size_table_spinbox_1.setValue(self.ban_info.get('size', 28))
         s_size_table_spinbox_1.setDisabled(True)
@@ -676,7 +676,7 @@ class SettingTable(QDialog):
         button_l = QHBoxLayout(button_w)
         i = 0
         while i < 10:
-            button = QPushButton(f"BM{i + 1}")
+            button = QPushButton(f"m{i + 1}")
             button.setStyleSheet(css_button_submit)
             button.setCursor(QCursor(Qt.PointingHandCursor))
             button.clicked.connect(partial(self.handle_change_setting_col_d_bm, i))
@@ -740,6 +740,8 @@ class SettingTable(QDialog):
 
     def handle_change_setting_col_d_bm(self, type=0):
         info_table = self.ban_info["meta"]["tables"][type]
+        info_table['btn_notice'] = info_table['btn_notice'] if "btn_notice" in info_table else [[8, 36] for _ in range(120)]
+        info_table['number_btn_notice'] = info_table['number_btn_notice'] if "number_btn_notice" in info_table else 10
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
@@ -779,7 +781,7 @@ class SettingTable(QDialog):
             widget_label.setStyleSheet("border: 1px solid #999;")
             label_layout = QVBoxLayout(widget_label)
 
-            label = QLabel(f"D {i + 1}/M{type + 1}")
+            label = QLabel(f"d {i + 1}/m{type + 1}")
             label.setStyleSheet("font-size: 24px;border: 0px;")
 
             spin_label = QSpinBox()
@@ -788,11 +790,43 @@ class SettingTable(QDialog):
             spin_label.setStyleSheet("font-size: 24px;border: 0px;")
             spin_label.setValue(info_table["col_d"][i])
             spin_label.valueChanged.connect(partial(self.change_table_col_d, type, i))
+            
+            # Widget btn_notice of number "d"
+            # Label btn_notice
+            btn_notice_label = QLabel(f'Báo màu: d {i + 1}/m{type + 1}')
+            btn_notice_label.setStyleSheet("font-size: 24px;border: 0px;")
+            widget_btn_notice = QWidget()
+            widget_btn_notice.setStyleSheet(
+                """
+                    border: 0px;
+                """
+            )
+            btn_notice_layout = QHBoxLayout(widget_btn_notice)
+            self.spin_label_btn_notice_first = QSpinBox()
+            self.spin_label_btn_notice_first.setDisabled(True)
+            self.spin_label_btn_notice_first.setMinimum(1)
+            self.spin_label_btn_notice_first.setStyleSheet("font-size: 24px;border: 0px;")
+            self.spin_label_btn_notice_first.setValue(info_table['btn_notice'][i][0])
+            self.spin_label_btn_notice_first.valueChanged.connect(partial(self.save_btn_notice, type, i, 0))
+
+            self.spin_label_btn_notice_second = QSpinBox()
+            self.spin_label_btn_notice_second.setDisabled(True)
+            self.spin_label_btn_notice_second.setMinimum(1)
+            self.spin_label_btn_notice_second.setStyleSheet("font-size: 24px;border: 0px;")
+            self.spin_label_btn_notice_second.setValue(info_table['btn_notice'][i][1])
+            self.spin_label_btn_notice_second.valueChanged.connect(partial(self.save_btn_notice, type, i, 1))
+
+            btn_notice_layout.addWidget(self.spin_label_btn_notice_first)
+            btn_notice_layout.addWidget(self.spin_label_btn_notice_second)
 
             spin_boxes.append(spin_label)
+            spin_boxes.append(self.spin_label_btn_notice_first)
+            spin_boxes.append(self.spin_label_btn_notice_second)
 
             label_layout.addWidget(label)
             label_layout.addWidget(spin_label)
+            label_layout.addWidget(btn_notice_label)
+            label_layout.addWidget(widget_btn_notice)
 
             # Thêm widget vào lưới 4 cột
             row = i // 4
@@ -847,7 +881,7 @@ class SettingTable(QDialog):
         layout.addWidget(config_col)
 
         # / Lable > SpinBox
-        config_col_lable = QLabel(f"Thông Kê D M{type + 1}")
+        config_col_lable = QLabel(f"Thông Kê D m{type + 1}")
         config_col_lable.setStyleSheet("border: 0px;font-size:24px;")
         config_col_l.addWidget(config_col_lable)
 
@@ -878,6 +912,29 @@ class SettingTable(QDialog):
         config_col_spinBox_2.setDisabled(True)
         spin_boxes.append(config_col_spinBox_1)
         spin_boxes.append(config_col_spinBox_2)
+
+        
+
+        # Label number btn_notice
+        number_btn_notice_col = QWidget()
+        number_btn_notice_col.setStyleSheet("border: 1px solid #999;")
+        number_btn_notice_col_l = QVBoxLayout(number_btn_notice_col)
+        layout.addWidget(number_btn_notice_col)
+
+        number_btn_notice_label = QLabel('Số nút màu')
+        number_btn_notice_label.setStyleSheet("font-size: 24px;border: 0px;")
+
+        self.spin_label_number_btn_notice = QSpinBox()
+        self.spin_label_number_btn_notice.setDisabled(True)
+        self.spin_label_number_btn_notice.setMinimum(1)
+        self.spin_label_number_btn_notice.setStyleSheet("font-size: 24px;border: 0px;")
+        self.spin_label_number_btn_notice.setValue(info_table['number_btn_notice'])
+        self.spin_label_number_btn_notice.valueChanged.connect(partial(self.save_number_btn_notice, type))
+        
+        spin_boxes.append(self.spin_label_number_btn_notice)
+
+        number_btn_notice_col_l.addWidget(number_btn_notice_label)
+        number_btn_notice_col_l.addWidget(self.spin_label_number_btn_notice)
 
         # verticalSpacer2 = QSpacerItem(
         #     20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
@@ -928,6 +985,15 @@ class SettingTable(QDialog):
 
         self.current_widget = widget
         self.main_layout.addWidget(self.current_widget)
+
+
+
+    # Handler func notice
+    def save_btn_notice(self, type, index,n, value):
+        self.ban_info["meta"]["tables"][type]['btn_notice'][index][n] = value
+    
+    def save_number_btn_notice(self, type, value):
+        self.ban_info["meta"]["tables"][type]['number_btn_notice'] =  value
 
     def change_table_col_d(self, type, index, value):
         self.ban_info["meta"]["tables"][type]["col_d"][index] = value
