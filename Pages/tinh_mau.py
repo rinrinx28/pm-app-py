@@ -60,6 +60,20 @@ from Pages.components.stylesheet import (
 )
 
 
+
+css_custom_btn_insert = """
+    QPushButton {
+        padding: 10px;
+        border-radius: 8px; 
+        font-size: 24px;
+        line-height: 32px;
+        font-weight: 600; 
+        background-color: rgb(178, 255, 255);
+        color: #000;
+    }
+"""
+
+
 class TinhAndMauPage(QWidget):
 
     def __init__(self):
@@ -752,7 +766,7 @@ class TinhAndMauPage(QWidget):
 
         # / Insert Data row
         InsertData = QPushButton("Nhập Liệu")
-        InsertData.setStyleSheet(css_button_submit)
+        InsertData.setStyleSheet(css_custom_btn_insert)
         InsertData.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(InsertData)
 
@@ -3441,6 +3455,15 @@ class TinhAndMauPage(QWidget):
             # / Send Notice Message
 
     def deleteFromToRow(self):
+        # Extract the old delete dates
+        old_delete = self.ban_info.get('lastDelete', [])
+        old_from_date = QDate().currentDate().addDays(-7)  # Default if not provided
+        old_to_date = QDate().currentDate()               # Default if not provided
+
+        if len(old_delete) == 2:
+            old_from_date = QDate.fromString(old_delete[0], "dd/MM/yyyy")
+            old_to_date = QDate.fromString(old_delete[1], "dd/MM/yyyy")
+
         # / Config Icon Windows
         icon = self.path.path_logo()
 
@@ -3450,10 +3473,6 @@ class TinhAndMauPage(QWidget):
         dialog.setWindowIcon(QIcon(icon))
         dialog.setFixedSize(1000, 400)
         dialog.show()
-
-        # / Default Date
-        date = QDate().currentDate()
-        date_from = date.addDays(-7)
 
         # / Create Layout
         layout = QGridLayout()
@@ -3473,7 +3492,7 @@ class TinhAndMauPage(QWidget):
         delete_from_edit.setFont(font)
         delete_from_edit.setWrapping(False)
         delete_from_edit.setCalendarPopup(True)
-        delete_from_edit.setDate(date_from)
+        delete_from_edit.setDate(old_from_date)
 
         delete_from_l.addWidget(delete_from_edit, 0, 0)
 
@@ -3491,7 +3510,7 @@ class TinhAndMauPage(QWidget):
         delete_to_edit.setFont(font)
         delete_to_edit.setWrapping(False)
         delete_to_edit.setCalendarPopup(True)
-        delete_to_edit.setDate(date)
+        delete_to_edit.setDate(old_to_date)
 
         delete_to_l.addWidget(delete_to_edit, 0, 0)
 

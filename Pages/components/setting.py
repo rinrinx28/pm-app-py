@@ -986,8 +986,6 @@ class SettingTable(QDialog):
         self.current_widget = widget
         self.main_layout.addWidget(self.current_widget)
 
-
-
     # Handler func notice
     def save_btn_notice(self, type, index,n, value):
         self.ban_info["meta"]["tables"][type]['btn_notice'][index][n] = value

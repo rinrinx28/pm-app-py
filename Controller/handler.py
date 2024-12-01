@@ -512,6 +512,7 @@ def deleteFromToBan(fromdate, todate, id, isChecked):
         data_db["data"] = data
 
     # / Save data find
+    data_db["lastDelete"] = [fromdate, todate]
     with open(path_db, "w") as file:
         json.dump(data_db, file)
 

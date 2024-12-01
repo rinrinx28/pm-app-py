@@ -214,6 +214,12 @@ class AppSelectionDialog(QDialog):
         self.show_recent_button.setCursor(QCursor(Qt.PointingHandCursor))
         toggle_layout.addWidget(self.show_recent_button)
 
+        # Change pwd button
+        self.change_pwd_btn = QPushButton("Đổi Mật Khẩu")
+        self.change_pwd_btn.setStyleSheet(css_button_submit)
+        self.change_pwd_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        toggle_layout.addWidget(self.change_pwd_btn)
+
         # Add the horizontal toggle layout to the main layout
         self.layout_dialog.addLayout(toggle_layout)
 
@@ -225,12 +231,6 @@ class AppSelectionDialog(QDialog):
         self.confirm_button.clicked.connect(self.confirm_selection)
         self.confirm_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.layout_dialog.addWidget(self.confirm_button)
-
-        # Change pwd button
-        self.change_pwd_btn = QPushButton("Đổi Mật Khẩu")
-        self.change_pwd_btn.setStyleSheet(css_button_submit)
-        self.change_pwd_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.layout_dialog.addWidget(self.change_pwd_btn)
 
         # Track the selected app
         self.selected_app_index = None
@@ -280,20 +280,21 @@ class AppSelectionDialog(QDialog):
     def style_toggle_buttons(self):
         button_style = """
             QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                font-size: 14px;
                 padding: 10px;
-                border-radius: 8px;
-                color: #000;
+                border-radius: 8px; 
+                font-size: 24px;
+                line-height: 32px;
+                font-weight: 600; 
+                color: #ffffff; 
+                background-color: #1D4ED8;
             }
             QPushButton:hover {
+                color: #ffffff;
                 background-color: #45a049;
             }
             QPushButton:checked {
                 background-color: #2E7D32;
                 color: #E8F5E9;
-                font-weight: bold;
             }
         """
         self.show_all_button.setStyleSheet(button_style)
