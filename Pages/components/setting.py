@@ -840,7 +840,7 @@ class SettingTable(QDialog):
         notice = QWidget()
         notice.setStyleSheet("border: 1px solid #999;")
         notice_l = QVBoxLayout(notice)
-        layout.addWidget(notice)
+        # layout.addWidget(notice) // Disable Notice Color
 
         # / Lable > SpinBox
         notice_lable = QLabel(f"Báo Màu M{type + 1}")

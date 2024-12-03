@@ -21,16 +21,15 @@ css_button_submit = """
 css_button_cancel = """
     QPushButton {
         padding: 10px;
-        border-radius: 8px;
+        border-radius: 8px; 
         font-size: 24px;
         line-height: 32px;
         font-weight: 600; 
-        background-color: #ffffff;
-        color: #000;
-    }
+        color: #ffffff; 
+        background-color: #1D4ED8;
+    } 
     QPushButton:hover {
-        color: #1D4ED8; 
-        background-color: #F3F4F6; 
+        background-color: #1E40AF; 
     }
 """
 

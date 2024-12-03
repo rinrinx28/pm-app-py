@@ -542,7 +542,7 @@ class TinhAndMauPage(QWidget):
         return (
             f"{self.current_table}: {name} ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} **  Cơ: {co_so} ** "
-            + f"Số dòng: {row_count}/{max_row} ** Thống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))}\nBảng màu toán: {list_table_color[0]} đến {list_table_color[-1]}"
+            + f"Số dòng: {row_count}/{max_row}\nThống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))}Toán màu: {list_table_color[0]} đến {list_table_color[-1]}"
         )
 
     # / Update function for horizontal scrollbar value change
@@ -3086,6 +3086,9 @@ class TinhAndMauPage(QWidget):
             insert_ngang_edit.setDisabled(True)
             number_value = self.number_info[value][:2]
             insert_ngang_edit_first.setText(f"{number_value[0]}")
+            insert_ngang_edit.setStyleSheet(
+                "background-color: pink;font-size:24px;"
+            )
             data["insert"]["ngang"] = value
 
         virable_one_edit.setChecked(data["update"]["N:2"])
@@ -7998,7 +8001,7 @@ class TinhAndMauPage(QWidget):
         number_change = self.ban_info["meta"]["number"]
         thong_info = self.ban_info["thong"]
         stt = self.thong_db["stt"][number_change]
-        data_value = [i[:120] for i in self.thong_db["data"]][:180]
+        data_value = self.thong_db["data"]
         thong_data = self.thong_info
 
         # / Create widget main thong table

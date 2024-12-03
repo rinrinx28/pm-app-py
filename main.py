@@ -56,7 +56,7 @@ css_custom_view = """
 css_custom_btn_pwd = """
     QPushButton {
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 24px;
         font-weight: 600;
         background-color: rgb(178, 255, 255);
         padding: 4px;
@@ -129,7 +129,7 @@ class AppSelectionDialog(QDialog):
         label_pwd = QLabel('Nhập mật khẩu')
         label_pwd.setStyleSheet(
             """
-                font-size: 16px;
+                font-size: 24px;
             """
         )
         pwd_layout.addWidget(label_pwd)
@@ -137,7 +137,7 @@ class AppSelectionDialog(QDialog):
         input_pwd = QLineEdit()
         input_pwd.setStyleSheet(
             """
-                font-size: 16px;
+                font-size: 24px;
             """
         )
         input_pwd.setEchoMode(QLineEdit.Password)  # Set echo mode to Password
@@ -226,7 +226,7 @@ class AppSelectionDialog(QDialog):
         self.style_toggle_buttons()
 
         # Confirm button
-        self.confirm_button = QPushButton("Khởi Chạy App")
+        self.confirm_button = QPushButton("Khởi Chạy")
         self.confirm_button.setStyleSheet(css_button_submit)
         self.confirm_button.clicked.connect(self.confirm_selection)
         self.confirm_button.setCursor(QCursor(Qt.PointingHandCursor))

@@ -80,6 +80,7 @@ class ThongPage(QWidget):
         self.cyan = QColor(178, 255, 255)
         self.normal = QColor("#FFFFFF")
         self.stt_highlight = QColor("#EDEADE")
+        self.color_col_stt = QColor("#fb80ff")
 
         # / Config Font
         self.font = Font()
@@ -278,7 +279,7 @@ class ThongPage(QWidget):
                         self.thong_db["data"].append(["" for _ in range(132)])
 
                     self.thong_db["data"][column - 2][row] = item.text()
-                    print(self.thong_db["data"][column - 2][row])
+                    # print(self.thong_db["data"][column - 2][row])
 
         def selectedRow():
             selected_items = self.table_main.selectedItems()
@@ -588,7 +589,7 @@ class ThongPage(QWidget):
             zero_value = f"{i:02}."
             item_zero = QTableWidgetItem(f"{zero_value}")
             item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            # item_zero.setBackground(self.stt_highlight)
+            item_zero.setBackground(self.color_col_stt)
             self.table_main.setItem(i, 0, item_zero)
 
             stt_value = stt[i]
