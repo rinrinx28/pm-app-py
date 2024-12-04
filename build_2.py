@@ -49,9 +49,6 @@ if __name__ == "__main__":
         os.makedirs(new_app_file, exist_ok=True)
         # Change Path Data for Application
         path_data = os.path.join(current_dir, "type_pm.txt")
-        with open(path_data, "r") as file:
-            data_file = file.read()
-
         with open(path_data, "w") as file:
             file.write(f"{v}")
 

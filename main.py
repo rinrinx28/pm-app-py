@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QGridLayout,
     QHBoxLayout,
+    QSizePolicy,
+    QSpacerItem,
     QLineEdit
 )
 from PySide6.QtGui import QIcon
@@ -129,7 +131,7 @@ class AppSelectionDialog(QDialog):
         label_pwd = QLabel('Nhập mật khẩu')
         label_pwd.setStyleSheet(
             """
-                font-size: 24px;
+                font-size: 32px;
             """
         )
         pwd_layout.addWidget(label_pwd)
@@ -137,7 +139,10 @@ class AppSelectionDialog(QDialog):
         input_pwd = QLineEdit()
         input_pwd.setStyleSheet(
             """
-                font-size: 24px;
+                QLineEdit{
+                    font-size: 32px;
+                    width: 100px;
+                }
             """
         )
         input_pwd.setEchoMode(QLineEdit.Password)  # Set echo mode to Password
@@ -250,16 +255,23 @@ class AppSelectionDialog(QDialog):
         label_btn_pwd.clicked.connect(btn_login)
         self.change_pwd_btn.clicked.connect(show_dialog_change_pwd)
 
+        verticalSpacer2 = QSpacerItem(
+            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+        )
+        self.layout_dialog.addItem(verticalSpacer2)
+
         if not self.isLogin:
             self.show_app_controll(True)
+        self.setFocus()
         self.show()
     
-    def login_app(self,value):
-        db_path = Path().path_db()
-        with open(db_path, 'r') as file:
-            db = json.load(file)
-        db['pwd'] = db['pwd'] if "pwd" in db else "151020%"
-        if db['pwd'] == value:
+    def login_app(self, value):
+        pwd_path = os.path.join('C:/data_pwd',f'{self.type_pm}', 'pwd.txt')
+        with open(pwd_path, 'r') as file:
+            pwd = file.read().strip()
+            
+        pwd = pwd if pwd != "" else "151020%"
+        if pwd == value:
             for btn in self.buttons:
                 btn.setDisabled(False)
             SendMessage('Bạn đã đăng nhập thành công')
@@ -521,13 +533,10 @@ class ChangePwd(QDialog):
         label_btn_pwd_change.clicked.connect(change_pwd_btn)
     
     def change_pwd(self,value):
-        db_path = Path().path_db()
-        with open(db_path, 'r') as file:
-            db = json.load(file)
-        
-        db['pwd'] = value
-        with open(db_path, 'w') as file:
-            json.dump(db, file)
+        print(self.main.type_pm)
+        pwd_path = os.path.join('C:/data_pwd',f'{self.main.type_pm}', 'pwd.txt')
+        with open(pwd_path, 'w') as file:
+            file.write(value)
         SendMessage('Xin vui lòng đăng nhập lại!')
         self.main.reject()
         self.reject()
@@ -557,7 +566,7 @@ class FullScreenApp(QMainWindow):
         screen = QApplication.primaryScreen()
         screen_geometry = screen.geometry()
         x = (screen_geometry.width() - self.width()) // 2  # Canh giữa theo chiều ngang
-        y = (screen_geometry.height() - self.height()) // 4  # Canh giữa theo chiều dọc
+        y = (screen_geometry.height() - self.height()) // 5  # Canh giữa theo chiều dọc
         self.move(x, y)
 
         # Main layout containing stacked widget and navbar

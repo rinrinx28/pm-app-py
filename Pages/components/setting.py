@@ -278,14 +278,14 @@ class SettingTable(QDialog):
         s_values_thong_l = QGridLayout(s_values_thong_w)
 
         # / Setting Values Thong Config > Lable | SpinBox
-        s_values_thong_lable = QLabel("Số Thông")
+        s_values_thong_lable = QLabel("Khoảng Thông")
         s_values_thong_lable.setStyleSheet("border: 0px;font-size: 24px;")
         s_values_thong_l.addWidget(s_values_thong_lable, 0, 0)
 
         s_values_thong_spinbox_1 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_1, 1, 0)
-        s_values_thong_spinbox_1.setMinimum(0)
-        s_values_thong_spinbox_1.setMaximum(120)
+        s_values_thong_spinbox_1.setMinimum(1)
+        s_values_thong_spinbox_1.setMaximum(600)
         s_values_thong_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_1.setValue(self.col_thong["value"][0])
         s_values_thong_spinbox_1.setDisabled(True)
@@ -293,8 +293,8 @@ class SettingTable(QDialog):
 
         s_values_thong_spinbox_2 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_2, 1, 1)
-        s_values_thong_spinbox_2.setMinimum(0)
-        s_values_thong_spinbox_2.setMaximum(120)
+        s_values_thong_spinbox_2.setMinimum(1)
+        s_values_thong_spinbox_2.setMaximum(600)
         s_values_thong_spinbox_2.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_2.setValue(self.col_thong["value"][1])
         s_values_thong_spinbox_2.setDisabled(True)

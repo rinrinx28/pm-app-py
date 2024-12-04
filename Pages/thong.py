@@ -141,7 +141,7 @@ class ThongPage(QWidget):
     def renderThongTable(self):
         self.start_col = 0
         self.value_col = 0
-        colCount = 180
+        colCount = 600
         # / Title and table
         widget_table = QWidget()
         layout_table = QVBoxLayout(widget_table)
@@ -174,7 +174,7 @@ class ThongPage(QWidget):
         title_stt.setStyleSheet(css_title)
         title_stt.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        title_text_table = f"Bảng Thông: {name} - 180 Thông"
+        title_text_table = f"Bảng Thông: {name} - {colCount} Thông"
         title_table = QLabel(title_text_table)
         title_table.setStyleSheet(css_title)
         title_table.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -576,7 +576,7 @@ class ThongPage(QWidget):
             return
         stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
         data_value = self.thong_db["data"]
-        thong_data = [i[:120] for i in self.thong_data][:180]
+        thong_data = self.thong_data
         # / Table Config
         self.table_main.clearContents()
         self.table_main.setRowCount(0)
@@ -823,7 +823,7 @@ class ThongPage(QWidget):
         #     return
         for row in data_select:
             for i in range(5, self.table_main.columnCount()):
-                self.thong_data[i - 5][row] = ""
+                self.thong_data[i - 6][row] = ""
         # self.updateHeaderRow()
 
         self.show_loading_screen()
