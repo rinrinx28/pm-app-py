@@ -35,6 +35,7 @@ from functools import partial
 
 
 class SettingTable(QDialog):
+
     def __init__(self, ban_info):
         super().__init__()
         # / Config Icon Windows
@@ -81,6 +82,7 @@ class SettingTable(QDialog):
         dialog_main_layout.addWidget(tab_widget)
         # Set the main layout as the dialog's layout
         self.setLayout(dialog_main_layout)
+    
     def showButton(self):
         button_widget = QWidget()
         # Create custom buttons
@@ -762,19 +764,6 @@ class SettingTable(QDialog):
         # Danh sách để lưu trữ tất cả các QSpinBox
         spin_boxes = []
 
-        # Hàm để tắt hoặc bật tất cả SpinBox
-        def toggle_all_spinboxes():
-            all_enabled = any(spinbox.isEnabled() for spinbox in spin_boxes)
-            for spinbox in spin_boxes:
-                spinbox.setEnabled(not all_enabled)
-            
-            isChecked = turn_setting.isChecked()
-            if isChecked:
-                turn_setting.setText('Bật Tùy Chỉnh')
-            else:
-                turn_setting.setText('Tắt Tùy Chỉnh')
-
-
         # Thêm các widget vào lưới 4 cột
         for i in range(120):
             widget_label = QWidget()
@@ -802,31 +791,31 @@ class SettingTable(QDialog):
                 """
             )
             btn_notice_layout = QHBoxLayout(widget_btn_notice)
-            self.spin_label_btn_notice_first = QSpinBox()
-            self.spin_label_btn_notice_first.setDisabled(True)
-            self.spin_label_btn_notice_first.setMinimum(1)
-            self.spin_label_btn_notice_first.setStyleSheet("font-size: 24px;border: 0px;")
-            self.spin_label_btn_notice_first.setValue(info_table['btn_notice'][i][0])
-            self.spin_label_btn_notice_first.valueChanged.connect(partial(self.save_btn_notice, type, i, 0))
+            spin_label_btn_notice_first = QSpinBox()
+            spin_label_btn_notice_first.setDisabled(True)
+            spin_label_btn_notice_first.setMinimum(1)
+            spin_label_btn_notice_first.setStyleSheet("font-size: 24px;border: 0px;")
+            spin_label_btn_notice_first.setValue(info_table['btn_notice'][i][0])
+            spin_label_btn_notice_first.valueChanged.connect(partial(self.save_btn_notice, type, i, 0))
 
-            self.spin_label_btn_notice_second = QSpinBox()
-            self.spin_label_btn_notice_second.setDisabled(True)
-            self.spin_label_btn_notice_second.setMinimum(1)
-            self.spin_label_btn_notice_second.setStyleSheet("font-size: 24px;border: 0px;")
-            self.spin_label_btn_notice_second.setValue(info_table['btn_notice'][i][1])
-            self.spin_label_btn_notice_second.valueChanged.connect(partial(self.save_btn_notice, type, i, 1))
+            spin_label_btn_notice_second = QSpinBox()
+            spin_label_btn_notice_second.setDisabled(True)
+            spin_label_btn_notice_second.setMinimum(1)
+            spin_label_btn_notice_second.setStyleSheet("font-size: 24px;border: 0px;")
+            spin_label_btn_notice_second.setValue(info_table['btn_notice'][i][1])
+            spin_label_btn_notice_second.valueChanged.connect(partial(self.save_btn_notice, type, i, 1))
 
-            btn_notice_layout.addWidget(self.spin_label_btn_notice_first)
-            btn_notice_layout.addWidget(self.spin_label_btn_notice_second)
-
-            spin_boxes.append(spin_label)
-            spin_boxes.append(self.spin_label_btn_notice_first)
-            spin_boxes.append(self.spin_label_btn_notice_second)
+            btn_notice_layout.addWidget(spin_label_btn_notice_first)
+            btn_notice_layout.addWidget(spin_label_btn_notice_second)
 
             label_layout.addWidget(label)
             label_layout.addWidget(spin_label)
             label_layout.addWidget(btn_notice_label)
             label_layout.addWidget(widget_btn_notice)
+
+            spin_boxes.append(spin_label)
+            spin_boxes.append(spin_label_btn_notice_first)
+            spin_boxes.append(spin_label_btn_notice_second)
 
             # Thêm widget vào lưới 4 cột
             row = i // 4
@@ -836,43 +825,43 @@ class SettingTable(QDialog):
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
 
-        # / Add Notice Color
-        notice = QWidget()
-        notice.setStyleSheet("border: 1px solid #999;")
-        notice_l = QVBoxLayout(notice)
+        # # / Add Notice Color
+        # notice = QWidget()
+        # notice.setStyleSheet("border: 1px solid #999;")
+        # notice_l = QVBoxLayout(notice)
         # layout.addWidget(notice) // Disable Notice Color
 
-        # / Lable > SpinBox
-        notice_lable = QLabel(f"Báo Màu M{type + 1}")
-        notice_lable.setStyleSheet("border: 0px;font-size:24px;")
-        notice_l.addWidget(notice_lable)
+        # # / Lable > SpinBox
+        # notice_lable = QLabel(f"Báo Màu M{type + 1}")
+        # notice_lable.setStyleSheet("border: 0px;font-size:24px;")
+        # notice_l.addWidget(notice_lable)
 
-        notice_spinBox_w = QWidget()
-        notice_spinBox_w.setStyleSheet("border: 0px;")
-        notice_spinBox_l = QHBoxLayout(notice_spinBox_w)
-        notice_l.addWidget(notice_spinBox_w)
-        notice_spinBox_1 = QSpinBox()
-        notice_spinBox_1.setMinimum(0)
-        notice_spinBox_1.setMaximum(999)
-        notice_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
-        notice_spinBox_1.setValue(
-            self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][0]
-        )
-        notice_spinBox_2 = QSpinBox()
-        notice_spinBox_2.setMinimum(0)
-        notice_spinBox_2.setMaximum(999)
-        notice_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
-        notice_spinBox_2.setValue(
-            self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][1]
-        )
+        # notice_spinBox_w = QWidget()
+        # notice_spinBox_w.setStyleSheet("border: 0px;")
+        # notice_spinBox_l = QHBoxLayout(notice_spinBox_w)
+        # notice_l.addWidget(notice_spinBox_w)
+        # notice_spinBox_1 = QSpinBox()
+        # notice_spinBox_1.setMinimum(0)
+        # notice_spinBox_1.setMaximum(999)
+        # notice_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
+        # notice_spinBox_1.setValue(
+        #     self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][0]
+        # )
+        # notice_spinBox_2 = QSpinBox()
+        # notice_spinBox_2.setMinimum(0)
+        # notice_spinBox_2.setMaximum(999)
+        # notice_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
+        # notice_spinBox_2.setValue(
+        #     self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][1]
+        # )
 
-        notice_spinBox_l.addWidget(notice_spinBox_1)
-        notice_spinBox_l.addWidget(notice_spinBox_2)
+        # notice_spinBox_l.addWidget(notice_spinBox_1)
+        # notice_spinBox_l.addWidget(notice_spinBox_2)
 
-        notice_spinBox_1.setDisabled(True)
-        notice_spinBox_2.setDisabled(True)
-        spin_boxes.append(notice_spinBox_1)
-        spin_boxes.append(notice_spinBox_2)
+        # notice_spinBox_1.setDisabled(True)
+        # notice_spinBox_2.setDisabled(True)
+        # spin_boxes.append(notice_spinBox_1)
+        # spin_boxes.append(notice_spinBox_2)
 
         # / Add Config Col D
         config_col = QWidget()
@@ -908,12 +897,10 @@ class SettingTable(QDialog):
         config_col_spinBox_l.addWidget(config_col_spinBox_1)
         config_col_spinBox_l.addWidget(config_col_spinBox_2)
 
-        config_col_spinBox_1.setDisabled(True)
-        config_col_spinBox_2.setDisabled(True)
+        config_col_spinBox_1.setEnabled(False)
+        config_col_spinBox_2.setEnabled(False)
         spin_boxes.append(config_col_spinBox_1)
         spin_boxes.append(config_col_spinBox_2)
-
-        
 
         # Label number btn_notice
         number_btn_notice_col = QWidget()
@@ -924,18 +911,18 @@ class SettingTable(QDialog):
         number_btn_notice_label = QLabel('Số nút màu')
         number_btn_notice_label.setStyleSheet("font-size: 24px;border: 0px;")
 
-        self.spin_label_number_btn_notice = QSpinBox()
-        self.spin_label_number_btn_notice.setDisabled(True)
-        self.spin_label_number_btn_notice.setMinimum(1)
-        self.spin_label_number_btn_notice.setStyleSheet("font-size: 24px;border: 0px;")
-        self.spin_label_number_btn_notice.setValue(info_table['number_btn_notice'])
-        self.spin_label_number_btn_notice.valueChanged.connect(partial(self.save_number_btn_notice, type))
+        spin_label_number_btn_notice = QSpinBox()
+        spin_label_number_btn_notice.setEnabled(False)
+        spin_label_number_btn_notice.setMinimum(1)
+        spin_label_number_btn_notice.setStyleSheet("font-size: 24px;border: 0px;")
+        spin_label_number_btn_notice.setValue(info_table['number_btn_notice'])
+        spin_label_number_btn_notice.valueChanged.connect(partial(self.save_number_btn_notice, type))
         
-        spin_boxes.append(self.spin_label_number_btn_notice)
 
         number_btn_notice_col_l.addWidget(number_btn_notice_label)
-        number_btn_notice_col_l.addWidget(self.spin_label_number_btn_notice)
+        number_btn_notice_col_l.addWidget(spin_label_number_btn_notice)
 
+        spin_boxes.append(spin_label_number_btn_notice)
         # verticalSpacer2 = QSpacerItem(
         #     20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         # )
@@ -944,25 +931,20 @@ class SettingTable(QDialog):
         # Tạo nút để bật/tắt tất cả SpinBox
         turn_setting = QCheckBox("Tắt Tùy Chỉnh")
         turn_setting.setStyleSheet("border: 0px; font-size: 24px;")
-        turn_setting.checkStateChanged.connect(toggle_all_spinboxes)
         layout.addWidget(turn_setting)
 
         # TODO Handler Func
-        # / Notice Color
-        notice_spinBox_1.valueChanged.connect(
-            partial(
-                self.value_change_col_table_color_notice,
-                f'color{"M" + str(type + 1) if type != 0 else ""}',
-                0,
-            )
-        )
-        notice_spinBox_2.valueChanged.connect(
-            partial(
-                self.value_change_col_table_color_notice,
-                f'color{"M" + str(type + 1) if type != 0 else ""}',
-                1,
-            )
-        )
+        # / Hàm để tắt hoặc bật tất cả SpinBox
+        def toggle_all_spinboxes(checked):
+            ischecked = turn_setting.isChecked()
+            if ischecked:
+                turn_setting.setText('Bật Tùy Chỉnh')
+                for spin in spin_boxes:
+                    spin.setDisabled(False)
+            else:
+                turn_setting.setText('Tắt Tùy Chỉnh')
+                for spin in spin_boxes:
+                    spin.setDisabled(True)
 
         # / Config Col
         config_col_spinBox_1.valueChanged.connect(
@@ -979,6 +961,9 @@ class SettingTable(QDialog):
                 1,
             )
         )
+
+        # / Config turn_setting
+        turn_setting.checkStateChanged.connect(toggle_all_spinboxes)
 
         if self.current_widget:
             self.clear_layout_main(self.main_layout)

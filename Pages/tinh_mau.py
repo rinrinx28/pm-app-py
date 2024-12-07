@@ -58,6 +58,7 @@ from Pages.components.stylesheet import (
     css_table_header,
     css_title,
 )
+from time import sleep
 
 
 
@@ -155,7 +156,8 @@ class TinhAndMauPage(QWidget):
             note = Note[change_number - 1]
             self.note.setText(note)
         else:
-            self.note.setText("")
+            note = Note[10]
+            self.note.setText(note)
 
         self.note_color = f"a = sbáo; b = th; c = cột; d = sđếm; s = số trong thông"
         self.note_color_label = QLabel(self.note_color)
@@ -169,6 +171,7 @@ class TinhAndMauPage(QWidget):
         self.layout.addWidget(self.widget_main)
 
         # / Table main
+        self.table_main_thong = None
         self.table_main_count = None
         self.table_main_color = None
         self.table_main_colorM2 = None
@@ -182,6 +185,8 @@ class TinhAndMauPage(QWidget):
         self.table_main_colorM10 = None
         self.ranges = []
         self.ranges_current = None
+        self.start_col = 0
+        self.value_col = 0
 
         # / List Table
         # * Count
@@ -258,12 +263,7 @@ class TinhAndMauPage(QWidget):
         self.handlerData()
         self.renderNavigation()
         self.renderTableCount()
-        for i in range(10):
-            data = self.ban_info["meta"]["tables"][i]
-            if data["enable"]:
-                self.start_render_tables(i)
         self.renderButton()
-        self.render_table_thong()
         self.widget_main.setCurrentWidget(self.table_main_count)
         return
 
@@ -460,6 +460,9 @@ class TinhAndMauPage(QWidget):
             """
             )
 
+        # Render row
+        self.updateTableCount()
+
         self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
         # Set properties for frozen_table_count
         self.frozen_table_count.verticalHeader().setSectionResizeMode(
@@ -510,9 +513,6 @@ class TinhAndMauPage(QWidget):
         self.table_scroll_count.customContextMenuRequested.connect(
             self.jumpTableWithRow
         )
-
-        # Render row
-        self.updateTableCount()
 
     def get_title_text(self, type=None):
         if type is None:
@@ -631,8 +631,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_color.setMaximumHeight(50)
         self.frozen_table_color.setMinimumHeight(50)
 
-        self.frozen_table_left.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_left.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_left.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_left.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_left.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_left.horizontalHeader().setStretchLastSection(True)
@@ -801,60 +801,80 @@ class TinhAndMauPage(QWidget):
             return
 
         def changeTableM1():
+            if self.table_main_color is None:
+                self.start_render_tables(0)
             self.widget_main.setCurrentWidget(self.table_main_color)
             self.current_table = "Bảng màu 1"
             self.renderNavigation("m1")
             return
 
         def changeTableM2():
+            if self.table_main_colorM2 is None:
+                self.start_render_tables(1)
             self.widget_main.setCurrentWidget(self.table_main_colorM2)
             self.current_table = "Bảng màu 2"
             self.renderNavigation("m2")
             return
 
         def changeTableM3():
+            if self.table_main_colorM3 is None:
+                self.start_render_tables(2)
             self.widget_main.setCurrentWidget(self.table_main_colorM3)
             self.current_table = "Bảng màu 3"
             self.renderNavigation("m3")
             return
 
         def changeTableM4():
+            if self.table_main_colorM4 is None:
+                self.start_render_tables(3)
             self.widget_main.setCurrentWidget(self.table_main_colorM4)
             self.current_table = "Bảng màu 4"
             self.renderNavigation("m4")
             return
 
         def changeTableM5():
+            if self.table_main_colorM5 is None:
+                self.start_render_tables(4)
             self.widget_main.setCurrentWidget(self.table_main_colorM5)
             self.current_table = "Bảng màu 5"
             self.renderNavigation("m5")
             return
 
         def changeTableM6():
+            if self.table_main_colorM6 is None:
+                self.start_render_tables(5)
             self.widget_main.setCurrentWidget(self.table_main_colorM6)
             self.current_table = "Bảng màu 6"
             self.renderNavigation("m6")
             return
 
         def changeTableM7():
+            if self.table_main_colorM7 is None:
+                self.start_render_tables(6)
             self.widget_main.setCurrentWidget(self.table_main_colorM7)
             self.current_table = "Bảng màu 7"
             self.renderNavigation("m7")
             return
 
         def changeTableM8():
+            if self.table_main_colorM8 is None:
+                self.start_render_tables(7)
             self.widget_main.setCurrentWidget(self.table_main_colorM8)
             self.current_table = "Bảng màu 8"
             self.renderNavigation("m8")
             return
 
         def changeTableM9():
+            if self.table_main_colorM9 is None:
+                self.start_render_tables(8)
             self.widget_main.setCurrentWidget(self.table_main_colorM9)
             self.current_table = "Bảng màu 9"
             self.renderNavigation("m9")
             return
 
         def changeTableM10():
+            if self.table_main_colorM10 is None:
+                self.start_render_tables(9)
             self.widget_main.setCurrentWidget(self.table_main_colorM10)
             self.current_table = "Bảng màu 10"
             self.renderNavigation("m10")
@@ -1139,7 +1159,6 @@ class TinhAndMauPage(QWidget):
         backToFirst.clicked.connect(back_to_first)
         skipToEnd.clicked.connect(skip_to_end)
         skipToMind.clicked.connect(skip_to_mid)
-        # JumpFisrtColumn.clicked.connect(self.jump_fisrt_column)
 
     # TODO Handle Table M2
 
@@ -1196,8 +1215,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM2.setMaximumHeight(50)
         self.frozen_table_colorM2.setMinimumHeight(50)
 
-        self.frozen_table_leftM2.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM2.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM2.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM2.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM2.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM2.horizontalHeader().setStretchLastSection(True)
@@ -1344,8 +1363,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM3.setMaximumHeight(50)
         self.frozen_table_colorM3.setMinimumHeight(50)
 
-        self.frozen_table_leftM3.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM3.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM3.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM3.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM3.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM3.horizontalHeader().setStretchLastSection(True)
@@ -1492,8 +1511,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM4.setMaximumHeight(50)
         self.frozen_table_colorM4.setMinimumHeight(50)
 
-        self.frozen_table_leftM4.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM4.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM4.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM4.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM4.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM4.horizontalHeader().setStretchLastSection(True)
@@ -1640,8 +1659,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM5.setMaximumHeight(50)
         self.frozen_table_colorM5.setMinimumHeight(50)
 
-        self.frozen_table_leftM5.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM5.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM5.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM5.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM5.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM5.horizontalHeader().setStretchLastSection(True)
@@ -1788,8 +1807,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM6.setMaximumHeight(50)
         self.frozen_table_colorM6.setMinimumHeight(50)
 
-        self.frozen_table_leftM6.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM6.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM6.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM6.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM6.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM6.horizontalHeader().setStretchLastSection(True)
@@ -1936,8 +1955,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM7.setMaximumHeight(50)
         self.frozen_table_colorM7.setMinimumHeight(50)
 
-        self.frozen_table_leftM7.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM7.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM7.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM7.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM7.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM7.horizontalHeader().setStretchLastSection(True)
@@ -2084,8 +2103,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM8.setMaximumHeight(50)
         self.frozen_table_colorM8.setMinimumHeight(50)
 
-        self.frozen_table_leftM8.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM8.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM8.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM8.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM8.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM8.horizontalHeader().setStretchLastSection(True)
@@ -2232,8 +2251,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM9.setMaximumHeight(50)
         self.frozen_table_colorM9.setMinimumHeight(50)
 
-        self.frozen_table_leftM9.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM9.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM9.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM9.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM9.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM9.horizontalHeader().setStretchLastSection(True)
@@ -2379,8 +2398,8 @@ class TinhAndMauPage(QWidget):
         self.frozen_table_colorM10.setMaximumHeight(50)
         self.frozen_table_colorM10.setMinimumHeight(50)
 
-        self.frozen_table_leftM10.setMaximumSize(width_of_row + 90, 50)
-        self.frozen_table_leftM10.setMinimumSize(width_of_row + 90, 50)
+        self.frozen_table_leftM10.setMaximumSize(width_of_row + 110, 50)
+        self.frozen_table_leftM10.setMinimumSize(width_of_row + 110, 50)
 
         self.frozen_table_leftM10.horizontalHeader().setStretchLastSection(True)
         self.table_scroll_leftM10.horizontalHeader().setStretchLastSection(True)
@@ -2507,10 +2526,10 @@ class TinhAndMauPage(QWidget):
         current_widget = self.widget_main.currentWidget()
         if matching_item:
             self.table_scroll_count.clearSelection()
-            for i in range(10):
-                data = self.ban_info["meta"]["tables"][i]
-                if data["enable"]:
-                    self.start_clear_tables_row(i)
+            # for i in range(10):
+            #     data = self.ban_info["meta"]["tables"][i]
+            #     if data["enable"]:
+            #         self.start_clear_tables_row(i)
             # / Get Value from Item
             localItem = matching_item["localItem"]
             row = localItem["row"]
@@ -2521,6 +2540,9 @@ class TinhAndMauPage(QWidget):
             if "_m10" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 10", "m10")
                 if current_widget != self.table_main_colorM10:
+                    if self.table_main_colorM10 is None:
+                        self.start_render_tables(9)
+                        self.start_clear_tables_row(9)
                     self.widget_main.setCurrentWidget(self.table_main_colorM10)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM10.item(row, col)
@@ -2543,6 +2565,9 @@ class TinhAndMauPage(QWidget):
             if "_m1" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 1", "m1")
                 if current_widget != self.table_main_color:
+                    if self.table_main_color is None:
+                        self.start_render_tables(0)
+                        self.start_clear_tables_row(0)
                     self.widget_main.setCurrentWidget(self.table_main_color)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_color.item(row, col)
@@ -2565,6 +2590,9 @@ class TinhAndMauPage(QWidget):
             if "_m2" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 2", "m2")
                 if current_widget != self.table_main_colorM2:
+                    if self.table_main_colorM2 is None:
+                        self.start_render_tables(1)
+                        self.start_clear_tables_row(1)
                     self.widget_main.setCurrentWidget(self.table_main_colorM2)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM2.item(row, col)
@@ -2587,6 +2615,9 @@ class TinhAndMauPage(QWidget):
             if "_m3" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 3", "m3")
                 if current_widget != self.table_main_colorM3:
+                    if self.table_main_colorM3 is None:
+                        self.start_render_tables(2)
+                        self.start_clear_tables_row(2)
                     self.widget_main.setCurrentWidget(self.table_main_colorM3)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM3.item(row, col)
@@ -2609,6 +2640,9 @@ class TinhAndMauPage(QWidget):
             if "_m4" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 4", "m4")
                 if current_widget != self.table_main_colorM4:
+                    if self.table_main_colorM4 is None:
+                        self.start_render_tables(3)
+                        self.start_clear_tables_row(3)
                     self.widget_main.setCurrentWidget(self.table_main_colorM4)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM4.item(row, col)
@@ -2631,6 +2665,9 @@ class TinhAndMauPage(QWidget):
             if "_m5" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 5", "m5")
                 if current_widget != self.table_main_colorM5:
+                    if self.table_main_colorM5 is None:
+                        self.start_render_tables(4)
+                        self.start_clear_tables_row(4)
                     self.widget_main.setCurrentWidget(self.table_main_colorM5)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM5.item(row, col)
@@ -2653,6 +2690,9 @@ class TinhAndMauPage(QWidget):
             if "_m6" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 6", "m6")
                 if current_widget != self.table_main_colorM6:
+                    if self.table_main_colorM6 is None:
+                        self.start_render_tables(5)
+                        self.start_clear_tables_row(5)
                     self.widget_main.setCurrentWidget(self.table_main_colorM6)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM6.item(row, col)
@@ -2675,6 +2715,9 @@ class TinhAndMauPage(QWidget):
             if "_m7" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 7", "m7")
                 if current_widget != self.table_main_colorM7:
+                    if self.table_main_colorM7 is None:
+                        self.start_render_tables(6)
+                        self.start_clear_tables_row(6)
                     self.widget_main.setCurrentWidget(self.table_main_colorM7)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM7.item(row, col)
@@ -2697,6 +2740,9 @@ class TinhAndMauPage(QWidget):
             if "_m8" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 8", "m8")
                 if current_widget != self.table_main_colorM8:
+                    if self.table_main_colorM8 is None:
+                        self.start_render_tables(7)
+                        self.start_clear_tables_row(7)
                     self.widget_main.setCurrentWidget(self.table_main_colorM8)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM8.item(row, col)
@@ -2719,6 +2765,9 @@ class TinhAndMauPage(QWidget):
             if "_m9" in matching_item["label"]:
                 self.changeStatusBar("Bảng màu 9", "m9")
                 if current_widget != self.table_main_colorM9:
+                    if self.table_main_colorM9 is None:
+                        self.start_render_tables(8)
+                        self.start_clear_tables_row(9)
                     self.widget_main.setCurrentWidget(self.table_main_colorM9)
                 button.setStyleSheet(css_button_view)
                 item_target = self.table_scroll_colorM9.item(row, col)
@@ -3385,41 +3434,42 @@ class TinhAndMauPage(QWidget):
 
     def setHighlight_Thong(self, data):
         self.table_main_thong.clearSelection()
-        col = data["col"]
-        value = data["value"]
+
+        # Khởi tạo giá trị cần thiết
+        col = int(data["col"])
+        value = str(data["value"])
         isCol_a = data["isCol_a"]
         thong_info = self.ban_info["thong"]
         name_thong = thong_info["name"]
         type_count_name = convert_string_to_type_count(name_thong)
-        type_count = type_count_name if type_count_name == 0 else 1 if type_count_name == '1a' else 3 if type_count_name == '1b' else 2
+
+        # Xác định type_count
+        type_count = 0 if type_count_name == 0 else 1 if type_count_name == '1a' else 3 if type_count_name == '1b' else 2
+
         thong_data = self.thong_info
         value_thong = thong_info["value"]
-        thong_index_thong = value_thong[0] - 1 + int(col) - 6
+        thong_index_thong = value_thong[0] - 1 + col - 4
+
         thong_index_row = []
-        for i in range(120):
-            v = thong_data[thong_index_thong][i]
+
+        # Xử lý dữ liệu
+        for i, v in enumerate(thong_data[thong_index_thong]):
+            v_str = str(v)
             if type_count == 1:
-                if str(v) == str(value):
+                if v_str == value:
                     thong_index_row.append(i)
-            else:
-                if type_count == 2:
-                    if isCol_a:
-                        isEqual = self.checkColorThong(str(value), str(v))
-                        if isEqual:
-                            thong_index_row.append(i)
-                    else:
-                        if v == value:
-                            thong_index_row.append(i)
+            elif type_count == 2:
+                if (isCol_a and self.checkColorThong(value, v_str)) or (not isCol_a and v == value):
+                    thong_index_row.append(i)
+            else:  # type_count == 3
+                if self.checkColorThong(value, v_str):
+                    thong_index_row.append(i)
 
-                else:
-                    isEqual = self.checkColorThong(str(value), str(v))
-                    if isEqual:
-                        thong_index_row.append(i)
-
-        self.table_main_thong.selectColumn(int(col))
-
+        # Chọn cột và các dòng tương ứng
+        self.table_main_thong.selectColumn(col)
         for i in thong_index_row:
             self.table_main_thong.selectRow(i)
+
 
     def deleteNewRow(self):
         # / Config Icon Windows
@@ -3571,10 +3621,6 @@ class TinhAndMauPage(QWidget):
 
     def jumpTableWithRow(self, pos):
         self.table_scroll_count.clearSelection()
-        for i in range(10):
-            data = self.ban_info["meta"]["tables"][i]
-            if data["enable"]:
-                self.start_clear_tables_row(i)
         current_widget = self.widget_main.currentWidget()
         color_widgetM2 = self.table_main_colorM2
         color_widgetM3 = self.table_main_colorM3
@@ -3683,6 +3729,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widget:
+            self.start_clear_tables_row(0)
             item_color = self.table_scroll_color.itemAt(pos)
             item_color_data = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_data:
@@ -3777,6 +3824,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM2:
+            self.start_clear_tables_row(1)
             item_color = self.table_scroll_colorM2.itemAt(pos)
             item_color_dataM2 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM2:
@@ -3866,10 +3914,11 @@ class TinhAndMauPage(QWidget):
                 menu.addAction(moveTable)
                 menu.addAction(moveTable1)
                 menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_color.mapToGlobal(pos))
+                menu.exec(self.table_scroll_colorM2.mapToGlobal(pos))
                 return
 
         if current_widget == color_widgetM3:
+            self.start_clear_tables_row(2)
             item_color = self.table_scroll_colorM3.itemAt(pos)
             item_color_dataM3 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM3:
@@ -3962,6 +4011,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM4:
+            self.start_clear_tables_row(3)
             item_color = self.table_scroll_colorM4.itemAt(pos)
             item_color_dataM4 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM4:
@@ -4054,6 +4104,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM5:
+            self.start_clear_tables_row(4)
             item_color = self.table_scroll_colorM5.itemAt(pos)
             item_color_dataM5 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM5:
@@ -4146,6 +4197,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM6:
+            self.start_clear_tables_row(5)
             item_color = self.table_scroll_colorM6.itemAt(pos)
             item_color_dataM6 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM6:
@@ -4238,6 +4290,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM7:
+            self.start_clear_tables_row(6)
             item_color = self.table_scroll_colorM7.itemAt(pos)
             item_color_dataM7 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM7:
@@ -4330,6 +4383,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM8:
+            self.start_clear_tables_row(7)
             item_color = self.table_scroll_colorM8.itemAt(pos)
             item_color_dataM8 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM8:
@@ -4422,6 +4476,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM9:
+            self.start_clear_tables_row(8)
             item_color = self.table_scroll_colorM9.itemAt(pos)
             item_color_dataM9 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM9:
@@ -4514,6 +4569,7 @@ class TinhAndMauPage(QWidget):
                 return
 
         if current_widget == color_widgetM10:
+            self.start_clear_tables_row(9)
             item_color = self.table_scroll_colorM10.itemAt(pos)
             item_color_dataM10 = item_color.data(Qt.ItemDataRole.UserRole)
             if item_color_dataM10:
@@ -4625,8 +4681,6 @@ class TinhAndMauPage(QWidget):
         thong_ranges = thong_range_2 - thong_range_1
 
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
             item = QTableWidgetItem(f"{date}")
             self.frozen_table_count.setItem(i, 0, item)
@@ -4669,26 +4723,25 @@ class TinhAndMauPage(QWidget):
 
         for i, item in enumerate(filter_data):
             item_thong = item["thong"]
-            jump_col = 0
-            for j in range(thong_ranges):
-                if item_thong > -1:
+            if item_thong > -1:
+                jump_col = 0
+                for j in range(thong_ranges):
                     thong_value = self.thong_info[j + thong_range_1][item_thong]
+                    
+                    # Tạo QTableWidgetItem và cài đặt thuộc tính chung
+                    item_table = QTableWidgetItem(f"{thong_value}")
+                    item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    item_table.setForeground(self.red)
+                    
+                    # Xử lý logic đặt item
                     if j == 0:
-                        item_table = QTableWidgetItem(f"{thong_value}")
-                        item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                        item_table.setForeground(self.red)
                         self.frozen_table_count.setItem(i, 1, item_table)
                     else:
-                        item_table = QTableWidgetItem(f"{thong_value}")
-                        item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                        item_table.setForeground(self.red)
                         self.table_scroll_count.setItem(i, jump_col, item_table)
                         jump_col += 1
+                    
+                    # Cập nhật vị trí cột
                     jump_col += value_col
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.frozen_table_count.viewport().update()
-        # self.table_scroll_count.viewport().update()
 
         # Thêm nđộ trễ nhỏ trước khi cuộn
         QTimer.singleShot(0, self.table_scroll_count.scrollToBottom)
@@ -4696,43 +4749,45 @@ class TinhAndMauPage(QWidget):
 
         self.frozen_table_count.setColumnWidth(0, 120)
 
-        # sleep(0.5)
-        # self.table_scroll_count.scrollToBottom()
-        # self.frozen_table_count.scrollToBottom()
-
-        # self.frozen_table_count.resizeRowsToContents()
-        # self.table_scroll_count.resizeRowsToContents()
-
     def updateHeaderCount(self):
         self.table_scroll_count.setColumnCount(0)
         self.ranges = []
         cols_arr = []
-        total_column = 0
-        thong_range = self.ban_info["thong"]["value"]
-        thong_range_1 = thong_range[0] - 1
-        thong_range_2 = thong_range[1]
+
+        thong_range_1 = self.ban_info["thong"]["value"][0] - 1
+        thong_range_2 = self.ban_info["thong"]["value"][1]
         thong_ranges = thong_range_2 - thong_range_1
+
+        col_start, col_end = self.ban_info["col"]
+
+        total_column = 0
+
         for i in range(thong_ranges):
-            range_data = {}
+            range_data = {
+                "start": total_column,
+                "thong": i + thong_range_1,
+            }
+
+            # Tạo tiêu đề cho "T.x"
             thong_name = QTableWidgetItem(f"T.{i + thong_range_1 + 1}")
             thong_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             thong_name.setForeground(self.red)
-            range_data["start"] = total_column
-            range_data["value"] = total_column
             if i != 0:
                 cols_arr.append(thong_name)
                 total_column += 1
-            for j in range(self.ban_info["col"][0] - 1, self.ban_info["col"][1]):
+
+            # Tạo tiêu đề cho các cột "C.x"
+            for j in range(col_start - 1, col_end):
                 col_name = QTableWidgetItem(f"C.{j + 1}")
                 col_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 cols_arr.append(col_name)
                 total_column += 1
+
             range_data["end"] = total_column
-            range_data["thong"] = i + thong_range_1
             self.ranges.append(range_data)
 
+        # Đặt tổng số cột và thêm tiêu đề
         self.table_scroll_count.setColumnCount(total_column)
-
         for i, item in enumerate(cols_arr):
             self.table_scroll_count.setHorizontalHeaderItem(i, item)
 
@@ -6414,7 +6469,7 @@ class TinhAndMauPage(QWidget):
                                         "color_value": col_d,
                                         "thong": {
                                             "row": row_thong,
-                                            "col": t + 6,
+                                            "col": t + 4,
                                             "col_a": col_t if col_t != "?" else col_a,
                                             "isCol_a": False if col_t != "?" else True,
                                         },
@@ -6438,7 +6493,7 @@ class TinhAndMauPage(QWidget):
                                         "col_d": col_d,
                                         "thong": {
                                             "row": row_thong,
-                                            "col": t + 6,
+                                            "col": t + 4,
                                             "col_a": col_t if col_t != "?" else col_a,
                                             "isCol_a": False if col_t != "?" else True,
                                         },
@@ -6542,7 +6597,7 @@ class TinhAndMauPage(QWidget):
                                                 "col_d": col_e,
                                                 "thong": {
                                                     "row": row_thong,
-                                                    "col": t + 6,
+                                                    "col": t + 4,
                                                     "col_a": (
                                                         col_t if col_t != "?" else col_a
                                                     ),
@@ -6657,7 +6712,7 @@ class TinhAndMauPage(QWidget):
                                                         "col_d": col_e_m2,
                                                         "thong": {
                                                             "row": row_thong,
-                                                            "col": t + 6,
+                                                            "col": t + 4,
                                                             "col_a": (
                                                                 col_t
                                                                 if col_t != "?"
@@ -7679,6 +7734,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_color is None:
+                self.start_render_tables(0)
             self.widget_main.setCurrentWidget(self.table_main_color)
             item = self.table_scroll_color.item(row, col)
             self.table_scroll_color.scrollToItem(
@@ -7706,6 +7763,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM2 is None:
+                self.start_render_tables(1)
             self.widget_main.setCurrentWidget(self.table_main_colorM2)
             item = self.table_scroll_colorM2.item(row, col)
             self.table_scroll_colorM2.scrollToItem(
@@ -7733,6 +7792,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM3 is None:
+                self.start_render_tables(2)
             self.widget_main.setCurrentWidget(self.table_main_colorM3)
             item = self.table_scroll_colorM3.item(row, col)
             self.table_scroll_colorM3.scrollToItem(
@@ -7759,6 +7820,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM4 is None:
+                self.start_render_tables(3)
             self.widget_main.setCurrentWidget(self.table_main_colorM4)
             item = self.table_scroll_colorM4.item(row, col)
             self.table_scroll_colorM4.scrollToItem(
@@ -7785,6 +7848,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM5 is None:
+                self.start_render_tables(4)
             self.widget_main.setCurrentWidget(self.table_main_colorM5)
             item = self.table_scroll_colorM5.item(row, col)
             self.table_scroll_colorM5.scrollToItem(
@@ -7811,6 +7876,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM6 is None:
+                self.start_render_tables(5)
             self.widget_main.setCurrentWidget(self.table_main_colorM6)
             item = self.table_scroll_colorM6.item(row, col)
             self.table_scroll_colorM6.scrollToItem(
@@ -7837,6 +7904,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM7 is None:
+                self.start_render_tables(6)
             self.widget_main.setCurrentWidget(self.table_main_colorM7)
             item = self.table_scroll_colorM7.item(row, col)
             self.table_scroll_colorM7.scrollToItem(
@@ -7863,6 +7932,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM8 is None:
+                self.start_render_tables(7)
             self.widget_main.setCurrentWidget(self.table_main_colorM8)
             item = self.table_scroll_colorM8.item(row, col)
             self.table_scroll_colorM8.scrollToItem(
@@ -7889,6 +7960,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM9 is None:
+                self.start_render_tables(8)
             self.widget_main.setCurrentWidget(self.table_main_colorM9)
             item = self.table_scroll_colorM9.item(row, col)
             self.table_scroll_colorM9.scrollToItem(
@@ -7915,6 +7988,8 @@ class TinhAndMauPage(QWidget):
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_colorM10 is None:
+                self.start_render_tables(9)
             self.widget_main.setCurrentWidget(self.table_main_colorM10)
             item = self.table_scroll_colorM10.item(row, col)
             self.table_scroll_colorM10.scrollToItem(
@@ -7937,11 +8012,12 @@ class TinhAndMauPage(QWidget):
             self.renderNavigation("m10")
             self.changeStatusBar("Bảng màu 10", "m10")
         elif ac == "vbt":
-
             action = data["action"]
             row = action["row"]
             col = action["col"]
             isColor = action["isColor"]
+            if self.table_main_count is None:
+                self.renderTableColor()
             self.widget_main.setCurrentWidget(self.table_main_count)
             item = self.table_scroll_count.item(row, col)
             self.table_scroll_count.scrollToItem(
@@ -7968,6 +8044,9 @@ class TinhAndMauPage(QWidget):
             thong = data["thong"]
             row_thong = thong["row"]
             col_thong = thong["col"]
+            if self.table_main_thong is None:
+                self.render_table_thong()
+                SendMessage('Đã mở thành công Bảng Thông')
             self.widget_main.setCurrentWidget(self.table_main_thong)
             item = self.table_main_thong.item(row_thong, col_thong)
             self.table_main_thong.scrollToItem(
@@ -7988,136 +8067,76 @@ class TinhAndMauPage(QWidget):
 
     def render_table_thong(self):
         """
-        TODO Gui thong table
-        !DES: Make a Thong table with features will show the item had result after render
-        !: and highlight them into table.
-        ? Features available:
-        ? 1. Swap Button Notice to Thong Table
-        ? 2. Swap between item in table color and Thong Table
+        Hiển thị bảng Thong với các cột và dòng lớn
         """
-        # / Config func
-        self.start_col = 1
-        self.value_col = 1
-        number_change = self.ban_info["meta"]["number"]
+        # Config bảng
         thong_info = self.ban_info["thong"]
-        stt = self.thong_db["stt"][number_change]
         data_value = self.thong_db["data"]
         thong_data = self.thong_info
-
-        # / Create widget main thong table
-        self.table_main_thong = QTableWidget()
-        self.widget_main.addWidget(self.table_main_thong)
-
-        # / Config table
         value_thong = thong_info["value"]
         thong_ranges = value_thong[1] - value_thong[0] + 1
-        colCount = thong_ranges + 6  #! 6 is the number of columns outside
         rowCount = 120
-        # / Column
-        self.table_main_thong.setColumnCount(colCount)
-        self.table_main_thong.setRowCount(rowCount)
+        colCount = thong_ranges + 4  # 5 cột cố định
 
-        # / Config Font
+        # Tạo bảng
+        self.table_main_thong = QTableWidget(rowCount, colCount)
+        self.widget_main.addWidget(self.table_main_thong)
+
+        # Config header
+        header_labels = ["STT", "A", "B", "C", "D"] + [
+            f"T.{i + value_thong[0]}" for i in range(thong_ranges)
+        ]
+        self.table_main_thong.setHorizontalHeaderLabels(header_labels)
+
+        vertica_lalbes = [f'{i:02}' for i in range(rowCount)]
+        self.table_main_thong.setVerticalHeaderLabels(vertica_lalbes)
+
+        # Xử lý dữ liệu trước
+        if self.ban_info["meta"]["number"] != 0:
+            number_change = self.ban_info["meta"]["number"]
+            data_value = [
+                [TachVaGhep(number_change, value) for value in values]
+                for values in data_value
+            ]
+
+        # Render dữ liệu tùy chỉnh
+        for i, value_col in enumerate(data_value):
+            for j, value in enumerate(value_col):
+                item = QTableWidgetItem(f"{value}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setItem(j, i, item)
+                if i in (0, 2):  # Highlight
+                    item.setBackground(self.stt_highlight)
+
+        # Render dữ liệu Thong
+        for i, thong_row in enumerate(thong_data[value_thong[0] - 1 : value_thong[1]]):
+            for j, thong_value in enumerate(thong_row[:rowCount]):
+                item = QTableWidgetItem(f"{thong_value}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main_thong.setItem(j, i + 4, item)
+
+        # Config UI
         self.table_main_thong.setFont(self.font)
         self.table_main_thong.horizontalHeader().setFont(self.font)
         self.table_main_thong.verticalHeader().setFont(self.font)
+        self.table_main_thong.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_main_thong.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
 
         self.table_main_thong.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
+            "QTableView { gridline-color: black; }"
         )
 
-        self.table_main_thong.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_main_thong.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_main_thong.horizontalScrollBar().valueChanged.connect(
-            self.freeze_col_stt
-        )
-        self.table_main_thong.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_main_thong.setSelectionMode(
-            QTableWidget.SelectionMode.MultiSelection
-        )
+        # self.table_main_thong.horizontalHeader().setSectionResizeMode(
+        #     QHeaderView.ResizeMode.ResizeToContents
+        # )
+        # self.table_main_thong.verticalHeader().setSectionResizeMode(
+        #     QHeaderView.ResizeMode.ResizeToContents
+        # )
+        # self.table_main_thong.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        # self.table_main_thong.setSelectionMode(
+        #     QTableWidget.SelectionMode.MultiSelection
+        # )
 
-        # / config header and render header
-
-        for i in range(thong_ranges):
-            if i == 0:
-                item_stt = QTableWidgetItem(f"STT")
-                item_stt.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(0, item_stt)
-
-                item_zero = QTableWidgetItem(f"Cột 0")
-                item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(1, item_zero)
-
-                item_a = QTableWidgetItem(f"A")
-                item_a.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(2, item_a)
-
-                item_b = QTableWidgetItem(f"B")
-                item_b.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(3, item_b)
-
-                item_c = QTableWidgetItem(f"C")
-                item_c.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(4, item_c)
-
-                item_d = QTableWidgetItem(f"D")
-                item_d.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(5, item_d)
-
-                item = QTableWidgetItem(f"T.{i+ value_thong[0]}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(i + 6, item)
-            else:
-                item = QTableWidgetItem(f"T.{i + value_thong[0]}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setHorizontalHeaderItem(i + 6, item)
-        # / render rows
-        # ? Render Rows STT First
-        for i in range(rowCount):
-            zero_value = f"{i:02}."
-            item_zero = QTableWidgetItem(f"{zero_value}")
-            item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main_thong.setItem(i, 0, item_zero)
-
-            stt_value = stt[i]
-            item = QTableWidgetItem(f"{stt_value}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            item.setBackground(self.stt_highlight)
-            self.table_main_thong.setItem(i, 1, item)
-
-        # ? Change data value with number change
-        if number_change != 0:
-            data_value_new = map(
-                lambda values: list(
-                    map(lambda value: TachVaGhep(number_change, value), values)
-                ),
-                data_value,
-            )
-            data_value = list(data_value_new)
-        # ? Render Rows Custom First
-        for i in range(len(data_value)):
-            value_col = data_value[i]
-            for j in range(len(value_col)):
-                item = QTableWidgetItem(f"{value_col[j]}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setItem(j, i + 2, item)
-                if i + 2 == 2 or i + 2 == 4:
-                    item.setBackground(self.stt_highlight)
-        # ? Render Rows
-        for i in range(thong_ranges):
-            thong_row = thong_data[i + value_thong[0] - 1]
-            for j in range(121):
-                item = QTableWidgetItem(f"{thong_row[j]}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setItem(j, i + 6, item)
 
     def freeze_col_stt(self, value):
         if value >= self.start_col:
@@ -8138,10 +8157,10 @@ class TinhAndMauPage(QWidget):
         self.handlerData()
         self.renderNavigation()
         self.updateTableCount()
-        for i in range(10):
-            data = self.ban_info["meta"]["tables"][i]
-            if data["enable"]:
-                self.start_render_tables_row(i)
+        # for i in range(10):
+        #     data = self.ban_info["meta"]["tables"][i]
+        #     if data["enable"]:
+        #         self.start_render_tables_row(i)
 
     def find_row_thong_with_col_a(self, col_a, thong_data):
         for i in range(len(thong_data)):
@@ -8165,7 +8184,6 @@ class TinhAndMauPage(QWidget):
             # sleep(0.5)
 
     # TODO Handler Move
-
     def move_to_right(self, dialog):
         # Get the screen geometry
         screen_geometry = QApplication.primaryScreen().geometry()
@@ -8315,7 +8333,7 @@ class TinhAndMauPage(QWidget):
                 "col_d": col_e_m3,
                 "thong": {
                     "row": row_thong,
-                    "col": t + 6,
+                    "col": t + 4,
                     "col_a": (col_t if col_t != "?" else col_a),
                     "isCol_a": (False if col_t != "?" else True),
                 },
@@ -8462,7 +8480,7 @@ class TinhAndMauPage(QWidget):
                 "col_d": col_e_m4,
                 "thong": {
                     "row": row_thong,
-                    "col": t + 6,
+                    "col": t + 4,
                     "col_a": (col_t if col_t != "?" else col_a),
                     "isCol_a": (False if col_t != "?" else True),
                 },
@@ -8622,7 +8640,7 @@ class TinhAndMauPage(QWidget):
                 "col_d": col_e_m5,
                 "thong": {
                     "row": row_thong,
-                    "col": t + 6,
+                    "col": t + 4,
                     "col_a": (col_t if col_t != "?" else col_a),
                     "isCol_a": (False if col_t != "?" else True),
                 },
@@ -8795,7 +8813,7 @@ class TinhAndMauPage(QWidget):
                 "col_d": col_e_m6,
                 "thong": {
                     "row": row_thong,
-                    "col": t + 6,
+                    "col": t + 4,
                     "col_a": (col_t if col_t != "?" else col_a),
                     "isCol_a": (False if col_t != "?" else True),
                 },
@@ -8981,7 +8999,7 @@ class TinhAndMauPage(QWidget):
                 "col_d": col_e_m7,
                 "thong": {
                     "row": row_thong,
-                    "col": t + 6,
+                    "col": t + 4,
                     "col_a": (col_t if col_t != "?" else col_a),
                     "isCol_a": (False if col_t != "?" else True),
                 },
@@ -9180,7 +9198,7 @@ class TinhAndMauPage(QWidget):
                 "col_d": col_e_m8,
                 "thong": {
                     "row": row_thong,
-                    "col": t + 6,
+                    "col": t + 4,
                     "col_a": (col_t if col_t != "?" else col_a),
                     "isCol_a": (False if col_t != "?" else True),
                 },
@@ -9392,7 +9410,7 @@ class TinhAndMauPage(QWidget):
                 "col_d": col_e_m9,
                 "thong": {
                     "row": row_thong,
-                    "col": t + 6,
+                    "col": t + 4,
                     "col_a": (col_t if col_t != "?" else col_a),
                     "isCol_a": (False if col_t != "?" else True),
                 },

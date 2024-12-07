@@ -65,11 +65,13 @@ class ThongPage(QWidget):
 
         # / Load data thong
         self.thong_path = self.path.path_thong()
+        self.current_dir = self.path.current_dir
 
         with open(os.path.join(self.thong_path, "thongs.json"), "r") as file:
             self.thong_db = json.load(file)
-            for i in range(len(self.thong_db['data'])):
-                self.thong_db['data'][i] = self.thong_db['data'][i][:120]
+            
+        with open(os.path.join(self.current_dir, "db", 'stay.json'), "r") as file:
+            self.stay = json.load(file)
         # / Config LoadingScreen
         self.loadingScreen = LoadingScreen(self.path.path_loading())
 
@@ -133,7 +135,11 @@ class ThongPage(QWidget):
         self.layout_thong.addWidget(self.button_wid_main)
 
         # / Render Component
-        self.changeDataThongWithNumber(self.ban_info["meta"]['number'])
+        current_number = self.stay.get('thong', 0)
+        if current_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            current_number = current_ban_info_number
+        self.changeDataThongWithNumber(current_number)
         self.renderThongTable()
         self.renderThongButton()
 
@@ -164,10 +170,10 @@ class ThongPage(QWidget):
         
         name = convert_string_format(ban_thong_name)
         self.name = convert_string_format_type(ban_thong_name)
-        co_so = change_number if change_number != 0 else "Gốc"
+        co_so = change_number if change_number != 0 else "gốc"
         title_text_stt = (
             f"Trạng Thái Bảng Tính: C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
-            + f"T{ban_thong_value[1]} /  Cơ: {co_so} / "
+            + f"T{ban_thong_value[1]} /  Cơ {co_so} / "
             + f"Số dòng: {row_count}/{max_row}"
         )
         title_stt = QLabel(title_text_stt)
@@ -182,58 +188,26 @@ class ThongPage(QWidget):
         layout_table.addWidget(title_stt)
 
         # / Note
-        self.note = QLabel("")
+        current_number = self.stay.get('thong', 0)
+        if current_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            current_number = current_ban_info_number
+        if current_number != 0:
+           current_number -= 1
+        else:
+            current_number = 10
+        note = Note[current_number]
+        note_name = current_number if change_number != 0 else "gốc"
+        self.note = QLabel(f"Cơ {note_name} - {note}")
         self.note.setFont(self.font)
         layout_table.addWidget(self.note)
-
-        # / Hidden or show
-        self.hidden = QPushButton("Hiện ABC Gốc")
-        self.hidden.setStyleSheet(css_button_submit)
-        self.hidden.setCursor(Qt.PointingHandCursor)
-        self.hidden.clicked.connect(self.button_show_abc)
-        self.hidden.setFixedWidth(200)
-        layout_table.addWidget(self.hidden)
+        # layout_table.addWidget(self.hidden)
 
         self.table_main = QTableWidget()
         layout_table.addWidget(self.table_main)
-        self.table_main.setColumnCount(colCount + 6)
-
-        # self.updateHeaderRow()
-
-        for i in range(colCount):
-            if i == 0:
-                item_stt = QTableWidgetItem(f"STT")
-                item_stt.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(0, item_stt)
-
-                item_zero = QTableWidgetItem(f"Cột 0")
-                item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(1, item_zero)
-
-                item_a = QTableWidgetItem(f"A")
-                item_a.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(2, item_a)
-
-                item_b = QTableWidgetItem(f"B")
-                item_b.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(3, item_b)
-
-                item_c = QTableWidgetItem(f"C")
-                item_c.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(4, item_c)
-
-                item_d = QTableWidgetItem(f"D")
-                item_d.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(5, item_d)
-
-                item = QTableWidgetItem(f"T.{i+1}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(i + 6, item)
-            else:
-                item = QTableWidgetItem(f"T.{i+1}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(i + 6, item)
-
+        # Setup Header
+        self.updateHeaderRow()
+        # Setup row
         self.updateRowAndColumns()
 
         # / Config Font
@@ -249,15 +223,6 @@ class ThongPage(QWidget):
             """
         )
 
-        self.table_main.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_main.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-
-        self.table_main.horizontalScrollBar().valueChanged.connect(self.freeze_col_stt)
-
         self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table_main.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
 
@@ -267,46 +232,39 @@ class ThongPage(QWidget):
             if isEdit == QTableWidget.EditTrigger.NoEditTriggers:
                 return
             else:
-                if column > 5:
+                if column > 3:
                     item = self.table_main.item(row, column)
-                    self.thong_data[column - 6][row] = item.text()
+                    self.thong_data[column - 4][row] = item.text()
 
-                if 1 < column < 6:
+                if column < 4:
                     item = self.table_main.item(row, column)
                     # Đảm bảo `self.thong_db["data"]` đủ dài
-                    while len(self.thong_db["data"]) <= column - 2:
+                    while len(self.thong_db["data"]) <= column:
                         # Khởi tạo cột mới với dữ liệu mẫu 131 dòng, mỗi dòng là chuỗi rỗng
                         self.thong_db["data"].append(["" for _ in range(132)])
 
-                    self.thong_db["data"][column - 2][row] = item.text()
-                    # print(self.thong_db["data"][column - 2][row])
+                    self.thong_db["data"][column][row] = item.text()
 
         def selectedRow():
+            # Lấy các hàng được chọn từ các mục được chọn
             selected_items = self.table_main.selectedItems()
-            if selected_items:
-                self.selected_row_indices = set()
-                for item in selected_items:
-                    self.selected_row_indices.add(item.row())
+            self.selected_row_indices = {item.row() for item in selected_items} if selected_items else set()
 
+            # Lấy chỉ số của các mục được chọn
             selected_indexes = self.table_main.selectedIndexes()
             if selected_indexes:
-                # / Find is first selected item
+                # Xác định hàng hiện tại được chọn
                 current_selected_row = selected_indexes[0].row()
-                if (
-                    self.prev_selected_row is None
-                    or current_selected_row != self.prev_selected_row
-                ):
+                if current_selected_row != getattr(self, 'prev_selected_row', None):
                     self.prev_selected_row = current_selected_row
 
-                # / get all selelected items
-                selected_rows = set()
-                for i in range(len(selected_indexes)):
-                    rows = selected_indexes[i].row()
-                    selected_rows.add(rows)
-                self.current_select = list(selected_rows)
+                # Lưu danh sách các hàng được chọn
+                self.current_select = list({index.row() for index in selected_indexes})
+
+        # Kết nối sự kiện
+        self.table_main.itemSelectionChanged.connect(selectedRow)
 
         self.table_main.cellChanged.connect(changeValue)
-        self.table_main.itemSelectionChanged.connect(selectedRow)
 
     def renderThongButton(self):
         self.button_wid_main = QWidget()
@@ -416,6 +374,14 @@ class ThongPage(QWidget):
         ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(ButtonType, 1, 3)
 
+        # / Hidden or show
+        self.hidden = QPushButton("Hiện ABCD Gốc")
+        self.hidden.setStyleSheet(css_button_submit)
+        self.hidden.setCursor(Qt.PointingHandCursor)
+        self.hidden.clicked.connect(self.button_show_abc)
+        self.hidden.setFixedWidth(200)
+        layout.addWidget(self.hidden, 1, 4)
+
         # / Create SaveData
         SettingType = QPushButton("Cài Đặt App")
         SettingType.setStyleSheet(css_button_submit)
@@ -441,16 +407,22 @@ class ThongPage(QWidget):
 
         def changeTableNumber():
             value = self.ChangeNumber.currentIndex()
+            text = self.ChangeNumber.currentText()
             self.save_stay(value)
             self.changeDataThongWithNumber(value)
+            self.table_main.clearContents()
+            # self.updateHeaderRow()
+            # self.updateRow()
             self.updateRowAndColumns()
+            SendMessage(f"Bạn đã mở {text}")
             if value != 0:
                 note = Note[value - 1]
                 self.note.setText(f"Cơ {value} - {note}")
-                self.note.setScaledContents(True)
+                # self.note.setScaledContents(True)
             else:
-                self.note.setText("")
-                self.note.setScaledContents(False)
+                note = Note[10]
+                self.note.setText(f"Cơ gốc - {note}")
+                # self.note.setScaledContents(False)
 
         def copyRow_Click():
             if len(self.current_select) < 2 or len(self.current_select) > 2:
@@ -472,14 +444,17 @@ class ThongPage(QWidget):
             data["type_count"] = self.thong_db["type_count"]
             msg = saveAllThong(data)
             self.delete_color_click()
-            SendMessage(f'{msg} {self.name}')
+            self.show_loading_screen()
+            self.thread = Thread()
+            self.thread.task_completed.connect(
+                lambda: self.updateWidget([])
+            )
+            self.thread.task_completed.connect(
+                lambda: SendMessage(msg)
+            )
+            self.thread.start()
 
         def type_with_button():
-            # if self.thong_db["setting"] == 0:
-            #     SendMessage(
-            #         "Loại Nhập App hiện tại là 0 (Trắng), xin vui lòng chọn loại App khác để tiến hành nhập công thức"
-            #     )
-            #     return
             if self.selected_row_indices:
                 # / Find Select Row
                 data_select = list(self.selected_row_indices)
@@ -496,7 +471,16 @@ class ThongPage(QWidget):
                     data["update"] = self.thong_data 
                     result = typeWithRecipe(data)
                     self.thong_data = result["update"]
-                    self.updateRowAndColumns()
+
+                self.show_loading_screen()
+                self.thread = Thread()
+                self.thread.task_completed.connect(
+                    lambda: self.updateWidget([self.updateRowAndColumns])
+                )
+                self.thread.task_completed.connect(
+                    lambda: SendMessage("Bạn đã nhập liệu thành công")
+                )
+                self.thread.start()
                 self.selected_row_indices = None
 
         def back_to_first():
@@ -539,10 +523,17 @@ class ThongPage(QWidget):
 
         
         # Default value
-        self.ChangeNumber.setCurrentIndex(self.ban_info["meta"]['number'])
+        current_number = self.stay.get('thong', 0)
+        if current_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            current_number = current_ban_info_number
+        self.ChangeNumber.setCurrentIndex(current_number)
     
     def save_stay(self, value):
         self.ban_info["meta"]['number'] = int(value)
+        self.stay['thong'] = int(value)
+        with open(os.path.join(self.current_dir, "db", 'stay.json'), "w") as file:
+            json.dump(self.stay, file)
 
     # TODO Handler Widgets
     def delete_color_click(self):
@@ -552,13 +543,14 @@ class ThongPage(QWidget):
         self.current_select = []
 
     def freeze_col_stt(self, value):
-        if value >= self.start_col:
-            self.table_main.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
-        elif value < self.start_col:
-            value = self.start_col
-            self.table_main.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
+        pass
+        # if value >= self.start_col:
+        #     self.table_main.horizontalHeader().moveSection(self.value_col, value)
+        #     self.value_col = value
+        # elif value < self.start_col:
+        #     value = self.start_col
+        #     self.table_main.horizontalHeader().moveSection(self.value_col, value)
+        #     self.value_col = value
 
     def deleteOldWidgetThongs(self):
         # / Delete old table main and buttons
@@ -571,87 +563,115 @@ class ThongPage(QWidget):
             self.layout_thong.layout().removeWidget(self.button_wid_main)
             self.button_wid_main = None
 
+    def updateHeaderRow(self):
+        colCount = 600
+        self.table_main.setColumnCount(0)
+        self.table_main.setColumnCount(colCount + 4)
+        
+        header_labels = ["A", "B", "C", "D"] + [f"T.{i + 1}" for i in range(colCount)]
+        self.table_main.setHorizontalHeaderLabels(header_labels)
+        print('Done upload Col')
+
     def updateRowAndColumns(self):
         if self.table_main is None:
             return
-        stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
+
+        # Lấy dữ liệu cần thiết
+        meta_number = self.stay.get('thong', 0)
+        if meta_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            meta_number = current_ban_info_number
+        stt = self.thong_db["stt"][meta_number]
         data_value = self.thong_db["data"]
         thong_data = self.thong_data
-        # / Table Config
+        row_count = len(thong_data[0])
+
+        # Cấu hình bảng
         self.table_main.clearContents()
         self.table_main.setRowCount(0)
-        rowCount = len(thong_data[0])
-        # / Add Header Table
-        self.table_main.setRowCount(rowCount)
+        self.table_main.setRowCount(row_count)
 
-        # * Render Rows STT First
-        for i in range(rowCount):
-            zero_value = f"{i:02}."
-            item_zero = QTableWidgetItem(f"{zero_value}")
-            item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            item_zero.setBackground(self.color_col_stt)
-            self.table_main.setItem(i, 0, item_zero)
+        # Hàm hỗ trợ tạo QTableWidgetItem
+        def create_table_item(value, alignment=Qt.AlignmentFlag.AlignCenter, background=None):
+            item = QTableWidgetItem(str(value))
+            item.setTextAlignment(alignment)
+            if background:
+                item.setBackground(background)
+            return item
 
-            stt_value = stt[i]
-            item = QTableWidgetItem(
-                f"{stt_value}{self.word[i - 100] if  0 <= i - 100 < 26 else ''}"
-            )
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            item.setBackground(self.stt_highlight)
-            self.table_main.setItem(i, 1, item)
+        # * Cập nhật tiêu đề hàng (STT)
+        vertica_header = [f'{i:02}' for i in range(row_count)]
+        self.table_main.setVerticalHeaderLabels(vertica_header)
 
-        # * Change data value with number change
-        number_change = self.ban_info["meta"]['number']
-        if number_change != 0 and not self.isShow:
-            data_value_new = map(
-                lambda values: list(
-                    map(lambda value: TachVaGhep(number_change, value), values)
-                ),
-                data_value,
-            )
-            data_value = list(data_value_new)
+        # * Xử lý dữ liệu nếu cần thay đổi số
+        if meta_number != 0 and not self.isShow:
+            data_value = [
+                [TachVaGhep(meta_number, value) for value in row]
+                for row in data_value
+            ]
 
-        # * Render Rows Custom First
-        for i in range(len(data_value)):
-            value_col = data_value[i][:120]
-            for j in range(len(value_col)):
-                item = QTableWidgetItem(f"{value_col[j]}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setItem(j, i + 2, item)
-                if i + 2 == 2 or i + 2 == 4:
-                    item.setBackground(self.stt_highlight)
+        # * Cập nhật dữ liệu từ data_value
+        for i, col_values in enumerate(data_value):
+            for j, cell_value in enumerate(col_values):
+                background = self.stt_highlight if i in (0, 2) else None
+                item = create_table_item(cell_value, background=background)
+                self.table_main.setItem(j, i, item)
 
-        # * Render Rows
-        for i in range(len(thong_data)):
-            thong_row = thong_data[i]
-            for j in range(len(thong_row)):
-                item = QTableWidgetItem(f"{thong_row[j]}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                # filter_changed = [
-                #     item
-                #     for item in self.thong_db["change"]
-                #     if item["row"] == j
-                #     and item["column"] == i
-                #     and item["number"] == self.ban_info["meta"]['number']
-                # ]
-                # if len(filter_changed) > 0:
-                #     item_new = filter_changed[0]["new"]
-                #     item_old = filter_changed[0]["old"]
-                # if item_new != item_old:
-                # item.setBackground(self.cyan)
-                self.table_main.setItem(j, i + 6, item)
+        # * Cập nhật dữ liệu từ thong_data
+        for i, thong_row in enumerate(thong_data):
+            for j, cell_value in enumerate(thong_row):
+                item = create_table_item(cell_value)
+                self.table_main.setItem(j, i + 4, item)
+
+        # Xóa màu click
         self.delete_color_click()
+        print('Done upload Row')
 
     def delete_all_rows(self):
         rowCount = len(self.thong_data[0])
-        stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
         data_value = self.thong_db["data"]
+        stt = self.thong_db["stt"][self.ban_info["meta"]['number']]
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
         self.table_main.setRowCount(0)
         self.table_main.setRowCount(rowCount)
+
+        for i in range(len(data_value)):
+            value_col = data_value[i]
+            for j in range(len(value_col)):
+                item = QTableWidgetItem(f"{value_col[j]}")
+                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table_main.setItem(j, i, item)
+                if i == 0 or i == 2:
+                    item.setBackground(self.stt_highlight)
+
+        # * Render Rows STT First
+        for i in range(rowCount):
+            stt_value = stt[i]
+            item = QTableWidgetItem(
+                f"{stt_value}{self.word[i - 100] if  0 <= i - 100 < 26 else ''}"
+            )
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            item.setBackground(self.color_col_stt)
+            item.setBackground(self.stt_highlight)
+            self.table_main.setVerticalHeaderItem(i, item)
+
+        self.show_loading_screen()
+        self.thread = Thread()
+        self.thread.task_completed.connect(lambda: self.updateWidget([]))
+        self.thread.task_completed.connect(
+            lambda: SendMessage("Bạn đã xóa toàn bộ dữ liệu thành công")
+        )
+        self.thread.start()
+    
+    def delete_all_row_custom(self):
+        data_value = self.thong_db["data"]
+        isEditor = self.table_main.editTriggers()
+        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
+            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            self.HandlerData.setText("Tắt Tùy Chỉnh")
 
         for i in range(len(self.thong_data)):
             for j in range(len(self.thong_data[i])):
@@ -660,22 +680,8 @@ class ThongPage(QWidget):
         for i in range(len(data_value)):
             value_col = data_value[i]
             for j in range(len(value_col)):
-                item = QTableWidgetItem(f"{value_col[j]}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setItem(j, i + 2, item)
-                if i + 2 == 2 or i + 2 == 4:
-                    item.setBackground(self.stt_highlight)
-
-        # * Render Rows STT First
-        for i in range(rowCount):
-            zero_value = f"{i}" if i > 9 else f"0{i}"
-            item_zero = QTableWidgetItem(f"{zero_value}")
-            item_zero.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i, 0, item_zero)
-
-            item = QTableWidgetItem(f"{stt[i]}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i, 1, item)
+                item = self.table_main.item(j, i)
+                item.setText(value_col[j])
 
         self.show_loading_screen()
         self.thread = Thread()
@@ -708,7 +714,7 @@ class ThongPage(QWidget):
         self.show_loading_screen()
         self.thread = Thread()
         self.thread.task_completed.connect(
-            lambda: self.updateWidget([self.updateRowAndColumns])
+            lambda: self.updateWidget([])
         )
         self.thread.task_completed.connect(
             lambda: SendMessage("Bạn đã lưu DL gốc thành công")
@@ -751,7 +757,16 @@ class ThongPage(QWidget):
         data["setting"] = self.thong_db["setting"]
 
         msg = saveThong(data)
-        SendMessage(msg)
+
+        self.show_loading_screen()
+        self.thread = Thread()
+        self.thread.task_completed.connect(
+            lambda: self.updateWidget([])
+        )
+        self.thread.task_completed.connect(
+            lambda: SendMessage(msg)
+        )
+        self.thread.start()
 
     def swapThongRow(self):
         # / Check isEditor
@@ -822,8 +837,8 @@ class ThongPage(QWidget):
         #     SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
         #     return
         for row in data_select:
-            for i in range(5, self.table_main.columnCount()):
-                self.thong_data[i - 6][row] = ""
+            for i in range(4, self.table_main.columnCount()):
+                self.thong_data[i - 4][row] = ""
         # self.updateHeaderRow()
 
         self.show_loading_screen()
@@ -937,7 +952,7 @@ class ThongPage(QWidget):
 
     def button_show_abc(self):
         if self.isShow:
-            self.hidden.setText("Hiện ABC Gốc")
+            self.hidden.setText("Hiện ABCD Gốc")
             self.isShow = False
             self.show_loading_screen()
             self.thread = Thread()
@@ -946,7 +961,7 @@ class ThongPage(QWidget):
             )
             self.thread.start()
         else:
-            self.hidden.setText("Ẩn ABC Gốc")
+            self.hidden.setText("Ẩn ABCD Gốc")
             self.isShow = True
             self.show_loading_screen()
             self.thread = Thread()

@@ -35,6 +35,7 @@ class NgangPage(QWidget):
     def __init__(self):
         super().__init__()
         self.path = Path()
+        self.current_dir = self.path.current_dir
         
         self.layout_ngang = QVBoxLayout(self)
         self.setWindowTitle(
@@ -58,6 +59,9 @@ class NgangPage(QWidget):
             self.bans_db = json.load(file)
 
         self.ban_info = self.bans_db
+            
+        with open(os.path.join(self.current_dir, "db", 'stay.json'), "r") as file:
+            self.stay = json.load(file)
 
         # / Config STT
         self.ngang_info = None
@@ -86,10 +90,10 @@ class NgangPage(QWidget):
         ban_thong_name = ban_info["thong"]["name"]
 
         self.name = convert_string_format(ban_thong_name)
-        co_so = change_number if change_number != 0 else "Gốc"
+        co_so = change_number if change_number != 0 else "gốc"
         title_text = (
             f"Trạng Thái Bảng Tính: C{ban_col[0]} đến C{ban_col[1]} / T{ban_thong_value[0]} đến "
-            + f"T{ban_thong_value[1]} /  Cơ: {co_so} / "
+            + f"T{ban_thong_value[1]} /  Cơ {co_so} / "
             + f"Số dòng: {row_count}/{max_row}"
         )
         title = QLabel(title_text)
@@ -104,8 +108,18 @@ class NgangPage(QWidget):
 
         self.layout_ngang.addWidget(title)
 
+        current_number = self.stay.get('ngang', 0)
+        if current_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            current_number = current_ban_info_number
         # / Note
-        self.note = QLabel("")
+        if current_number != 0:
+           current_number -= 1
+        else:
+            current_number = 10
+        note = Note[current_number]
+        note_name = current_number if change_number != 0 else "gốc"
+        self.note = QLabel(f"Cơ {note_name} - {note}")
         self.note.setFont(self.font)
         self.layout_ngang.addWidget(self.note)
 
@@ -123,8 +137,7 @@ class NgangPage(QWidget):
         self.layout_ngang.addWidget(button_Wid_main)
 
         # / Render Component
-        defult_number = self.ban_info["meta"]['number']
-        self.changeDataNgangWithNumber(defult_number)
+        self.changeDataNgangWithNumber(current_number)
         self.renderButton()
         self.renderTable()
 
@@ -238,7 +251,8 @@ class NgangPage(QWidget):
                 self.note.setText(f"Cơ {value} - {note}")
                 self.note.setScaledContents(True)
             else:
-                self.note.setText("")
+                note = Note[10]
+                self.note.setText(f"Cơ gốc - {note}")
                 self.note.setScaledContents(False)
 
         def changeTypeCount():
@@ -322,7 +336,11 @@ class NgangPage(QWidget):
         skipToMind.clicked.connect(skip_to_mid)
 
         # Default value
-        self.Change_number.setCurrentIndex(self.ban_info["meta"]['number'])
+        current_number = self.stay.get('ngang', 0)
+        if current_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            current_number = current_ban_info_number
+        self.Change_number.setCurrentIndex(current_number)
 
     def renderTable(self):
         data = self.ngang_data
@@ -335,20 +353,13 @@ class NgangPage(QWidget):
         self.widget_main.addWidget(self.table_main)
 
         # TODO Config table
-        self.table_main.setColumnCount(colCount + 1)  # / Add STT into col
+        self.table_main.setColumnCount(colCount)  # / Add STT into col
 
         # / Render Rows
         self.updateRows()
         # TODO Render Header Table
-        for i in range(colCount):
-            if i == 0:
-                item = QTableWidgetItem(f"STT")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main.setHorizontalHeaderItem(i, item)
-
-            item = QTableWidgetItem(f"C.{i+1}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setHorizontalHeaderItem(i + 1, item)
+        header_lables = [f"C.{i+1}" for i in range(colCount)]
+        self.table_main.setHorizontalHeaderLabels(header_lables)
 
         # TODO Add Font
         self.table_main.setFont(self.font)
@@ -373,34 +384,27 @@ class NgangPage(QWidget):
 
         # TODO Freeze Col STT Table
 
-        self.table_main.horizontalScrollBar().valueChanged.connect(self.freeze_col_stt)
+        # self.table_main.horizontalScrollBar().valueChanged.connect(self.freeze_col_stt)
 
         self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
         self.table_main.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
 
         def selectedRow():
+            # Lấy các hàng được chọn từ các mục được chọn
             selected_items = self.table_main.selectedItems()
-            if selected_items:
-                for item in selected_items:
-                    self.selected_row_indices = item.row()
+            self.selected_row_indices = {item.row() for item in selected_items} if selected_items else set()
 
+            # Lấy chỉ số của các mục được chọn
             selected_indexes = self.table_main.selectedIndexes()
             if selected_indexes:
-                # / Find is first selected item
+                # Xác định hàng hiện tại được chọn
                 current_selected_row = selected_indexes[0].row()
-                if (
-                    self.prev_selected_row is None
-                    or current_selected_row != self.prev_selected_row
-                ):
+                if current_selected_row != getattr(self, 'prev_selected_row', None):
                     self.prev_selected_row = current_selected_row
 
-                # / get all selelected items
-                selected_rows = set()
-                for i in range(len(selected_indexes)):
-                    rows = selected_indexes[i].row()
-                    selected_rows.add(rows)
-                self.current_select = list(selected_rows)
+                # Lưu danh sách các hàng được chọn
+                self.current_select = list({index.row() for index in selected_indexes})
 
         def changeValue(row, column):
             isEdit = self.table_main.editTriggers()
@@ -413,14 +417,14 @@ class NgangPage(QWidget):
                         item
                         for item in self.ngang_info["change"]
                         if item["row"] != row
-                        and item["column"] != column - 1
+                        and item["column"] != column
                         and item["number"] != self.ban_info["meta"]['number']
                     ]
                     filter_data = [
                         item
                         for item in self.ngang_info["change"]
                         if item["row"] == row
-                        and item["column"] == column - 1
+                        and item["column"] == column
                         and item["number"] == self.ban_info["meta"]['number']
                     ]
                     if len(filter_data) > 0:
@@ -434,20 +438,24 @@ class NgangPage(QWidget):
                         self.ngang_info["change"].append(
                             {
                                 "row": row,
-                                "column": column - 1,
+                                "column": column,
                                 "number": self.ban_info["meta"]['number'],
                                 "new": item.text(),
-                                "old": self.ngang_data[row][column - 1],
+                                "old": self.ngang_data[row][column],
                             }
                         )
                         item.setBackground(self.cyan)
-                    self.ngang_data[row][column - 1] = item.text()
+                    self.ngang_data[row][column] = item.text()
 
         self.table_main.itemSelectionChanged.connect(selectedRow)
         self.table_main.cellChanged.connect(changeValue)
 
     def save_stay(self, value):
         self.ban_info["meta"]['number'] = int(value)
+        self.stay['ngang'] = int(value)
+        with open(os.path.join(self.current_dir, "db", 'stay.json'), "w") as file:
+            json.dump(self.stay, file)
+    
     # TODO Handler Events
     def delete_color_click(self):
         self.table_main.clearSelection()
@@ -514,37 +522,34 @@ class NgangPage(QWidget):
         if self.table_main is None:
             return
         self.table_main.clearSelection()
+        meta_number = self.stay.get('ngang', 0)
+        if meta_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            meta_number = current_ban_info_number
         data = self.ngang_data
-        stt = self.stt_ngang[self.ban_info["meta"]['number']]
-        colCount = len(data[0])
         rowCount = len(data[:35])
         self.table_main.setRowCount(0)
+        # Thiết lập số hàng
         self.table_main.setRowCount(rowCount)
 
-        # TODO Render Rows
+        # TODO: Render Rows
         for i in range(rowCount):
-            stt_value = stt[i]
-            item_stt = QTableWidgetItem(f"{stt_value}")
-            item_stt.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i, 0, item_stt)
-            for j in range(colCount):
-                value = data[i][j]
+            # Thêm giá trị từng cột
+            for j, value in enumerate(data[i]):
                 item = QTableWidgetItem(f"{value}")
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                filter_changed = [
-                    item
-                    for item in self.ngang_info["change"]
-                    if item["row"] == i
-                    and item["column"] == j
-                    and item["number"] == self.ban_info["meta"]['number']
-                ]
-                if len(filter_changed) > 0:
-                    item_new = filter_changed[0]["new"]
-                    item_old = filter_changed[0]["old"]
-                    if item_new != item_old:
-                        item.setBackground(self.cyan)
-                self.table_main.setItem(i, j + 1, item)
-        self.delete_color_click()
+
+                # Kiểm tra thay đổi
+                change_info = next(
+                    (change for change in self.ngang_info["change"]
+                    if change["row"] == i and change["column"] == j and change["number"] == meta_number),
+                    None
+                )
+                if change_info and change_info["new"] != change_info["old"]:
+                    item.setBackground(self.cyan)
+
+                # Đặt vào bảng
+                self.table_main.setItem(i, j, item)
 
     def backUpNgang(self):
         data = {}
