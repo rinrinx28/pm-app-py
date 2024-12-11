@@ -15,7 +15,7 @@ from PySide6.QtGui import Qt, QCursor, QColor, QIcon
 from Pages.components.stylesheet import (
     css_button_cancel,
     css_button_submit,
-    css_input,
+    css_button_start,
     Font,
     Note,
     SendMessage,
@@ -137,7 +137,7 @@ class NgangPage(QWidget):
         self.layout_ngang.addWidget(button_Wid_main)
 
         # / Render Component
-        self.changeDataNgangWithNumber(current_number)
+        self.changeDataNgangWithNumber(self.stay.get('ngang', 0))   
         self.renderButton()
         self.renderTable()
 
@@ -152,7 +152,7 @@ class NgangPage(QWidget):
         widget_button_first_layout = QHBoxLayout(widget_button_first)
         # / Back to first row
         backToFirst = QPushButton("Về Cột Đầu")
-        backToFirst.setStyleSheet(css_button_submit)
+        backToFirst.setStyleSheet(css_button_start)
         backToFirst.setCursor(QCursor(Qt.PointingHandCursor))
         widget_button_first_layout.addWidget(backToFirst)
 
@@ -171,7 +171,7 @@ class NgangPage(QWidget):
 
         # / Skip to mid row
         skipToMind = QPushButton("Về Cột Giữa")
-        skipToMind.setStyleSheet(css_button_submit)
+        skipToMind.setStyleSheet(css_button_start)
         skipToMind.setCursor(QCursor(Qt.PointingHandCursor))
         widget_button_first_layout.addWidget(skipToMind)
 
@@ -195,7 +195,7 @@ class NgangPage(QWidget):
 
         # / Skip to end row
         skipToEnd = QPushButton("Về Cột Cuối")
-        skipToEnd.setStyleSheet(css_button_submit)
+        skipToEnd.setStyleSheet(css_button_start)
         skipToEnd.setCursor(QCursor(Qt.PointingHandCursor))
         widget_button_first_layout.addWidget(skipToEnd)
 
@@ -411,41 +411,41 @@ class NgangPage(QWidget):
             if isEdit == QTableWidget.EditTrigger.NoEditTriggers:
                 return
             else:
-                if column > 0:
-                    item = self.table_main.item(row, column)
-                    filter_db = [
-                        item
-                        for item in self.ngang_info["change"]
-                        if item["row"] != row
-                        and item["column"] != column
-                        and item["number"] != self.ban_info["meta"]['number']
-                    ]
-                    filter_data = [
-                        item
-                        for item in self.ngang_info["change"]
-                        if item["row"] == row
-                        and item["column"] == column
-                        and item["number"] == self.ban_info["meta"]['number']
-                    ]
-                    if len(filter_data) > 0:
-                        filter_data[0]["new"] = item.text()
-                        self.ngang_info["change"] = filter_db + filter_data
-                        if filter_data[0]["new"] != filter_data[0]["old"]:
-                            item.setBackground(self.cyan)
-                        else:
-                            item.setBackground(self.normal)
-                    else:
-                        self.ngang_info["change"].append(
-                            {
-                                "row": row,
-                                "column": column,
-                                "number": self.ban_info["meta"]['number'],
-                                "new": item.text(),
-                                "old": self.ngang_data[row][column],
-                            }
-                        )
+                item = self.table_main.item(row, column)
+                filter_db = [
+                    item
+                    for item in self.ngang_info["change"]
+                    if item["row"] != row
+                    and item["column"] != column
+                    and item["number"] != self.ban_info["meta"]['number']
+                ]
+                filter_data = [
+                    item
+                    for item in self.ngang_info["change"]
+                    if item["row"] == row
+                    and item["column"] == column
+                    and item["number"] == self.ban_info["meta"]['number']
+                ]
+                if len(filter_data) > 0:
+                    filter_data[0]["new"] = item.text()
+                    self.ngang_info["change"] = filter_db + filter_data
+                    if filter_data[0]["new"] != filter_data[0]["old"]:
                         item.setBackground(self.cyan)
-                    self.ngang_data[row][column] = item.text()
+                    else:
+                        item.setBackground(self.normal)
+                else:
+                    self.ngang_info["change"].append(
+                        {
+                            "row": row,
+                            "column": column,
+                            "number": self.ban_info["meta"]['number'],
+                            "new": item.text(),
+                            "old": self.ngang_data[row][column],
+                        }
+                    )
+                    item.setBackground(self.cyan)
+                self.ngang_data[row][column] = item.text()
+                    
 
         self.table_main.itemSelectionChanged.connect(selectedRow)
         self.table_main.cellChanged.connect(changeValue)
@@ -570,7 +570,7 @@ class NgangPage(QWidget):
     def saveRowNgang(self):
         data = {}
         data["update"] = self.ngang_data
-        data["number"] = self.ban_info["meta"]['number']
+        data["number"] = self.Change_number.currentIndex()
         data["stt"] = self.stt_ngang
         data["change"] = self.ngang_info["change"]
         saveNgang(data)
@@ -579,20 +579,14 @@ class NgangPage(QWidget):
 
     def delete_all_row(self):
         rowCount = len(self.ngang_data)
-        stt = self.stt_ngang[self.ban_info["meta"]['number']]
         isEditor = self.table_main.editTriggers()
         if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
             self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
 
-        self.table_main.setRowCount(0)
-        self.table_main.setRowCount(rowCount)
-
-        # * Render Rows STT First
-        for i in range(rowCount):
-            item = QTableWidgetItem(f"{stt[i]}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_main.setItem(i, 0, item)
+        # self.table_main.setRowCount(0)
+        # self.table_main.setRowCount(rowCount)
+        self.table_main.clearContents()
 
         self.show_loading_screen()
         self.thread = Thread()
@@ -607,12 +601,13 @@ class NgangPage(QWidget):
             self.HandlerData.setText("Tắt Tùy Chỉnh")
 
         # / Find Select Row
-        data_select = self.selected_row_indices
-        if data_select == -1:
+        data_select = list(self.selected_row_indices)
+        if len(data_select) == -1:
             SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
             return
-        for i in range(len(self.ngang_data[data_select])):
-            self.ngang_data[data_select][i] = ""
+        for row in data_select:
+            for i in range(len(self.ngang_data[row])):
+                self.ngang_data[row][i] = ""
 
         SendMessage("Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại")
 

@@ -864,10 +864,11 @@ def typeWithRecipe(data):
     setting = data["setting"]
     # stt = data['stt']
     update = data["update"]
-    col = len(update[0])
+    col = 600
     line = f"{row:02}"
     # / Create new Rowstep = 0
     step = 0
+    print(col)
     if setting == 1:
         for i in range(0, col, 60):
             if i == 0:

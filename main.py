@@ -206,18 +206,25 @@ class AppSelectionDialog(QDialog):
         toggle_layout = QHBoxLayout()
 
         # "Show/Hide All" Button
-        self.show_all_button = QPushButton("Ẩn Hiện Tất Cả App")
-        self.show_all_button.setCheckable(True)
-        self.show_all_button.clicked.connect(self.toggle_all_buttons)
-        self.show_all_button.setCursor(QCursor(Qt.PointingHandCursor))
-        toggle_layout.addWidget(self.show_all_button)
+        # self.show_all_button = QPushButton("Ẩn Hiện Tất Cả App")
+        # self.show_all_button.setCheckable(True)
+        # self.show_all_button.clicked.connect(self.toggle_all_buttons)
+        # self.show_all_button.setCursor(QCursor(Qt.PointingHandCursor))
+        # toggle_layout.addWidget(self.show_all_button)
 
         # "Show/Hide Recently Opened" Button
-        self.show_recent_button = QPushButton("Ẩn Hiện App đã mở gần đây")
-        self.show_recent_button.setCheckable(True)
-        self.show_recent_button.clicked.connect(self.toggle_recent_buttons)
-        self.show_recent_button.setCursor(QCursor(Qt.PointingHandCursor))
-        toggle_layout.addWidget(self.show_recent_button)
+        # self.show_recent_button = QPushButton("Ẩn Hiện App đã mở gần đây")
+        # self.show_recent_button.setCheckable(True)
+        # self.show_recent_button.clicked.connect(self.toggle_recent_buttons)
+        # self.show_recent_button.setCursor(QCursor(Qt.PointingHandCursor))
+        # toggle_layout.addWidget(self.show_recent_button)
+
+        # Confirm button
+        self.confirm_button = QPushButton("Khởi Chạy")
+        self.confirm_button.setStyleSheet(css_button_submit)
+        self.confirm_button.clicked.connect(self.confirm_selection)
+        self.confirm_button.setCursor(QCursor(Qt.PointingHandCursor))
+        toggle_layout.addWidget(self.confirm_button)
 
         # Change pwd button
         self.change_pwd_btn = QPushButton("Đổi Mật Khẩu")
@@ -228,14 +235,7 @@ class AppSelectionDialog(QDialog):
         # Add the horizontal toggle layout to the main layout
         self.layout_dialog.addLayout(toggle_layout)
 
-        self.style_toggle_buttons()
-
-        # Confirm button
-        self.confirm_button = QPushButton("Khởi Chạy")
-        self.confirm_button.setStyleSheet(css_button_submit)
-        self.confirm_button.clicked.connect(self.confirm_selection)
-        self.confirm_button.setCursor(QCursor(Qt.PointingHandCursor))
-        self.layout_dialog.addWidget(self.confirm_button)
+        # self.style_toggle_buttons()
 
         # Track the selected app
         self.selected_app_index = None
@@ -283,8 +283,8 @@ class AppSelectionDialog(QDialog):
     
     def show_app_controll(self, isShow):
         self.button_container.setHidden(isShow)
-        self.show_all_button.setHidden(isShow)
-        self.show_recent_button.setHidden(isShow)
+        # self.show_all_button.setHidden(isShow)
+        # self.show_recent_button.setHidden(isShow)
         self.confirm_button.setHidden(isShow)
         self.label.setHidden(isShow)
         self.change_pwd_btn.setHidden(isShow)
@@ -309,8 +309,8 @@ class AppSelectionDialog(QDialog):
                 color: #E8F5E9;
             }
         """
-        self.show_all_button.setStyleSheet(button_style)
-        self.show_recent_button.setStyleSheet(button_style)
+        # self.show_all_button.setStyleSheet(button_style)
+        # self.show_recent_button.setStyleSheet(button_style)
 
     def create_button_click_handler(self, index):
         def handle_click():

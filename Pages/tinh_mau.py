@@ -56,7 +56,7 @@ from Pages.components.stylesheet import (
     css_input,
     css_lable,
     css_table_header,
-    css_title,
+    css_title,css_button_start
 )
 from time import sleep
 
@@ -297,7 +297,7 @@ class TinhAndMauPage(QWidget):
         # / Create a widget to contain the buttons 2
         buttons_container_2 = QWidget()
         buttons_container_2.setMaximumHeight(100)
-        buttons_layout_2 = QHBoxLayout(buttons_container_2)
+        buttons_layout_2 = QGridLayout(buttons_container_2)
         buttons_layout_2.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # / Create a scroll area and set its widget to the buttons container 2
@@ -385,7 +385,12 @@ class TinhAndMauPage(QWidget):
                 btn = QPushButton(btn_label)
                 btn.setStyleSheet(css_button_notice)
                 btn.setCursor(Qt.PointingHandCursor)
-                buttons_layout_2.addWidget(btn)
+                if label < 10:
+                    buttons_layout_2.addWidget(btn, 0, label)
+                else:
+                    buttons_layout_2.addWidget(btn, 1, label - 10)
+
+                    
                 self.addNoticeView(btn, f"{btn_label}_{type}", isColor)
                 btn.clicked.connect(
                     partial(self.handleButtonClick, f"{btn_label}_{type}")
@@ -411,7 +416,10 @@ class TinhAndMauPage(QWidget):
                 btn.setFixedWidth(60)
                 btn.setStyleSheet(css_button_normal)
                 btn.setCursor(Qt.PointingHandCursor)
-                buttons_layout_2.addWidget(btn)
+                if label < 10:
+                    buttons_layout_2.addWidget(btn, 0, label)
+                else:
+                    buttons_layout_2.addWidget(btn, 1, label - 10)
 
         # / reRender Data Analysis Color D
         value_input = self.analysis_data
@@ -542,7 +550,7 @@ class TinhAndMauPage(QWidget):
         return (
             f"{self.current_table}: {name} ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} **  Cơ: {co_so} ** "
-            + f"Số dòng: {row_count}/{max_row}\nThống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))}Toán màu: {list_table_color[0]} đến {list_table_color[-1]}"
+            + f"Số dòng: {row_count}/{max_row} ** Thống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))}Toán màu: {list_table_color[0]} đến {list_table_color[-1]}"
         )
 
     # / Update function for horizontal scrollbar value change
@@ -735,7 +743,7 @@ class TinhAndMauPage(QWidget):
 
         # / Back to first row
         backToFirst = QPushButton("Về Cột Đầu")
-        backToFirst.setStyleSheet(css_button_submit)
+        backToFirst.setStyleSheet(css_button_start)
         backToFirst.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(backToFirst)
 
@@ -754,7 +762,7 @@ class TinhAndMauPage(QWidget):
 
         # / Skip to mid row
         skipToMind = QPushButton("Về Cột Giữa")
-        skipToMind.setStyleSheet(css_button_submit)
+        skipToMind.setStyleSheet(css_button_start)
         skipToMind.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(skipToMind)
 
@@ -778,7 +786,7 @@ class TinhAndMauPage(QWidget):
 
         # / Skip to end row
         skipToEnd = QPushButton("Về Cột Cuối")
-        skipToEnd.setStyleSheet(css_button_submit)
+        skipToEnd.setStyleSheet(css_button_start)
         skipToEnd.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(skipToEnd)
 
@@ -2973,16 +2981,21 @@ class TinhAndMauPage(QWidget):
         exit = QPushButton("Thoát")
         exit.setCursor(QCursor(Qt.PointingHandCursor))
         exit.setStyleSheet(css_button_cancel)
-        # exit.setFixedWidth(60)
+        exit.setFixedWidth(100)
+        
+        insert_from_l.addWidget(submit, 5, 1)
 
-        label_submit = QLabel()
-        label_exit = QLabel()
-        # label_exit.setFixedHeight(220)
+        # Widget Exit
+        exit_widget = QWidget()
+        exit_layout = QHBoxLayout(exit_widget)
+        insert_l.addWidget(exit_widget)
 
-        insert_from_l.addWidget(label_submit, 6, 1)
-        insert_from_l.addWidget(submit, 7, 1)
-        insert_from_l.addWidget(label_exit, 8, 1)
-        insert_from_l.addWidget(exit, 9, 0)
+        # Spacer
+        horizontalSpacer = QSpacerItem(
+            40, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
+        exit_layout.addItem(horizontalSpacer)
+        exit_layout.addWidget(exit, Qt.AlignmentFlag.AlignRight)
 
         # / Config Data
         old_data = self.ban_info["data"][-1] if len(self.ban_info["data"]) > 0 else None
@@ -3307,7 +3320,18 @@ class TinhAndMauPage(QWidget):
         exit.setStyleSheet(css_button_cancel)
         exit.setFixedWidth(150)
         exit.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        insert_from_l_2.addWidget(exit)
+        
+        # Widget Exit
+        exit_widget = QWidget()
+        exit_layout = QHBoxLayout(exit_widget)
+        insert_l.addWidget(exit_widget)
+
+        # Spacer
+        horizontalSpacer = QSpacerItem(
+            40, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
+        exit_layout.addItem(horizontalSpacer)
+        exit_layout.addWidget(exit, Qt.AlignmentFlag.AlignRight)
 
         # TODO Set Default for insert
         # TODO Handler Button exit
@@ -3372,9 +3396,6 @@ class TinhAndMauPage(QWidget):
             if self.widget_main.currentWidget() != self.table_main_count:
                 self.widget_main.setCurrentWidget(self.table_main_count)
             self.ban_info = msg["data"]
-            # self.reload_widget()
-            # sleep(0.5)
-            # self.questionInsertDate()
             self.show_loading_screen()
             self.thread = Thread()
             self.thread.task_completed.connect(
@@ -8157,10 +8178,10 @@ class TinhAndMauPage(QWidget):
         self.handlerData()
         self.renderNavigation()
         self.updateTableCount()
-        # for i in range(10):
-        #     data = self.ban_info["meta"]["tables"][i]
-        #     if data["enable"]:
-        #         self.start_render_tables_row(i)
+        for i in range(10):
+            data = self.ban_info["meta"]["tables"][i]
+            if data["enable"]:
+                self.start_render_tables_row(i)
 
     def find_row_thong_with_col_a(self, col_a, thong_data):
         for i in range(len(thong_data)):
@@ -9472,25 +9493,35 @@ class TinhAndMauPage(QWidget):
     def start_render_tables_row(self, index):
         match index:
             case 0:
-                self.updateTableColor()
+                if self.table_main_color:
+                    self.updateTableColor()
             case 1:
-                self.updateTableColorM2()
+                if self.table_main_colorM2:
+                    self.updateTableColorM2()
             case 2:
-                self.updateTableColorM3()
+                if self.table_main_colorM3:
+                    self.updateTableColorM3()
             case 3:
-                self.updateTableColorM4()
+                if self.table_main_colorM4:
+                    self.updateTableColorM4()
             case 4:
-                self.updateTableColorM5()
+                if self.table_main_colorM5:
+                    self.updateTableColorM5()
             case 5:
-                self.updateTableColorM6()
+                if self.table_main_colorM6 :
+                    self.updateTableColorM6 ()
             case 6:
-                self.updateTableColorM7()
+                if self.table_main_colorM7:
+                    self.updateTableColorM7()
             case 7:
-                self.updateTableColorM8()
+                if self.table_main_colorM8:
+                    self.updateTableColorM8()
             case 8:
-                self.updateTableColorM9()
+                if self.table_main_colorM9:
+                    self.updateTableColorM9()
             case 9:
-                self.updateTableColorM10()
+                if self.table_main_colorM10:
+                    self.updateTableColorM10()
             case _:
                 pass
 

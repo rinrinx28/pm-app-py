@@ -24,7 +24,7 @@ from Pages.components.stylesheet import (
     Note,
     css_lable,
     SendMessage,
-    css_title,
+    css_title,css_button_start
 )
 import json
 from Controller.handler import (
@@ -281,7 +281,7 @@ class ThongPage(QWidget):
         # TODO Line 1
         # / Back to first row
         backToFirst = QPushButton("Về Cột Đầu")
-        backToFirst.setStyleSheet(css_button_submit)
+        backToFirst.setStyleSheet(css_button_start)
         backToFirst.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(backToFirst, 0, 0)
         # / Create MathCount
@@ -299,7 +299,7 @@ class ThongPage(QWidget):
 
         # / Skip to mid row
         skipToMind = QPushButton("Về Cột Giữa")
-        skipToMind.setStyleSheet(css_button_submit)
+        skipToMind.setStyleSheet(css_button_start)
         skipToMind.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(skipToMind, 0, 3)
 
@@ -332,7 +332,7 @@ class ThongPage(QWidget):
 
         # / Skip to end row
         skipToEnd = QPushButton("Về Cột Cuối")
-        skipToEnd.setStyleSheet(css_button_submit)
+        skipToEnd.setStyleSheet(css_button_start)
         skipToEnd.setCursor(QCursor(Qt.PointingHandCursor))
         layout.addWidget(skipToEnd, 0, 8)
 
@@ -570,7 +570,23 @@ class ThongPage(QWidget):
         
         header_labels = ["A", "B", "C", "D"] + [f"T.{i + 1}" for i in range(colCount)]
         self.table_main.setHorizontalHeaderLabels(header_labels)
-        print('Done upload Col')
+
+        setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
+        if setting == 1:
+            for i in range(0, colCount, 60):
+                for k in range(60):
+                    if k == 0:
+                        item = self.table_main.horizontalHeaderItem(i + k + 4)
+                        item.setBackground(QColor("#ffd867"))
+                    elif k == 1:
+                        item = self.table_main.horizontalHeaderItem(i + k + 4)
+                        item.setBackground(QColor("#ffd867"))
+        else:
+            for i in range(0, colCount, 10):
+                for k in range(10):
+                    if k == 0:
+                        item = self.table_main.horizontalHeaderItem(i + k + 4)
+                        item.setBackground(QColor("#ffd867"))
 
     def updateRowAndColumns(self):
         if self.table_main is None:
@@ -622,6 +638,28 @@ class ThongPage(QWidget):
             for j, cell_value in enumerate(thong_row):
                 item = create_table_item(cell_value)
                 self.table_main.setItem(j, i + 4, item)
+
+        
+        # * To mau du lieu
+        setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
+        if setting == 1:
+            for i in range(0, 600, 60):
+                for k in range(60):
+                    if k == 0:
+                        for r in range(row_count):
+                            item = self.table_main.item(r, i + k + 4)
+                            item.setBackground(QColor("#ffd867"))
+                    elif k == 1:
+                        for r in range(row_count):
+                            item = self.table_main.item(r, i + k + 4)
+                            item.setBackground(QColor("#ffd867"))
+        else:
+            for i in range(0, 600, 10):
+                for k in range(10):
+                    if k == 0:
+                        for r in range(row_count):
+                            item = self.table_main.item(r, i + k + 4)
+                            item.setBackground(QColor("#ffd867"))
 
         # Xóa màu click
         self.delete_color_click()
