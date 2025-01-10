@@ -296,17 +296,8 @@ class TinhAndMauPage(QWidget):
 
         # / Create a widget to contain the buttons 2
         buttons_container_2 = QWidget()
-        buttons_container_2.setMaximumHeight(100)
+        buttons_container_2.setMaximumHeight(155)
         buttons_layout_2 = QGridLayout(buttons_container_2)
-        buttons_layout_2.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        # / Create a scroll area and set its widget to the buttons container 2
-        self.scroll_area_2 = QScrollArea()
-        self.scroll_area_2.setFrameStyle(QFrame.NoFrame)
-        self.scroll_area_2.setWidgetResizable(True)
-        self.scroll_area_2.setWidget(buttons_container_2)
-
-        self.navbar_layout.addWidget(self.scroll_area_2)
 
         data_color = None
         if type == "m1":
@@ -385,10 +376,12 @@ class TinhAndMauPage(QWidget):
                 btn = QPushButton(btn_label)
                 btn.setStyleSheet(css_button_notice)
                 btn.setCursor(Qt.PointingHandCursor)
-                if label < 10:
+                if label < 7:
                     buttons_layout_2.addWidget(btn, 0, label)
-                else:
-                    buttons_layout_2.addWidget(btn, 1, label - 10)
+                if 7 <= label < 14:
+                    buttons_layout_2.addWidget(btn, 1, label - 7)
+                if 14 <= label < 21:
+                    buttons_layout_2.addWidget(btn, 2, label - 14)
 
                     
                 self.addNoticeView(btn, f"{btn_label}_{type}", isColor)
@@ -416,10 +409,21 @@ class TinhAndMauPage(QWidget):
                 btn.setFixedWidth(60)
                 btn.setStyleSheet(css_button_normal)
                 btn.setCursor(Qt.PointingHandCursor)
-                if label < 10:
+                if label < 7:
                     buttons_layout_2.addWidget(btn, 0, label)
-                else:
-                    buttons_layout_2.addWidget(btn, 1, label - 10)
+                if 7 <= label < 14:
+                    buttons_layout_2.addWidget(btn, 1, label - 7)
+                if 14 <= label < 21:
+                    buttons_layout_2.addWidget(btn, 2, label - 14)
+        
+
+        # / Create a scroll area and set its widget to the buttons container 2
+        self.scroll_area_2 = QScrollArea()
+        self.scroll_area_2.setFrameStyle(QFrame.NoFrame)
+        self.scroll_area_2.setWidgetResizable(True)
+        self.scroll_area_2.setWidget(buttons_container_2)
+
+        self.navbar_layout.addWidget(self.scroll_area_2)
 
         # / reRender Data Analysis Color D
         value_input = self.analysis_data
@@ -550,7 +554,7 @@ class TinhAndMauPage(QWidget):
         return (
             f"{self.current_table}: {name} ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
             + f"T{ban_thong_value[1]} **  Cơ: {co_so} ** "
-            + f"Số dòng: {row_count}/{max_row} ** Thống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))}Toán màu: {list_table_color[0]} đến {list_table_color[-1]}"
+            + f"Số dòng: {row_count}/{max_row} ** Thống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))} ** Toán màu: {list_table_color[0]} đến {list_table_color[-1]}"
         )
 
     # / Update function for horizontal scrollbar value change
@@ -766,6 +770,25 @@ class TinhAndMauPage(QWidget):
         skipToMind.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(skipToMind)
 
+        # / Bảng Màu 1
+        self.TableM1 = QPushButton("m1")
+        self.TableM1.setStyleSheet("""
+    QPushButton {
+        padding: 10px;
+        border-radius: 8px; 
+        font-size: 24px;
+        line-height: 32px;
+        font-weight: 600; 
+        color: #fff; 
+        background-color: #af9b3b;
+    } 
+    QPushButton:hover {
+        background-color: #1E40AF; 
+    }
+""")
+        self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
+        button_main_1_l.addWidget(self.TableM1)
+
         # / Setting Table
         SettingTable = QPushButton("Cài Đặt Bảng")
         SettingTable.setStyleSheet(css_button_submit)
@@ -893,12 +916,7 @@ class TinhAndMauPage(QWidget):
             if info_data["enable"]:
                 match i:
                     case 0:
-                        # / Bảng Màu 1
-                        self.TableM1 = QPushButton("m1")
-                        self.TableM1.setStyleSheet(css_button_submit)
-                        self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
-                        button_main_2_l.addWidget(self.TableM1)
-                        self.TableM1.clicked.connect(changeTableM1)
+                        pass
                     case 1:
                         # / BM 2
                         self.TableM2 = QPushButton("m2")
@@ -1095,66 +1113,66 @@ class TinhAndMauPage(QWidget):
             if self.current_table == "Bảng Tính":
                 row = self.table_scroll_count.rowCount() - 2  # Get the current row
                 col = self.table_scroll_count.columnCount() - 1  # Get the current row
-                item = self.table_scroll_count.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_count.item(row, col / 2)  # Get the first column item
                 self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
             elif self.current_table == 'Bảng màu 1':
                 row = self.table_scroll_color.rowCount() - 2  # Get the current row
                 col = self.table_scroll_color.columnCount() - 1  # Get the current row
-                item = self.table_scroll_color.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_color.item(row, col / 2)  # Get the first column item
                 self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 2':
                 row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM2.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM2.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM2.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 3':
                 row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM3.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM3.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM3.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 4':
                 row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM4.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM4.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM4.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 5':
                 row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM5.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM5.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM5.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 6':
                 row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM6.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM6.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM6.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 7':
                 row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM7.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM7.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM7.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 8':
                 row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM8.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM8.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM8.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
 
             elif self.current_table == 'Bảng màu 9':
                 row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM9.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM9.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM9.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
                 
             elif self.current_table == 'Bảng màu 10':
                 row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
                 col = self.table_scroll_colorM10.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM10.item(row, col // 2)  # Get the first column item
+                item = self.table_scroll_colorM10.item(row, col / 2)  # Get the first column item
                 self.table_scroll_colorM10.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
             else:
                 return
@@ -1167,6 +1185,7 @@ class TinhAndMauPage(QWidget):
         backToFirst.clicked.connect(back_to_first)
         skipToEnd.clicked.connect(skip_to_end)
         skipToMind.clicked.connect(skip_to_mid)
+        self.TableM1.clicked.connect(changeTableM1)
 
     # TODO Handle Table M2
 
@@ -2983,19 +3002,15 @@ class TinhAndMauPage(QWidget):
         exit.setStyleSheet(css_button_cancel)
         exit.setFixedWidth(100)
         
-        insert_from_l.addWidget(submit, 5, 1)
-
-        # Widget Exit
-        exit_widget = QWidget()
-        exit_layout = QHBoxLayout(exit_widget)
-        insert_l.addWidget(exit_widget)
-
-        # Spacer
-        horizontalSpacer = QSpacerItem(
-            40, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
-        )
-        exit_layout.addItem(horizontalSpacer)
-        exit_layout.addWidget(exit, Qt.AlignmentFlag.AlignRight)
+        submit_span = QLabel("")
+        submit_span.setFixedHeight(100)
+        insert_from_l.addWidget(submit_span, 5, 0)
+        insert_from_l.addWidget(submit, 6, 1)
+        
+        exit_span = QLabel("")
+        exit_span.setFixedHeight(150)
+        insert_from_l.addWidget(exit_span, 7, 0)
+        insert_from_l.addWidget(exit, 8, 0)
 
         # / Config Data
         old_data = self.ban_info["data"][-1] if len(self.ban_info["data"]) > 0 else None
@@ -3263,12 +3278,9 @@ class TinhAndMauPage(QWidget):
         # / Insert From
         insert_from_w_2 = QWidget()
         insert_from_l_2 = QVBoxLayout(insert_from_w_2)
-        # insert_from_l_2.setSpacing(100)
-        # insert_from_l_2.setContentsMargins(0,5,0,0)
         layout.addWidget(insert_from_w_2, 0, 1)
 
         insert_from_w = QWidget()
-        # insert_from_w.setMinimumWidth(530)
         insert_from_l = QGridLayout(insert_from_w)
         insert_from_l.setSpacing(20)
         insert_from_l_2.addWidget(insert_from_w)
@@ -3301,37 +3313,35 @@ class TinhAndMauPage(QWidget):
         insert_from_l.addWidget(insert_thong_label, 3, 0)
         insert_from_l.addWidget(insert_thong_grid_w, 3, 1)
 
-        verticalSpacer2 = QSpacerItem(
-            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
-        )
-        insert_from_l.addItem(verticalSpacer2)
-
         # / Button Insert
         submit = QPushButton("OK Toán")
         submit.setCursor(QCursor(Qt.PointingHandCursor))
         submit.setStyleSheet(css_button_submit)
         submit.setFixedWidth(300)
         submit.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        insert_from_l_2.addWidget(submit)
 
         # / Button Exit
         exit = QPushButton("Thoát")
         exit.setCursor(QCursor(Qt.PointingHandCursor))
         exit.setStyleSheet(css_button_cancel)
         exit.setFixedWidth(150)
-        exit.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        
-        # Widget Exit
-        exit_widget = QWidget()
-        exit_layout = QHBoxLayout(exit_widget)
-        insert_l.addWidget(exit_widget)
+        exit.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        # Spacer
-        horizontalSpacer = QSpacerItem(
-            40, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+
+        submit_span = QLabel("")
+        submit_span.setFixedHeight(100)
+        insert_from_l_2.addWidget(submit_span)
+        insert_from_l_2.addWidget(submit)
+
+        exit_span = QLabel("")
+        exit_span.setFixedHeight(150)
+        insert_from_l_2.addWidget(exit_span)
+        insert_from_l_2.addWidget(exit)
+
+        verticalSpacer2 = QSpacerItem(
+            20, 5, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         )
-        exit_layout.addItem(horizontalSpacer)
-        exit_layout.addWidget(exit, Qt.AlignmentFlag.AlignRight)
+        insert_from_l_2.addItem(verticalSpacer2)
 
         # TODO Set Default for insert
         # TODO Handler Button exit

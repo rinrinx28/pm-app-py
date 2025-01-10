@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
     QSpacerItem,
-    QLineEdit
+    QLineEdit,
 )
 from PySide6.QtGui import QIcon
 from PySide6.QtGui import Qt, QCursor
@@ -28,6 +28,7 @@ from Pages.components.stylesheet import (
     SendMessage,
 )
 import json
+
 # from PySide6.QtCore import QRect
 
 basedir = os.path.dirname(__file__)
@@ -127,8 +128,8 @@ class AppSelectionDialog(QDialog):
         self.widget_pwd = QWidget()
         login_layout.addWidget(self.widget_pwd)
         pwd_layout = QVBoxLayout(self.widget_pwd)
-        
-        label_pwd = QLabel('Nhập mật khẩu')
+
+        label_pwd = QLabel("Nhập mật khẩu")
         label_pwd.setStyleSheet(
             """
                 font-size: 32px;
@@ -146,11 +147,13 @@ class AppSelectionDialog(QDialog):
             """
         )
         input_pwd.setEchoMode(QLineEdit.Password)  # Set echo mode to Password
-        input_pwd.setPlaceholderText("Xin mời nhập mật khẩu")  # Optional placeholder text
+        input_pwd.setPlaceholderText(
+            "Xin mời nhập mật khẩu"
+        )  # Optional placeholder text
 
         pwd_layout.addWidget(input_pwd)
         # Button pwd Lable
-        label_btn_pwd = QPushButton('Đăng Nhập')
+        label_btn_pwd = QPushButton("Đăng Nhập")
         label_btn_pwd.setStyleSheet(css_custom_btn_pwd)
         label_btn_pwd.setCursor(QCursor(Qt.PointingHandCursor))
         pwd_layout.addWidget(label_btn_pwd)
@@ -205,20 +208,6 @@ class AppSelectionDialog(QDialog):
         # Horizontal layout for toggle buttons
         toggle_layout = QHBoxLayout()
 
-        # "Show/Hide All" Button
-        # self.show_all_button = QPushButton("Ẩn Hiện Tất Cả App")
-        # self.show_all_button.setCheckable(True)
-        # self.show_all_button.clicked.connect(self.toggle_all_buttons)
-        # self.show_all_button.setCursor(QCursor(Qt.PointingHandCursor))
-        # toggle_layout.addWidget(self.show_all_button)
-
-        # "Show/Hide Recently Opened" Button
-        # self.show_recent_button = QPushButton("Ẩn Hiện App đã mở gần đây")
-        # self.show_recent_button.setCheckable(True)
-        # self.show_recent_button.clicked.connect(self.toggle_recent_buttons)
-        # self.show_recent_button.setCursor(QCursor(Qt.PointingHandCursor))
-        # toggle_layout.addWidget(self.show_recent_button)
-
         # Confirm button
         self.confirm_button = QPushButton("Khởi Chạy")
         self.confirm_button.setStyleSheet(css_button_submit)
@@ -241,16 +230,17 @@ class AppSelectionDialog(QDialog):
         self.selected_app_index = None
 
         self.value_pwd = ""
+
         def input_pwd_value(value):
             self.value_pwd = value
-        
+
         def btn_login():
             self.login_app(self.value_pwd)
-        
+
         def show_dialog_change_pwd():
             dialog_change_pwd = ChangePwd(self)
             dialog_change_pwd.exec()
-        
+
         input_pwd.textChanged.connect(input_pwd_value)
         label_btn_pwd.clicked.connect(btn_login)
         self.change_pwd_btn.clicked.connect(show_dialog_change_pwd)
@@ -264,23 +254,23 @@ class AppSelectionDialog(QDialog):
             self.show_app_controll(True)
         self.setFocus()
         self.show()
-    
+
     def login_app(self, value):
-        pwd_path = os.path.join('C:/data_pwd',f'{self.type_pm}', 'pwd.txt')
-        with open(pwd_path, 'r') as file:
+        pwd_path = os.path.join("C:/data_pwd", f"{self.type_pm}", "pwd.txt")
+        with open(pwd_path, "r") as file:
             pwd = file.read().strip()
-            
+
         pwd = pwd if pwd != "" else "151020%"
         if pwd == value:
             for btn in self.buttons:
                 btn.setDisabled(False)
-            SendMessage('Bạn đã đăng nhập thành công')
+            SendMessage("Bạn đã đăng nhập thành công")
             self.widget_pwd.hide()
             self.isLogin = True
             self.show_app_controll(False)
         else:
-            SendMessage('Mật khẩu của bạn nhập không đúng')
-    
+            SendMessage("Mật khẩu của bạn nhập không đúng")
+
     def show_app_controll(self, isShow):
         self.button_container.setHidden(isShow)
         # self.show_all_button.setHidden(isShow)
@@ -467,6 +457,7 @@ class AppSelectionDialog(QDialog):
             self.opened_apps.clear()
         self.opened_apps.append(full_screen_app)  # Store reference to keep it alive
 
+
 class ChangePwd(QDialog):
     def __init__(self, main):
         super().__init__()
@@ -493,8 +484,8 @@ class ChangePwd(QDialog):
         self.widget_pwd_change = QWidget()
         self.layout_dialog.addWidget(self.widget_pwd_change)
         change_pwd_layout = QVBoxLayout(self.widget_pwd_change)
-        
-        label_pwd_change = QLabel('Đặt lại mật khẩu')
+
+        label_pwd_change = QLabel("Đặt lại mật khẩu")
         label_pwd_change.setStyleSheet("font-size: 16px;")
         change_pwd_layout.addWidget(label_pwd_change)
 
@@ -505,7 +496,7 @@ class ChangePwd(QDialog):
         change_pwd_layout.addWidget(input_pwd_change)
 
         # Change Password Button
-        label_btn_pwd_change = QPushButton('Đổi Mật Khẩu')
+        label_btn_pwd_change = QPushButton("Đổi Mật Khẩu")
         label_btn_pwd_change.setStyleSheet(
             """
             QPushButton {
@@ -522,24 +513,25 @@ class ChangePwd(QDialog):
         )
         label_btn_pwd_change.setCursor(QCursor(Qt.PointingHandCursor))
         change_pwd_layout.addWidget(label_btn_pwd_change)
-        
+
         def input_pwd_event(value):
             self.value_pwd = value
-        
+
         def change_pwd_btn():
             self.change_pwd(self.value_pwd)
-        
+
         input_pwd_change.textChanged.connect(input_pwd_event)
         label_btn_pwd_change.clicked.connect(change_pwd_btn)
-    
-    def change_pwd(self,value):
+
+    def change_pwd(self, value):
         print(self.main.type_pm)
-        pwd_path = os.path.join('C:/data_pwd',f'{self.main.type_pm}', 'pwd.txt')
-        with open(pwd_path, 'w') as file:
+        pwd_path = os.path.join("C:/data_pwd", f"{self.main.type_pm}", "pwd.txt")
+        with open(pwd_path, "w") as file:
             file.write(value)
-        SendMessage('Xin vui lòng đăng nhập lại!')
+        SendMessage("Xin vui lòng đăng nhập lại!")
         self.main.reject()
         self.reject()
+
 
 class FullScreenApp(QMainWindow):
     def __init__(self, index, open_apps):
@@ -598,6 +590,7 @@ class FullScreenApp(QMainWindow):
         main_layout.addWidget(navbar)
         self.setFocus()
         self.show()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -696,6 +696,7 @@ def backupThong(data):
     thong_path = Path().path_thong()
     number = data["number"]
     id = data["id"]
+
     # / Load File thong db
     with open(os.path.join(thong_path, "thongs.json"), "r") as file:
         thong_db = json.load(file)
@@ -733,6 +734,7 @@ def saveBackupThong(data):
     id = data["id"]
     thong_data = data["thong_data"]
     custom = data["custom"]
+    thong_sp = data["thong_sp"]
     # / Load File thong db
     with open(os.path.join(thong_path, "thongs.json"), "r") as file:
         thong_db = json.load(file)
@@ -757,6 +759,12 @@ def saveBackupThong(data):
     # / Save new backup thong
     with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
         json.dump(thong_data, file)
+    
+    # / Save data thong sp
+    isThong_one = True if thong_db['type_count'] in [1,3] else False
+    if isThong_one:
+        with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
+            json.dump(thong_sp, file)
 
     # / re-render all bo chuyen doi
     for i in range(11):
@@ -783,6 +791,11 @@ def saveAllThong(data):
     name = data["name"]
     change = data["change"]
     stt = data["stt"]
+    
+    isThong_one = True if data["thong_sp"] in [1,3] else False
+    if isThong_one:
+        thong_sp = data["thong_sp"]
+
     current_path = rf"C:\data"
     index = extract_index(name)
 
@@ -811,6 +824,7 @@ def saveAllThong(data):
     for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
         file_type = i + 1
         thong_path = os.path.join(current_path, f"{file_type}", "thong")
+
         with open(os.path.join(thong_path, "thongs.json"), "r") as file:
             thong_db = json.load(file)
 
@@ -832,6 +846,10 @@ def saveAllThong(data):
         # / Save new backup thong
         with open(os.path.join(thong_path, f"thong_{thong_id}_backup.json"), "w") as file:
             json.dump(update, file)
+        
+        if type_count in [1,3]:
+            with open(os.path.join(thong_path, f"thong_sp_{thong_id}.json"), "w") as file:
+                json.dump(thong_sp, file)
 
         # / re-render all bo chuyen doi
         for k in range(11):
@@ -860,46 +878,53 @@ def saveAllThong(data):
 
 def typeWithRecipe(data):
     row = data["row"]
-    # number = data['number']
     setting = data["setting"]
-    # stt = data['stt']
+    value = data["value"]
+    thong_sp = data["thong_sp"]
     update = data["update"]
-    col = 600
-    line = f"{row:02}"
+    col = value
     # / Create new Rowstep = 0
     step = 0
-    print(col)
     if setting == 1:
-        for i in range(0, col, 60):
-            if i == 0:
-                for k in range(60):
-                    if k == 0:
-                        update[k + i][row] = update[k + i][row]
-                    elif k == 1:
-                        update[k + i][row] = update[k + i][row]
-                    else:
-                        update[k + i][row] = 0
-            else:
-                for k in range(60):
-                    if k == 0:
-                        update[k + i][row] = (
-                            int(update[(step - 1) * 60][row]) + 1
-                        ) % 10
-                    elif k == 1:
-                        update[k + i][row] = (
-                            int(update[(step - 1) * 60 + 1][row]) + 1
-                        ) % 10
-                    else:
-                        update[k + i][row] = 0
-            step += 1
+        # Define steps
+        steps = [
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
+            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
+            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+        ]
 
-        for i in range(0, col, 60):
-            for k in range(60):
-                if k > 1:
-                    first = update[i + k - 2][row]
-                    second = update[i + k - 1][row]
-                    sum = (int(first) + int(second)) % 10
-                    update[i + k][row] = sum
+        # Initialize modifications for array a in each step
+        modifications_a = [0, 8, 4, 2]
+
+        # Process data in steps
+        step_size = 1200 // 4
+        thong_data = []
+        thong_value_data = []
+        count = 0
+        for step in range(0, 1200, step_size):
+            count_h = 0
+            for luot in range(step, step + step_size, 30):
+                e = (int(thong_sp[row][0][0]) + modifications_a[count]) % 10
+                h = (int(thong_sp[row][0][1]) + steps[count][count_h]) % 10
+                for thong in range(luot, luot + 30):
+                    if thong == luot:
+                        thong_data.append((e + h) % 10)
+                    elif thong == luot + 1:
+                        thong_data.append((h + thong_data[thong - 1]) % 10)
+                    else:
+                        thong_data.append(
+                            (thong_data[thong - 2] + thong_data[thong - 1]) % 10
+                        )
+                thong_value_data.append([e, h])
+                count_h += 1
+            count += 1
+        
+        # / Save thong sp with row
+        thong_sp[row] = thong_value_data
+        # / Convert to thong data file old
+        for thong in range(len(thong_data)):
+            update[thong][row] = thong_data[thong]
 
     if setting == 2:
         for i in range(0, col, 100):

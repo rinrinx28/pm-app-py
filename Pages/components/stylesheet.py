@@ -24,8 +24,8 @@ css_button_start = """
         font-size: 24px;
         line-height: 32px;
         font-weight: 600; 
-        color: #ffffff; 
-        background-color: #ffe599;
+        color: #000; 
+        background-color: #b581ff;
     } 
     QPushButton:hover {
         background-color: #ffd867; 

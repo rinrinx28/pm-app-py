@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QSpacerItem,
     QCheckBox,
-    QScrollArea,
+    QScrollArea,QMessageBox
 )
 from Pages.components.path import Path
 from PySide6.QtGui import QIcon
@@ -220,23 +220,62 @@ class SettingTable(QDialog):
         return button_widget
 
     def async_setting_number_all(self):
-        msg = async_setting_number_pm({
-            "name": self.col_thong["name"]
-        })
-        return SendMessage(msg)
+        icon = Path().path_logo()
+        message = QMessageBox()
+        message.setWindowTitle("Thông Báo")
+        message.setText(f"Bạn có chắc chắn đặt lại bộ chuyển đổi của Bộ - {self.name}")
+        message.setWindowIcon(QIcon(icon))  # Thay bằng đường dẫn đến icon của bạn
+        message.setFont(self.font)
+        message.setIcon(QMessageBox.Icon.Question)
+        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        message.setDefaultButton(QMessageBox.No)  # Đặt nút "No" làm mặc định
+
+        # Hiển thị hộp thoại và lấy kết quả
+        result = message.exec()
+        if result == QMessageBox.Yes:
+            msg = async_setting_number_pm({
+                "name": self.col_thong["name"]
+            })
+            return SendMessage(msg)
 
     def async_setting_thong_all(self):
-        msg = async_setting_range_thong({
-            "name": self.col_thong["name"],
-            "thong": {
-                        "value": self.ban_info["thong"]["value"],
-                    },
-        })
-        return SendMessage(msg)
+        icon = Path().path_logo()
+        message = QMessageBox()
+        message.setWindowTitle("Thông Báo")
+        message.setText(f"Bạn có chắc chắn đồng bộ Số Thông của Tập - {self.name}")
+        message.setWindowIcon(QIcon(icon))  # Thay bằng đường dẫn đến icon của bạn
+        message.setFont(self.font)
+        message.setIcon(QMessageBox.Icon.Question)
+        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        message.setDefaultButton(QMessageBox.No)  # Đặt nút "No" làm mặc định
+
+        # Hiển thị hộp thoại và lấy kết quả
+        result = message.exec()
+        if result == QMessageBox.Yes:
+            msg = async_setting_range_thong({
+                "name": self.col_thong["name"],
+                "thong": {
+                            "value": self.ban_info["thong"]["value"],
+                        },
+            })
+            return SendMessage(msg)
 
     def save_setting_all_app(self, data):
-        msg = save_setting_tables(data)
-        return SendMessage(f"{msg} {self.name_type}")
+        icon = Path().path_logo()
+        message = QMessageBox()
+        message.setWindowTitle("Thông Báo")
+        message.setText(f"Bạn có chắc chắn đồng bộ cài đặt của Tập - {self.name}")
+        message.setWindowIcon(QIcon(icon))  # Thay bằng đường dẫn đến icon của bạn
+        message.setFont(self.font)
+        message.setIcon(QMessageBox.Icon.Question)
+        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        message.setDefaultButton(QMessageBox.No)  # Đặt nút "No" làm mặc định
+
+        # Hiển thị hộp thoại và lấy kết quả
+        result = message.exec()
+        if result == QMessageBox.Yes:
+            msg = save_setting_tables(data)
+            return SendMessage(f"{msg} {self.name_type}")
 
     def create_tab_main_setting(self):
         tab = QWidget()
@@ -287,7 +326,7 @@ class SettingTable(QDialog):
         s_values_thong_spinbox_1 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_1, 1, 0)
         s_values_thong_spinbox_1.setMinimum(1)
-        s_values_thong_spinbox_1.setMaximum(600)
+        s_values_thong_spinbox_1.setMaximum(1200)
         s_values_thong_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_1.setValue(self.col_thong["value"][0])
         s_values_thong_spinbox_1.setDisabled(True)
@@ -296,7 +335,7 @@ class SettingTable(QDialog):
         s_values_thong_spinbox_2 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_2, 1, 1)
         s_values_thong_spinbox_2.setMinimum(1)
-        s_values_thong_spinbox_2.setMaximum(600)
+        s_values_thong_spinbox_2.setMaximum(1200)
         s_values_thong_spinbox_2.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_2.setValue(self.col_thong["value"][1])
         s_values_thong_spinbox_2.setDisabled(True)
@@ -369,6 +408,10 @@ class SettingTable(QDialog):
         s_value_change_spinbox_1.setValue(self.ban_info["meta"]["number"])
         s_value_change_spinbox_1.setDisabled(True)
         group_spin_box.append(s_value_change_spinbox_1)
+        
+        s_value_change_label_note = QLabel("" if self.ban_info["meta"]["number"] != 0 else "Khi toán Cơ 0 nghĩa là toán cơ gốc")
+        s_value_change_label_note.setStyleSheet("border: 0px;font-size: 24px;")
+        s_value_change_l.addWidget(s_value_change_label_note, 2, 0)
 
         # / Setting Size table
         s_size_table = QWidget()
@@ -415,6 +458,10 @@ class SettingTable(QDialog):
 
         def value_change(value):
             self.ban_info["meta"]["number"] = value
+            if value == 0:
+                s_value_change_label_note.setText('Khi toán Cơ 0 nghĩa là toán cơ gốc')
+            else:
+                s_value_change_label_note.setText('')
 
         def size_change(value):
             self.ban_info['size'] = value
@@ -914,6 +961,7 @@ class SettingTable(QDialog):
         spin_label_number_btn_notice = QSpinBox()
         spin_label_number_btn_notice.setEnabled(False)
         spin_label_number_btn_notice.setMinimum(1)
+        spin_label_number_btn_notice.setMaximum(21)
         spin_label_number_btn_notice.setStyleSheet("font-size: 24px;border: 0px;")
         spin_label_number_btn_notice.setValue(info_table['number_btn_notice'])
         spin_label_number_btn_notice.valueChanged.connect(partial(self.save_number_btn_notice, type))

@@ -172,158 +172,122 @@ def createThong(data, path):
     os.makedirs(path, exist_ok=True)
     thong_path = path
     row = 131
-    col_custom = 3
     value = data.get("value")
     col = value
     id = Generate_Id()
     type_count = data.get("type_count")
 
     thong_file = []
+    thong_file_sp = []
     step = 0
     # / Create Thong
     if type_count == 1:
+        # Define steps
+        steps = [
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
+            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
+            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+        ]
 
-        for i in range(0, col, 60):
-            if i == 0:
-                for k in range(60):
-                    thong_data = []
-                    for j in range(row):
-                        line = f"{j:02}"  # Create a two-digit string for j
-                        if j > 99:
-                            thong_data.append("")  # Append empty string if j exceeds 99
-                        else:
-                            if k == 0:
-                                thong_data.append(
-                                    (int(line[0])) % 10
-                                )  # First digit of line
-                            elif k == 1:
-                                thong_data.append(
-                                    (int(line[1])) % 10
-                                )  # Second digit of line
-                            else:
-                                thong_data.append(0)  # Default value for other columns
-                    thong_file.append(
-                        thong_data
-                    )  # Append the constructed thong_data to thong_file
+        # Initialize modifications for array a in each step
+        modifications_a = [0, 8, 4, 2]
+
+        # Process data in steps
+        step_size = 1200 // 4
+        thong_package = []
+        for row in range(131):
+            line = f"{row:02}"
+            thong_data = []
+            thong_value_data = []
+            count = 0
+            if row > 99:
+                for step in range(1200):
+                    thong_data.append("")
+                    for luot in range(step, step + step_size, 30):
+                        thong_value_data.append(["", ""])
             else:
-                for k in range(60):
-                    thong_data = []
-                    for j in range(row):
-                        if j > 99:
-                            thong_data.append("")  # Append empty string if j exceeds 99
-                        else:
-                            if k == 0:
-                                thong_data.append(
-                                    (int(thong_file[(step - 1) * 60][j]) + 1) % 10
-                                )
-                            elif k == 1:
-                                thong_data.append(
-                                    (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
-                                )
+                for step in range(0, 1200, step_size):
+                    count_h = 0
+                    for luot in range(step, step + step_size, 30):
+                        e = (int(line[0]) + modifications_a[count]) % 10
+                        h = (int(line[1]) + steps[count][count_h]) % 10
+                        for thong in range(luot, luot + 30):
+                            if thong == luot:
+                                thong_data.append((e + h) % 10)
+                            elif thong == luot + 1:
+                                thong_data.append((h + thong_data[thong - 1]) % 10)
                             else:
-                                thong_data.append(0)  # Default value for other columns
-                    thong_file.append(
-                        thong_data
-                    )  # Append the constructed thong_data to thong_file
-            step += 1  # Increment step
+                                thong_data.append(
+                                    (thong_data[thong - 2] + thong_data[thong - 1]) % 10
+                                )
+                        thong_value_data.append([e, h])
+                        count_h += 1
+                    count += 1
+            thong_package.append(thong_data)
+            thong_file_sp.append(thong_value_data)
 
-        # Calculate sums for each column
-        for j in range(row):
-            if j > 99:
-                break  # Exit loop if j exceeds 99
-            for i in range(0, col, 60):
-                for k in range(60):
-                    if k > 1:
-                        # Ensure first and second are converted to integers
-                        first = thong_file[i + k - 2][j]
-                        second = thong_file[i + k - 1][j]
-
-                        # Convert to integer if they are strings
-                        if isinstance(first, str) and first.isdigit():
-                            first = int(first)
-                        elif isinstance(first, str):
-                            first = 0  # Set to 0 if not a digit
-
-                        if isinstance(second, str) and second.isdigit():
-                            second = int(second)
-                        elif isinstance(second, str):
-                            second = 0  # Set to 0 if not a digit
-
-                        # Calculate the sum and store it back
-                        sum_value = (first + second) % 10
-                        thong_file[i + k][j] = sum_value
+        # Convert to thong data file old
+        for thong in range(1200):
+            thong_data = []
+            for row in range(131):
+                value = thong_package[row][thong]
+                thong_data.append(value)
+            thong_file.append(thong_data)
 
     if type_count == 3:
+        # Define steps
+        steps = [
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
+            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
+            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+        ]
 
-        for i in range(0, col, 60):
-            if i == 0:
-                for k in range(60):
-                    thong_data = []
-                    for j in range(row):
-                        line = f"{j:02}"  # Create a two-digit string for j
-                        if j > 99:
-                            thong_data.append("")  # Append empty string if j exceeds 99
-                        else:
-                            if k == 0:
-                                thong_data.append(
-                                    (int(line[0])) % 10
-                                )  # First digit of line
-                            elif k == 1:
-                                thong_data.append(
-                                    (int(line[1])) % 10
-                                )  # Second digit of line
-                            else:
-                                thong_data.append(0)  # Default value for other columns
-                    thong_file.append(
-                        thong_data
-                    )  # Append the constructed thong_data to thong_file
+        # Initialize modifications for array a in each step
+        modifications_a = [0, 8, 4, 2]
+
+        # Process data in steps
+        step_size = 1200 // 4
+        thong_package = []
+        for row in range(131):
+            line = f"{row:02}"
+            thong_data = []
+            thong_value_data = []
+            count = 0
+            if row > 99:
+                for step in range(1200):
+                    thong_data.append("")
+                    for luot in range(step, step + step_size, 30):
+                        thong_value_data.append(["", ""])
             else:
-                for k in range(60):
-                    thong_data = []
-                    for j in range(row):
-                        if j > 99:
-                            thong_data.append("")  # Append empty string if j exceeds 99
-                        else:
-                            if k == 0:
-                                thong_data.append(
-                                    (int(thong_file[(step - 1) * 60][j]) + 1) % 10
-                                )
-                            elif k == 1:
-                                thong_data.append(
-                                    (int(thong_file[(step - 1) * 60 + 1][j]) + 1) % 10
-                                )
+                for step in range(0, 1200, step_size):
+                    count_h = 0
+                    for luot in range(step, step + step_size, 30):
+                        e = (int(line[0]) + modifications_a[count]) % 10
+                        h = (int(line[1]) + steps[count][count_h]) % 10
+                        for thong in range(luot, luot + 30):
+                            if thong == luot:
+                                thong_data.append((e + h) % 10)
+                            elif thong == luot + 1:
+                                thong_data.append((h + thong_data[thong - 1]) % 10)
                             else:
-                                thong_data.append(0)  # Default value for other columns
-                    thong_file.append(
-                        thong_data
-                    )  # Append the constructed thong_data to thong_file
-            step += 1  # Increment step
+                                thong_data.append(
+                                    (thong_data[thong - 2] + thong_data[thong - 1]) % 10
+                                )
+                        thong_value_data.append([e, h])
+                        count_h += 1
+                    count += 1
+            thong_package.append(thong_data)
+            thong_file_sp.append(thong_value_data)
 
-        # Calculate sums for each column
-        for j in range(row):
-            if j > 99:
-                break  # Exit loop if j exceeds 99
-            for i in range(0, col, 60):
-                for k in range(60):
-                    if k > 1:
-                        # Ensure first and second are converted to integers
-                        first = thong_file[i + k - 2][j]
-                        second = thong_file[i + k - 1][j]
-
-                        # Convert to integer if they are strings
-                        if isinstance(first, str) and first.isdigit():
-                            first = int(first)
-                        elif isinstance(first, str):
-                            first = 0  # Set to 0 if not a digit
-
-                        if isinstance(second, str) and second.isdigit():
-                            second = int(second)
-                        elif isinstance(second, str):
-                            second = 0  # Set to 0 if not a digit
-
-                        # Calculate the sum and store it back
-                        sum_value = (first + second) % 10
-                        thong_file[i + k][j] = sum_value
+        # Convert to thong data file old
+        for thong in range(1200):
+            thong_data = []
+            for row in range(131):
+                value = thong_package[row][thong]
+                thong_data.append(value)
+            thong_file.append(thong_data)
 
     if type_count == 2:
 
@@ -442,6 +406,10 @@ def createThong(data, path):
     # / Make fisrt file Thong
     with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
         json.dump(thong_file, file)
+
+    if type_count == 1 or type_count == 3:
+        with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
+            json.dump(thong_file_sp, file)
 
     # / Make Chuyen Doi
     for i in range(11):
@@ -994,7 +962,7 @@ def createThong(data, path):
             "",
             "",
             "",
-        ]
+        ],
     ]
 
     # / Make Data STT for thong data
@@ -1048,158 +1016,1295 @@ def createDB(thong, name, path):
         "col": [1, 10],
         "thong": {"name": thongName, "value": [1, 10], "id": thongId},
         "meta": {
-		"notice": {
-			"count": [1, 1],
-			"color": [1, 1],
-			"color2": [1, 1],
-			"colorM2": [1, 1],
-			"colorM3": [1, 1],
-			"colorM4": [1, 1],
-			"colorM5": [1, 1],
-			"colorM6": [1, 1],
-			"colorM7": [1, 1],
-			"colorM8": [1, 1],
-			"colorM9": [1, 1],
-			"colorM10": [1, 1]
-		},
-		"features": { "N:2": False, "N=1": { "status": False, "value": 0 } },
-		"setting": {
-			"col_e": [2, 5],
-			"col_e2": [2, 5],
-			"col_e3": [2, 5],
-			"col_e4": [1, 5],
-			"col_e5": [1, 5],
-			"col_e6": [1, 5],
-			"col_e7": [1, 5],
-			"col_e8": [1, 5],
-			"col_e9": [1, 5],
-			"col_e10": [1, 5]
-		},
-		"tables": [
-			{
-				"enable": True,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": True,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			},
-			{
-				"enable": False,
-				"col_d": [
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1
-				]
-			}
-		],
-		"number": 0,
-		"maxRow": 100,
-		"buttons": [True, False]
-	},
+            "notice": {
+                "count": [1, 1],
+                "color": [1, 1],
+                "color2": [1, 1],
+                "colorM2": [1, 1],
+                "colorM3": [1, 1],
+                "colorM4": [1, 1],
+                "colorM5": [1, 1],
+                "colorM6": [1, 1],
+                "colorM7": [1, 1],
+                "colorM8": [1, 1],
+                "colorM9": [1, 1],
+                "colorM10": [1, 1],
+            },
+            "features": {"N:2": False, "N=1": {"status": False, "value": 0}},
+            "setting": {
+                "col_e": [2, 5],
+                "col_e2": [2, 5],
+                "col_e3": [2, 5],
+                "col_e4": [1, 5],
+                "col_e5": [1, 5],
+                "col_e6": [1, 5],
+                "col_e7": [1, 5],
+                "col_e8": [1, 5],
+                "col_e9": [1, 5],
+                "col_e10": [1, 5],
+            },
+            "tables": [
+                {
+                    "enable": True,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": True,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+                {
+                    "enable": False,
+                    "col_d": [
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                        1,
+                    ],
+                },
+            ],
+            "number": 0,
+            "maxRow": 100,
+            "buttons": [True, False],
+        },
         "data": [],
         "id": id,
     }
     os.makedirs(path, exist_ok=True)
 
-    stay = {
-        "thong": 0,
-        "ngang": 0
-    }
+    stay = {"thong": 0, "ngang": 0}
 
     with open(os.path.join(path, "index.json"), "w") as file:
         json.dump(data, file)
@@ -1245,7 +2350,7 @@ def create():
         db_dir = os.path.join(current_dir, str(i), "db")
         if i < 31:
             dataThong = createThong(
-                {"value": 600, "type_count": 1, "name": f"Bản 1a.{i}"}, thong_dir
+                {"value": 1200, "type_count": 1, "name": f"Bản 1a.{i}"}, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
         elif i > 30 and i < 61:
@@ -1255,7 +2360,7 @@ def create():
             createDB(dataThong, f"B{i}", db_dir)
         elif i > 60 and i < 91:
             dataThong = createThong(
-                {"value": 600, "type_count": 3, "name": f"Bản 1b.{i - 60}"}, thong_dir
+                {"value": 1200, "type_count": 3, "name": f"Bản 1b.{i - 60}"}, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
         else:

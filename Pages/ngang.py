@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QHeaderView,
     QComboBox,
-    QLabel,
+    QLabel,QMessageBox
 )
 from PySide6.QtGui import Qt, QCursor, QColor, QIcon
 from Pages.components.stylesheet import (
@@ -288,17 +288,7 @@ class NgangPage(QWidget):
             self.copyRowNgang([sender, receiver])
         
         def saveFile_click():
-            type_count = convert_string_to_type_count(self.ban_info["thong"]["name"])
-            data = {}
-            data["update"] = self.ngang_data
-            data["number"] = self.ban_info["meta"]['number']
-            data["stt"] = self.ngang_info["stt"]
-            data["change"] = self.ngang_info["change"]
-            data["type_count"] = type_count if type_count == 0 else 1 if type_count == '1a' else 3 if type_count == '1b' else 2
-            data['name'] = self.ban_info['thong']['name']
-            msg = sync_ngang(data)
-            self.delete_color_click()
-            SendMessage(f'{msg} {self.name}')
+            self.showQuestion()
 
         def back_to_first():
             row = self.table_main.rowCount() - 2  # Get the current row
@@ -649,3 +639,31 @@ class NgangPage(QWidget):
         self.hide_loading_screen()
         for widget in widgets:
             widget()
+
+    # TODO Handler Question
+    def showQuestion(self):
+        icon = Path().path_logo()
+        message = QMessageBox()
+        message.setWindowTitle("Thông Báo")
+        message.setText(f"Bạn có chắc chắn đồng bộ dữ liệu bảng ngang {self.name}")
+        message.setWindowIcon(QIcon(icon))  # Thay bằng đường dẫn đến icon của bạn
+        message.setFont(self.font)
+        message.setIcon(QMessageBox.Icon.Question)
+        message.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        message.setDefaultButton(QMessageBox.No)  # Đặt nút "No" làm mặc định
+
+        # Hiển thị hộp thoại và lấy kết quả
+        result = message.exec()
+
+        if result == QMessageBox.Yes:
+            type_count = convert_string_to_type_count(self.ban_info["thong"]["name"])
+            data = {}
+            data["update"] = self.ngang_data
+            data["number"] = self.ban_info["meta"]['number']
+            data["stt"] = self.ngang_info["stt"]
+            data["change"] = self.ngang_info["change"]
+            data["type_count"] = type_count if type_count == 0 else 1 if type_count == '1a' else 3 if type_count == '1b' else 2
+            data['name'] = self.ban_info['thong']['name']
+            msg = sync_ngang(data)
+            self.delete_color_click()
+            SendMessage(f'{msg} {self.name}')

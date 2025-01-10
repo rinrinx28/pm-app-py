@@ -34,6 +34,11 @@ class Path:
         path = os.path.join(thong_path, f"thong_{id}_{value}.json")
         return path
 
+    def path_thong_sp_with_id(self, id):
+        thong_path = self.path_thong()
+        path = os.path.join(thong_path, f"thong_sp_{id}.json")
+        return path
+
     def path_number(self):
         path = os.path.join(self.current_dir, "number")
         return path
