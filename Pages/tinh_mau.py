@@ -257,6 +257,10 @@ class TinhAndMauPage(QWidget):
 
         with open(os.path.join(thong_path, "thongs.json"), "r") as file:
             self.thong_db = json.load(file)
+        
+        thong_sp_path = self.path.path_thong_sp_with_id(self.thong_db["id"])
+        with open(thong_sp_path, 'r') as file:
+            self.thong_sp = json.load(file)
 
     def showSelectBan(self):
         self.loadData()
@@ -296,7 +300,7 @@ class TinhAndMauPage(QWidget):
 
         # / Create a widget to contain the buttons 2
         buttons_container_2 = QWidget()
-        buttons_container_2.setMaximumHeight(155)
+        buttons_container_2.setMaximumHeight(260)
         buttons_layout_2 = QGridLayout(buttons_container_2)
 
         data_color = None
@@ -376,12 +380,16 @@ class TinhAndMauPage(QWidget):
                 btn = QPushButton(btn_label)
                 btn.setStyleSheet(css_button_notice)
                 btn.setCursor(Qt.PointingHandCursor)
-                if label < 7:
+                if label < 6:
                     buttons_layout_2.addWidget(btn, 0, label)
-                if 7 <= label < 14:
-                    buttons_layout_2.addWidget(btn, 1, label - 7)
-                if 14 <= label < 21:
-                    buttons_layout_2.addWidget(btn, 2, label - 14)
+                if 6 <= label < 12:
+                    buttons_layout_2.addWidget(btn, 1, label - 6)
+                if 12 <= label < 18:
+                    buttons_layout_2.addWidget(btn, 2, label - 12)
+                if 18 <= label < 24:
+                    buttons_layout_2.addWidget(btn, 3, label - 18)
+                # if 20 <= label < 25:
+                #     buttons_layout_2.addWidget(btn, 4, label - 20)
 
                     
                 self.addNoticeView(btn, f"{btn_label}_{type}", isColor)
@@ -409,12 +417,14 @@ class TinhAndMauPage(QWidget):
                 btn.setFixedWidth(60)
                 btn.setStyleSheet(css_button_normal)
                 btn.setCursor(Qt.PointingHandCursor)
-                if label < 7:
+                if label < 6:
                     buttons_layout_2.addWidget(btn, 0, label)
-                if 7 <= label < 14:
-                    buttons_layout_2.addWidget(btn, 1, label - 7)
-                if 14 <= label < 21:
-                    buttons_layout_2.addWidget(btn, 2, label - 14)
+                if 6 <= label < 12:
+                    buttons_layout_2.addWidget(btn, 1, label - 6)
+                if 12 <= label < 18:
+                    buttons_layout_2.addWidget(btn, 2, label - 12)
+                if 18 <= label < 24:
+                    buttons_layout_2.addWidget(btn, 3, label - 18)
         
 
         # / Create a scroll area and set its widget to the buttons container 2
@@ -773,19 +783,19 @@ class TinhAndMauPage(QWidget):
         # / Bảng Màu 1
         self.TableM1 = QPushButton("m1")
         self.TableM1.setStyleSheet("""
-    QPushButton {
-        padding: 10px;
-        border-radius: 8px; 
-        font-size: 24px;
-        line-height: 32px;
-        font-weight: 600; 
-        color: #fff; 
-        background-color: #af9b3b;
-    } 
-    QPushButton:hover {
-        background-color: #1E40AF; 
-    }
-""")
+            QPushButton {
+                padding: 10px;
+                border-radius: 8px; 
+                font-size: 24px;
+                line-height: 32px;
+                font-weight: 600; 
+                color: #fff; 
+                background-color: #09de89;
+            } 
+            QPushButton:hover {
+                background-color: #00ce7c;
+            }
+        """)
         self.TableM1.setCursor(QCursor(Qt.PointingHandCursor))
         button_main_1_l.addWidget(self.TableM1)
 
@@ -3467,40 +3477,33 @@ class TinhAndMauPage(QWidget):
         self.table_main_thong.clearSelection()
 
         # Khởi tạo giá trị cần thiết
-        col = int(data["col"])
+        col = data["col"]
         value = str(data["value"])
-        isCol_a = data["isCol_a"]
-        thong_info = self.ban_info["thong"]
-        name_thong = thong_info["name"]
-        type_count_name = convert_string_to_type_count(name_thong)
-
-        # Xác định type_count
-        type_count = 0 if type_count_name == 0 else 1 if type_count_name == '1a' else 3 if type_count_name == '1b' else 2
 
         thong_data = self.thong_info
-        value_thong = thong_info["value"]
-        thong_index_thong = value_thong[0] - 1 + col - 4
+        thong_index_thong = data.get("index")
 
         thong_index_row = []
 
         # Xử lý dữ liệu
         for i, v in enumerate(thong_data[thong_index_thong]):
             v_str = str(v)
-            if type_count == 1:
-                if v_str == value:
-                    thong_index_row.append(i)
-            elif type_count == 2:
-                if (isCol_a and self.checkColorThong(value, v_str)) or (not isCol_a and v == value):
-                    thong_index_row.append(i)
-            else:  # type_count == 3
-                if self.checkColorThong(value, v_str):
-                    thong_index_row.append(i)
+            if v_str == value:
+                thong_index_row.append(i)
+            # if type_count == 1:
+            #     if v_str == value:
+            #         thong_index_row.append(i)
+            # elif type_count == 2:
+            #     if (isCol_a and self.checkColorThong(value, v_str)) or (not isCol_a and v == value):
+            #         thong_index_row.append(i)
+            # else:  # type_count == 3
+            #     if self.checkColorThong(value, v_str):
+            #         thong_index_row.append(i)
 
         # Chọn cột và các dòng tương ứng
         self.table_main_thong.selectColumn(col)
         for i in thong_index_row:
             self.table_main_thong.selectRow(i)
-
 
     def deleteNewRow(self):
         # / Config Icon Windows
@@ -6296,8 +6299,7 @@ class TinhAndMauPage(QWidget):
         data = ban_info["data"]
         meta = ban_info["meta"]["notice"]
         notice_count = meta["count"]
-        notice_color1 = meta["color"]
-        notice_color2 = meta["color2"]
+        notice_colorM1 = meta["colorM1"]
         notice_colorM2 = meta["colorM2"]
         notice_colorM3 = meta["colorM3"]
         notice_colorM4 = meta["colorM4"]
@@ -6308,11 +6310,6 @@ class TinhAndMauPage(QWidget):
         notice_colorM9 = meta["colorM9"]
         notice_colorM10 = meta["colorM10"]
         notice_color = []
-        buttons = ban_info["meta"]["buttons"]
-        if buttons[0]:
-            notice_color = notice_color1
-        if buttons[1]:
-            notice_color = notice_color2
 
         col_e = ban_info["meta"]["setting"]["col_e"]
         value1 = col_e[0]
@@ -6433,7 +6430,7 @@ class TinhAndMauPage(QWidget):
                                 self.math_isFirst[maths_c1] += 1
 
                             col_c1 = self.math_isFirst[maths_c1]
-                            if col_c1 == 1:
+                            if col_c1 !=0: # !=0 danh cho ban toan theo dong, ko quan tam thong, == 1 danh cho ban toan theo thong
                                 math_count_handler = f"{col_d}:{i}:_color"
                                 if not math_count_handler in self.count_handler:
                                     self.count_handler[math_count_handler] = 1
@@ -6447,8 +6444,9 @@ class TinhAndMauPage(QWidget):
 
                                 # / Config number col_d M1
                                 number_col_d_m1 = tables[0]["col_d"][col_d - 1]
-                                btn_notice_m1 = tables[0]["btn_notice"] if "btn_notice" in tables[0] else [[8, 36] for _ in range(120)]
-                                number_color_m1 = btn_notice_m1[col_d - 1]
+                                btn_notice_m1 = tables[0]["btn_notice"] if "btn_notice" in tables[0] else [[8, 36] for _ in range(1500)]
+                                # number_color_m1 = btn_notice_m1[col_d - 1] #! Ban toan theo thong
+                                number_color_m1 = notice_colorM1 #! Ban toan theo dong
 
                                 # / Start Check count handler with if and else
                                 if stt_count_with_d <= number_col_d_m1:
@@ -6571,8 +6569,9 @@ class TinhAndMauPage(QWidget):
 
                                         # / Config number col_d M1
                                         number_col_d_m2 = tables[1]["col_d"][col_e - 1]
-                                        btn_notice_m2 = tables[1]["btn_notice"] if "btn_notice" in tables[1] else [[8, 36] for _ in range(120)]
-                                        number_color_m2 = btn_notice_m2[col_e - 1]
+                                        btn_notice_m2 = tables[1]["btn_notice"] if "btn_notice" in tables[1] else [[8, 36] for _ in range(1500)]
+                                        # number_color_m2 = btn_notice_m2[col_e - 1] #! Ban toan theo thong
+                                        number_color_m2 = notice_colorM2 #! Ban toan theo dong
 
                                         if stt_count_with_d_m2 <= number_col_d_m2:
                                             # / Start count color with col_e
@@ -6668,8 +6667,9 @@ class TinhAndMauPage(QWidget):
                                                 number_col_d_m3 = tables[2]["col_d"][
                                                     col_e_m2 - 1
                                                 ]
-                                                btn_notice_m3 = tables[2]["btn_notice"] if "btn_notice" in tables[2] else [[8, 36] for _ in range(120)]
-                                                number_color_m3 = btn_notice_m3[col_e_m2 - 1]
+                                                btn_notice_m3 = tables[2]["btn_notice"] if "btn_notice" in tables[2] else [[8, 36] for _ in range(1500)]
+                                                # number_color_m3 = btn_notice_m3[col_e_m2 - 1] #! Ban toan theo thong
+                                                number_color_m3 = notice_colorM3 #! Ban toan theo dong
 
                                                 if (
                                                     stt_count_with_d_m3
@@ -8078,15 +8078,16 @@ class TinhAndMauPage(QWidget):
             if self.table_main_thong is None:
                 self.render_table_thong()
                 SendMessage('Đã mở thành công Bảng Thông')
-            self.widget_main.setCurrentWidget(self.table_main_thong)
-            item = self.table_main_thong.item(row_thong, col_thong)
+            self.widget_main.setCurrentWidget(self.widget_thong)
+            item = self.search_by_index_thong_table(row_thong, col_thong)
             self.table_main_thong.scrollToItem(
                 item, hint=QTableWidget.ScrollHint.PositionAtCenter
             )
             new_data = {
-                "col": col_thong,
-                "value": thong["col_a"],
+                "col": item.column(),
+                "value": item.text(),
                 "isCol_a": thong["isCol_a"],
+                "index": col_thong - 4
             }
             self.setHighlight_Thong(new_data)
             # / Config status bar
@@ -8095,79 +8096,262 @@ class TinhAndMauPage(QWidget):
         return
 
     # TODO Add-on: GUI Thong Table
-
     def render_table_thong(self):
         """
-        Hiển thị bảng Thong với các cột và dòng lớn
+        Hiển thị bảng Thong
         """
-        # Config bảng
-        thong_info = self.ban_info["thong"]
-        data_value = self.thong_db["data"]
-        thong_data = self.thong_info
-        value_thong = thong_info["value"]
-        thong_ranges = value_thong[1] - value_thong[0] + 1
-        rowCount = 120
-        colCount = thong_ranges + 4  # 5 cột cố định
+        # Widget thong
+        self.widget_thong = QWidget()
+        layout_thong = QGridLayout(self.widget_thong)
+        self.widget_main.addWidget(self.widget_thong)
 
-        # Tạo bảng
-        self.table_main_thong = QTableWidget(rowCount, colCount)
-        self.widget_main.addWidget(self.table_main_thong)
 
-        # Config header
-        header_labels = ["STT", "A", "B", "C", "D"] + [
-            f"T.{i + value_thong[0]}" for i in range(thong_ranges)
-        ]
-        self.table_main_thong.setHorizontalHeaderLabels(header_labels)
 
-        vertica_lalbes = [f'{i:02}' for i in range(rowCount)]
-        self.table_main_thong.setVerticalHeaderLabels(vertica_lalbes)
+        # # Tạo bảng Title
+        self.table_title = QTableWidget()
+        self.table_title.setMaximumHeight(60)
+        self.table_title.setRowCount(1)
+        self.table_title.horizontalHeader().setHidden(True)
+        self.table_title.setRowHeight(0,40)
+        self.table_title.setVerticalHeaderLabels(["STT"])
+        layout_thong.addWidget(self.table_title)
 
-        # Xử lý dữ liệu trước
-        if self.ban_info["meta"]["number"] != 0:
-            number_change = self.ban_info["meta"]["number"]
-            data_value = [
-                [TachVaGhep(number_change, value) for value in values]
-                for values in data_value
-            ]
 
-        # Render dữ liệu tùy chỉnh
-        for i, value_col in enumerate(data_value):
-            for j, value in enumerate(value_col):
-                item = QTableWidgetItem(f"{value}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setItem(j, i, item)
-                if i in (0, 2):  # Highlight
-                    item.setBackground(self.stt_highlight)
+        # # Tạo bảng
+        self.table_main_thong = QTableWidget()
+        layout_thong.addWidget(self.table_main_thong)
 
-        # Render dữ liệu Thong
-        for i, thong_row in enumerate(thong_data[value_thong[0] - 1 : value_thong[1]]):
-            for j, thong_value in enumerate(thong_row[:rowCount]):
-                item = QTableWidgetItem(f"{thong_value}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.table_main_thong.setItem(j, i + 4, item)
+        # / Config Font
+        self.table_title.setFont(self.font)
+        self.table_title.horizontalHeader().setFont(self.font)
+        self.table_title.verticalHeader().setFont(self.font)
 
-        # Config UI
+        self.table_title.setStyleSheet(
+            """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+        )
         self.table_main_thong.setFont(self.font)
         self.table_main_thong.horizontalHeader().setFont(self.font)
         self.table_main_thong.verticalHeader().setFont(self.font)
+
+        self.table_main_thong.setStyleSheet(
+            """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+        )
+
+        self.table_title.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_title.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.table_title.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+
         self.table_main_thong.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table_main_thong.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
 
-        self.table_main_thong.setStyleSheet(
-            "QTableView { gridline-color: black; }"
-        )
+        # # Config header
+        self.config_header_thong_table()
 
-        # self.table_main_thong.horizontalHeader().setSectionResizeMode(
-        #     QHeaderView.ResizeMode.ResizeToContents
-        # )
-        # self.table_main_thong.verticalHeader().setSectionResizeMode(
-        #     QHeaderView.ResizeMode.ResizeToContents
-        # )
-        # self.table_main_thong.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        # self.table_main_thong.setSelectionMode(
-        #     QTableWidget.SelectionMode.MultiSelection
-        # )
+        # # Xử lý dữ liệu trước
+        self.config_row_thong_table()
 
+        self.table_main_thong.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_thong_table)
+        self.table_title.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_thong_table)
+    
+    def config_header_thong_table(self):
+        value_thong = self.thong_db["value"]
+        colCount = value_thong
+        isThong_one = 200
+        self.table_main_thong.setColumnCount(0)
+        self.table_main_thong.setColumnCount(colCount + 4 + isThong_one)
+        self.table_title.setColumnCount(colCount + 4 + isThong_one)
+
+        # Setting header Thong
+
+        steps = [
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
+            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
+            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
+            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
+            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
+            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+        ]
+
+        # Initialize modifications for array a in each step
+        modifications_a = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+        ]
+        thong_header_label = []  # Lưu nhãn tiêu đề
+
+        # Biến số lượng cột và các giá trị liên quan
+        total_columns = value_thong
+        isThong_one = 200  # Điều kiện thêm E
+
+        if isThong_one != 0:
+            # Số cột tổng cộng
+            # Số tập
+            num_sets = 10
+            # Số lượt trong mỗi tập
+            rounds_per_set = 10
+            # Số thông trong mỗi lượt
+            columns_per_round = 15
+
+            # Mảng lưu kết quả
+            thong_header_label = []
+
+            # Lặp qua từng tập
+            for set_index in range(num_sets):
+                # Lặp qua từng lượt trong mỗi tập
+                for round_index in range(rounds_per_set):
+                    # Tính chỉ số cột bắt đầu và kết thúc của lượt
+                    start_col = (set_index * rounds_per_set * columns_per_round) + (round_index * columns_per_round)
+                    end_col = start_col + columns_per_round
+                    
+                    # Thêm cột e và h trước mỗi lượt
+                    e = f"E + {modifications_a[set_index][round_index]}"
+                    h = f"H + {steps[set_index][round_index]}"
+                    thong_header_label.append(e)
+                    thong_header_label.append(h)
+                    
+                    # Thêm các cột thông
+                    for thong in range(start_col, end_col):
+                        thong_header_label.append(f"T. {thong + 1}")
+        else:
+            thong_header_label = [f"T.{thong + 1}" for thong in range(total_columns)]
+        
+        header_labels = ["A", "B" , "C" , "D"] + thong_header_label
+        self.table_main_thong.setHorizontalHeaderLabels(header_labels)
+    
+    def config_row_thong_table(self):
+        current_ban_info_number = self.ban_info["meta"]["number"]
+        meta_number = current_ban_info_number
+
+        stt = self.thong_db["stt"][meta_number]
+        data_value = self.thong_db["data"]
+        thong_data = self.thong_info
+        row_count = 120
+
+        # Cấu hình bảng
+        self.table_main_thong.clearContents()
+        self.table_main_thong.setRowCount(0)
+        self.table_main_thong.setRowCount(row_count)
+
+        # Hàm hỗ trợ tạo QTableWidgetItem
+        def create_table_item(value, alignment=Qt.AlignmentFlag.AlignCenter, background=None, thong_data=None):
+            item = QTableWidgetItem(str(value))
+            if alignment is not None:
+                item.setTextAlignment(alignment)
+            if background:
+                item.setBackground(background)
+            if thong_data is not None:
+                item.setData(Qt.ItemDataRole.UserRole, thong_data)
+            return item
+
+        # * Cập nhật tiêu đề hàng (STT)
+        vertica_header = [f'{stt_value:02}' for i, stt_value in enumerate(stt)]
+        self.table_main_thong.setVerticalHeaderLabels(vertica_header)
+
+        # * Xử lý dữ liệu nếu cần thay đổi số
+        if meta_number != 0 and not self.isShow:
+            data_value = [
+                [TachVaGhep(meta_number, value) for value in row]
+                for row in data_value
+            ]
+
+        # * Cập nhật dữ liệu từ data_value
+        for i, col_values in enumerate(data_value):
+            for j, cell_value in enumerate(col_values):
+                background = self.stt_highlight if i in (0, 2) else None
+                item = create_table_item(cell_value, background=background, thong_data={"row": j, "index": i, "name": "data_custom"})
+                self.table_main_thong.setItem(j, i, item)
+
+        # * Cập nhật dữ liệu từ thong_data
+        isThong_step = 15
+        if isThong_step == 15:
+            self.table_title.setSpan(0, 0, 1, 4)
+            count_luot = 0
+
+            # Duyệt qua các tập (8 tập)
+            for tap_index in range(10):
+                for luot_title in range(10):  # Mỗi tập có 10 lượt
+                    span_start_col = 4 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
+                    span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
+                    tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
+
+                    self.table_title.setSpan(0, span_start_col, 1, span_colspan)
+                    item = QTableWidgetItem(f"{tap}Lượt {count_luot + 1}")
+                    item.setTextAlignment(Qt.AlignCenter)
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignLeft)
+                    self.table_title.setItem(0, span_start_col, item)
+                    count_luot += 1
+
+            for row in range(131):  # Số lượng hàng (131 là ví dụ)
+                # Duyệt qua từng tập và lượt
+                for tap_index in range(10):
+                    for luot in range(10):
+                        luot_index = tap_index * 10 + luot
+                        start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
+
+                        # Thêm cột E và H
+                        if row < len(self.thong_sp) and luot_index < len(self.thong_sp[row]):
+                            bg_color = QColor("#b581ff") if luot_index % 10 == 0 else QColor("#FFD700")
+
+                            # E column
+                            e_row = self.thong_sp[row][luot_index][0]
+                            item_e = create_table_item(e_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 0})
+                            self.table_main_thong.setItem(row, start_col, item_e)
+
+                            # H column
+                            h_row = self.thong_sp[row][luot_index][1]
+                            item_h = create_table_item(h_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 1})
+                            self.table_main_thong.setItem(row, start_col + 1, item_h)
+
+                        # Thêm 10 cột thong
+                        thong_start_index = luot_index * isThong_step  # Tính chỉ số bắt đầu cho thong_data
+                        for thong_col in range(isThong_step):
+                            thong_index = thong_start_index + thong_col
+                            if thong_index < len(thong_data) and row < len(thong_data[thong_index]):
+                                thong_row = thong_data[thong_index][row]
+                                item = create_table_item(thong_row, Qt.AlignmentFlag.AlignCenter, None, {"row": row, "index": thong_index, "name": "thong"})
+                                self.table_main_thong.setItem(
+                                    row,
+                                    start_col + 2 + thong_col,  # Sau 2 cột E và H
+                                    item,
+                                )
+
+    def search_by_index_thong_table(self, row_thong, col_thong):
+        for row in range(self.table_main_thong.rowCount()):
+            for column in range(self.table_main_thong.columnCount()):
+                item = self.table_main_thong.item(row, column)
+                if item:
+                    # Lấy dữ liệu UserRole
+                    user_data = item.data(Qt.ItemDataRole.UserRole)
+                    if isinstance(user_data, dict) and user_data.get("name") == "thong" and user_data.get("row") == row_thong and user_data.get("index") == col_thong - 4:
+                        return item
+
+    def sync_horizontal_scroll_thong_table(self, value):
+        self.table_main_thong.horizontalScrollBar().setValue(value)
+        self.table_title.horizontalScrollBar().setValue(value)
 
     def freeze_col_stt(self, value):
         if value >= self.start_col:
@@ -8288,7 +8472,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][3]["col_d"][col_e_m3 - 1]
         btn_notice = self.ban_info["meta"]["tables"][3]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][3] else [[8, 36] for _ in range(120)]
-        number_color = btn_notice[col_e_m3 - 1]
+        # number_color = btn_notice[col_e_m3 - 1] #! Ban toan theo thong
+        number_color = notice_colorM4 #! Ban toan theo dong
         if stt_count_with_d_m4 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m4 = f"{col_e_m3}:{stt_count_with_d_m4}:col_e_m4"
@@ -8425,7 +8610,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][4]["col_d"][col_e_m4 - 1]
         btn_notice = self.ban_info["meta"]["tables"][4]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][4] else [[8, 36] for _ in range(120)]
-        number_color = btn_notice[col_e_m4 - 1]
+        # number_color = btn_notice[col_e_m4 - 1]  #! Ban toan theo thong
+        number_color = notice_colorM5 #! Ban toan theo dong
         if stt_count_with_d_m5 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m5 = f"{col_e_m4}:{stt_count_with_d_m5}:col_e_m5"
@@ -8575,7 +8761,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][5]["col_d"][col_e_m5 - 1]
         btn_notice = self.ban_info["meta"]["tables"][5]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][5] else [[8, 36] for _ in range(120)]
-        number_color = btn_notice[col_e_m5 - 1]
+        # number_color = btn_notice[col_e_m5 - 1] #! Ban toan theo thong
+        number_color = notice_colorM6
         if stt_count_with_d_m6 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m6 = f"{col_e_m5}:{stt_count_with_d_m6}:col_e_m6"
@@ -8738,7 +8925,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][6]["col_d"][col_e_m6 - 1]
         btn_notice = self.ban_info["meta"]["tables"][6]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][6] else [[8, 36] for _ in range(120)]
-        number_color = btn_notice[col_e_m6 - 1]
+        # number_color = btn_notice[col_e_m6 - 1] #! Ban toan theo thong
+        number_color = notice_colorM7
         if stt_count_with_d_m7 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m7 = f"{col_e_m6}:{stt_count_with_d_m7}:col_e_m7"
@@ -8914,7 +9102,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][7]["col_d"][col_e_m7 - 1]
         btn_notice = self.ban_info["meta"]["tables"][7]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][7] else [[8, 36] for _ in range(120)]
-        number_color = btn_notice[col_e_m7 - 1]
+        # number_color = btn_notice[col_e_m7 - 1] #! Ban toan theo thong
+        number_color = notice_colorM8
         if stt_count_with_d_m8 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m8 = f"{col_e_m7}:{stt_count_with_d_m8}:col_e_m8"
@@ -9103,7 +9292,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][8]["col_d"][col_e_m8 - 1]
         btn_notice = self.ban_info["meta"]["tables"][8]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][8] else [[8, 36] for _ in range(120)]
-        number_color = btn_notice[col_e_m8 - 1]
+        # number_color = btn_notice[col_e_m8 - 1] #! Ban toan theo thong
+        number_color = notice_colorM9
         if stt_count_with_d_m9 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m9 = f"{col_e_m8}:{stt_count_with_d_m9}:col_e_m9"
@@ -9305,7 +9495,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][9]["col_d"][col_e_m9 - 1]
         btn_notice = self.ban_info["meta"]["tables"][9]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][9] else [[8, 36] for _ in range(120)]
-        number_color = btn_notice[col_e_m9 - 1]
+        # number_color = btn_notice[col_e_m9 - 1] #! Ban toan theo thong
+        number_color = notice_colorM10
         if stt_count_with_d_m10 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m10 = f"{col_e_m9}:{stt_count_with_d_m10}:col_e_m10"

@@ -23,7 +23,7 @@ from Pages.components.stylesheet import (
 )
 import json
 import os
-from Controller.handler import backUpNgang, saveNgang, convert_string_format,sync_ngang, save_ngang_backup,convert_string_to_type_count
+from Controller.handler import backUpNgang, saveNgang, convert_string_format,sync_ngang
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
 
@@ -656,14 +656,13 @@ class NgangPage(QWidget):
         result = message.exec()
 
         if result == QMessageBox.Yes:
-            type_count = convert_string_to_type_count(self.ban_info["thong"]["name"])
             data = {}
             data["update"] = self.ngang_data
             data["number"] = self.ban_info["meta"]['number']
             data["stt"] = self.ngang_info["stt"]
             data["change"] = self.ngang_info["change"]
-            data["type_count"] = type_count if type_count == 0 else 1 if type_count == '1a' else 3 if type_count == '1b' else 2
             data['name'] = self.ban_info['thong']['name']
+            data["pm"] = self.ban_info["thong"]["pm"]
             msg = sync_ngang(data)
             self.delete_color_click()
             SendMessage(f'{msg} {self.name}')

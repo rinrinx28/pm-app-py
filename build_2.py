@@ -33,15 +33,24 @@ if __name__ == "__main__":
     for file in files_and_dirs_to_move:
         if os.path.exists(file):
             shutil.rmtree(file)
-    app_v = 4
+    app_v = 6
 
     for v in range(app_v):
         count = v
-        type_count = (
-            "Bộ 1a Số"
-            if count == 1
-            else ("Bộ 2 Số" if count == 2 else "Bộ trắng" if count == 0 else "Bộ 1b Số")
-        )
+        type_count = "Bộ 1a"
+        if count + 1 == 1:
+            type_count = "Bộ 1a"
+        if count + 1 == 2:
+            type_count = "Bộ 1b"
+        if count + 1 == 3:
+            type_count = "Bộ 1c"
+        if count + 1 == 4:
+            type_count = "Bộ 1d"
+        if count + 1 == 5:
+            type_count = "Bộ 0a"
+        if count + 1 == 6:
+            type_count = "Bộ 0b"
+
         new_app_file = os.path.join(destination_directory, f"{type_count}")
         if os.path.exists(new_app_file):
             shutil.rmtree(new_app_file)
@@ -50,7 +59,7 @@ if __name__ == "__main__":
         # Change Path Data for Application
         path_data = os.path.join(current_dir, "type_pm.txt")
         with open(path_data, "w") as file:
-            file.write(f"{v}")
+            file.write(f"{v + 1}")
 
         # Running Command
         print("Running command:", command)

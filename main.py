@@ -158,11 +158,19 @@ class AppSelectionDialog(QDialog):
         label_btn_pwd.setCursor(QCursor(Qt.PointingHandCursor))
         pwd_layout.addWidget(label_btn_pwd)
 
-        type_count = (
-            "1a"
-            if self.type_pm == 1
-            else ("2" if self.type_pm == 2 else "trắng" if self.type_pm == 0 else "1b")
-        )
+        type_count = "1a"
+        if self.type_pm == 1:
+            type_count = "1a"
+        if self.type_pm == 2:
+            type_count = "1b"
+        if self.type_pm == 3:
+            type_count = "1c"
+        if self.type_pm == 4:
+            type_count = "1d"
+        if self.type_pm == 5:
+            type_count = "0a"
+        if self.type_pm == 6:
+            type_count = "0b"
 
         self.label = QLabel(f"Bộ {type_count}, Mời chọn App:")
         self.label.setStyleSheet(css_title)
@@ -183,22 +191,24 @@ class AppSelectionDialog(QDialog):
             button.setCheckable(True)
             button.setDisabled(True)
 
+            tap_index = i // 10 + 1  # Xác định tập
+            tap = f"Tập {tap_index} " if i % 10 == 0 else ""  # Chỉ app đầu tiên của mỗi tập hiển thị số tập
+
             # Check if the button has been opened today
             if i in self.opened_apps_today:
                 last_opened_time = self.opened_apps_today[i]
-                button_text = f"A{i+1} - {last_opened_time}"  # Show last opened time
+                button_text = f"{tap}A{i+1} - {last_opened_time}"  # Show last opened time
                 button.setStyleSheet(css_custom_opened)  # Style for opened buttons
             else:
-                button_text = f"A{i+1}"
+                button_text = f"{tap}A{i+1}"
                 button.setStyleSheet(css_custom_normal)  # Style for unopened buttons
 
             button.setText(button_text)
-            button.clicked.connect(
-                lambda _, index=i: self.create_button_click_handler(index)
-            )  # Pass index
+            button.clicked.connect(lambda _, index=i: self.create_button_click_handler(index))  # Pass index
             button.setCursor(QCursor(Qt.PointingHandCursor))
             self.grid_layout.addWidget(button, i % 6, i // 6)
             self.buttons.append(button)
+
 
         # Container widget for all app buttons
         self.button_container = QWidget()
@@ -324,7 +334,9 @@ class AppSelectionDialog(QDialog):
             # Clear selection style from all buttons
             button = self.buttons[index]
             current_time = self.opened_apps_today[index]
-            button.setText(f"App {int(index) + 1} - {current_time}")
+            tap_index = int(index) // 10 + 1  # Xác định tập
+            tap = f"Tập {tap_index} " if int(index) % 10 == 0 else ""  # Chỉ app đầu tiên của mỗi tập hiển thị số tập
+            button.setText(f"{tap}A{int(index) + 1} - {current_time}")
 
         # Only proceed if an app is selected
         if self.selected_app_index is not None:
@@ -438,13 +450,21 @@ class AppSelectionDialog(QDialog):
     def modify_text_file(self, index, type_count):
         # Update file based on selected index
         file_path = os.path.join(basedir, "path_file.txt")
-        skip = (
-            0
-            if type_count == 1
-            else 30 if type_count == 2 else 60 if type_count == 3 else 90
-        )
+        skip = 0
+        if type_count == 1:
+            skip = 0
+        if type_count == 2:
+            skip = 30
+        if type_count == 3:
+            skip = 60
+        if type_count == 4:
+            skip = 90
+        if type_count == 5:
+            skip = 120
+        if type_count == 6:
+            skip = 150
         with open(file_path, "w") as file:
-            file.write(f"C:/data/{index + skip}")
+            file.write(f"D:/data/{index + skip}")
 
     def open_app(self, index, type_count):
         self.modify_text_file(index, type_count)
@@ -565,11 +585,19 @@ class FullScreenApp(QMainWindow):
         main_layout = QVBoxLayout(self.central_widget)
 
         # Display app type and index
-        type_count = (
-            "1a"
-            if self.type_pm == 1
-            else ("2" if self.type_pm == 2 else "Trắng" if self.type_pm == 0 else "1b")
-        )
+        type_count = "1a"
+        if self.type_pm == 1:
+            type_count = "1a"
+        if self.type_pm == 2:
+            type_count = "1b"
+        if self.type_pm == 3:
+            type_count = "1c"
+        if self.type_pm == 4:
+            type_count = "1d"
+        if self.type_pm == 5:
+            type_count = "0a"
+        if self.type_pm == 6:
+            type_count = "0b"
 
         type_app = (
             "Tập 1" if int(index) < 11 else "Tập 2" if int(index) < 21 else "Tập 3"

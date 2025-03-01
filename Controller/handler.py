@@ -450,7 +450,7 @@ def updateColorInsert(data):
     data_db["meta"]["maxRow"] = maxRow
     data_db["meta"]["buttons"] = buttons
     data_db["meta"]["tables"] = tables
-    data_db['size'] = size
+    data_db["size"] = size
     # / Write File JSON
     with open(path_db, "w") as file:
         json.dump(data_db, file)
@@ -761,10 +761,12 @@ def saveBackupThong(data):
         json.dump(thong_data, file)
     
     # / Save data thong sp
-    isThong_one = True if thong_db['type_count'] in [1,3] else False
-    if isThong_one:
-        with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
-            json.dump(thong_sp, file)
+    # isThong_one = True if thong_db['type_count'] in [1,3] else False
+    # if isThong_one:
+    #     with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
+    #         json.dump(thong_sp, file)
+    with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
+        json.dump(thong_sp, file)
 
     # / re-render all bo chuyen doi
     for i in range(11):
@@ -791,35 +793,58 @@ def saveAllThong(data):
     name = data["name"]
     change = data["change"]
     stt = data["stt"]
+    pm = data["pm"]
     
-    isThong_one = True if data["thong_sp"] in [1,3] else False
-    if isThong_one:
-        thong_sp = data["thong_sp"]
-
-    current_path = rf"C:\data"
+    # isThong_one = True if type_count in [1,3] else False
+    # if isThong_one:
+    #     thong_sp = data["thong_sp"]
+    thong_sp = data["thong_sp"]
     index = extract_index(name)
 
+    current_path = rf"C:\data"
+
     # Xác định phạm vi index dựa trên type_count
-    if type_count == 1:
+    if pm == 1:
         range_tuple = get_range_by_index(index, 0)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 2:
+    elif pm == 2:
         range_tuple = get_range_by_index(index, 30)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 3:
+    elif pm == 3:
         range_tuple = get_range_by_index(index, 60)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 0:
+    elif pm == 4:
         range_tuple = get_range_by_index(index, 90)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 5:
+        range_tuple = get_range_by_index(index, 120)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 6:
+        range_tuple = get_range_by_index(index, 150)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     else:
         return "Type count không hợp lệ"
 
     range_start, range_end = range_tuple
+
+    # / re-render all bo chuyen doi
+    data_async = []
+    for k in range(11):
+        if k == 0:
+            data_async.append(update)
+        else:
+            number_change = list(
+                map(
+                    lambda item: list(map(lambda x: TachVaGhep(k, x), item)), update
+                )
+            )
+            data_async.append(number_change)
 
     for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
         file_type = i + 1
@@ -847,25 +872,17 @@ def saveAllThong(data):
         with open(os.path.join(thong_path, f"thong_{thong_id}_backup.json"), "w") as file:
             json.dump(update, file)
         
-        if type_count in [1,3]:
-            with open(os.path.join(thong_path, f"thong_sp_{thong_id}.json"), "w") as file:
-                json.dump(thong_sp, file)
+        # if type_count in [1,3]:
+        #     with open(os.path.join(thong_path, f"thong_sp_{thong_id}.json"), "w") as file:
+        #         json.dump(thong_sp, file)
+        with open(os.path.join(thong_path, f"thong_sp_{thong_id}.json"), "w") as file:
+            json.dump(thong_sp, file)
 
-        # / re-render all bo chuyen doi
-        for k in range(11):
-            if k == 0:
-                with open(os.path.join(thong_path, f"thong_{thong_id}_{k}.json"), "w") as file:
-                    json.dump(update, file)
-            else:
-                number_change = list(
-                    map(
-                        lambda item: list(map(lambda x: TachVaGhep(k, x), item)), update
-                    )
-                )
-                with open(os.path.join(thong_path, f"thong_{thong_id}_{k}.json"), "w") as file:
-                    json.dump(number_change, file)
+        for k, data_arr_async in enumerate(data_async):
+            with open(os.path.join(thong_path, f"thong_{thong_id}_{k}.json"), "w") as file:
+                json.dump(data_arr_async, file)
         
-
+        print(f"Done {i + 1}")
 
     # type_count_label = (
     #     "1a Số"
@@ -884,47 +901,73 @@ def typeWithRecipe(data):
     update = data["update"]
     col = value
     # / Create new Rowstep = 0
-    step = 0
     if setting == 1:
-        # Define steps
+        # Initialize data
         steps = [
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
             [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
             [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
+            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
+            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
+            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
         ]
 
         # Initialize modifications for array a in each step
-        modifications_a = [0, 8, 4, 2]
+        modifications_a = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+        ]
 
-        # Process data in steps
-        step_size = 1200 // 4
-        thong_data = []
+        # Initialize result containers
+        current_thong_data = [0] * 1500
         thong_value_data = []
-        count = 0
-        for step in range(0, 1200, step_size):
-            count_h = 0
-            for luot in range(step, step + step_size, 30):
-                e = (int(thong_sp[row][0][0]) + modifications_a[count]) % 10
+
+        # Process data for each tap and luot
+        for count in range(10):  # 8 tập
+            for count_h in range(10):  # Mỗi tập 10 lượt
+                # Calculate E and H
+                e = (int(thong_sp[row][0][0]) + modifications_a[count][count_h]) % 10
                 h = (int(thong_sp[row][0][1]) + steps[count][count_h]) % 10
-                for thong in range(luot, luot + 30):
-                    if thong == luot:
-                        thong_data.append((e + h) % 10)
-                    elif thong == luot + 1:
-                        thong_data.append((h + thong_data[thong - 1]) % 10)
+
+                # Determine starting index for thong in current_thong_data
+                thong_start_index = (count * 10 + count_h) * 15  # Tính chỉ số dựa trên tập và lượt
+
+                # Generate 15 thong values for this luot
+                for thong_index in range(15):
+                    thong = thong_index + thong_start_index
+                    if thong_index == 0:
+                        current_thong_data[thong] = (e + h) % 10
+                    elif thong_index == 1:
+                        current_thong_data[thong] = (
+                            h + current_thong_data[thong - 1]
+                        ) % 10
                     else:
-                        thong_data.append(
-                            (thong_data[thong - 2] + thong_data[thong - 1]) % 10
-                        )
+                        current_thong_data[thong] = (
+                            current_thong_data[thong - 2]
+                            + current_thong_data[thong - 1]
+                        ) % 10
+
+                # Append E and H values to thong_value_data
                 thong_value_data.append([e, h])
-                count_h += 1
-            count += 1
-        
-        # / Save thong sp with row
+
+        # Save processed thong_sp for the current row
         thong_sp[row] = thong_value_data
-        # / Convert to thong data file old
-        for thong in range(len(thong_data)):
-            update[thong][row] = thong_data[thong]
+
+        # Update thong_data matrix
+        for thong_index, value in enumerate(current_thong_data):
+            update[thong_index][row] = value
 
     if setting == 2:
         for i in range(0, col, 100):
@@ -1144,29 +1187,37 @@ def save_ngang_backup(data):
 
 
 def sync_ngang(data):
-    type_count = data["type_count"]
     update = data["update"]
     number = data["number"]
     name = data["name"]
     stt = data["stt"]
+    pm = data["pm"]
     current_path = rf"C:\data"
     index = extract_index(name)
 
-    # Xác định phạm vi index dựa trên type_count
-    if type_count == 1:
+    # Xác định phạm vi index dựa trên pm
+    if pm == 1:
         range_tuple = get_range_by_index(index, 0)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 2:
+    elif pm == 2:
         range_tuple = get_range_by_index(index, 30)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 3:
+    elif pm == 3:
         range_tuple = get_range_by_index(index, 60)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 0:
+    elif pm == 4:
         range_tuple = get_range_by_index(index, 90)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 5:
+        range_tuple = get_range_by_index(index, 120)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 6:
+        range_tuple = get_range_by_index(index, 150)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     else:
@@ -1224,7 +1275,7 @@ def convert_string_format_type_pm(input_string):
     _, suffix = input_string.split(" ", 1)
     bo, app = suffix.split(".")
 
-    type_count = "Trắng" if bo == "0" else bo
+    type_count = "Trắng" if bo.startswith("0") else bo
 
     # Format the new string
     return f"Bộ {type_count}"
@@ -1235,7 +1286,7 @@ def convert_string_to_type_count(input_string):
     _, suffix = input_string.split(" ", 1)
     bo, app = suffix.split(".")
 
-    type_count = 0 if bo == "0" else bo
+    type_count = 0 if bo.startswith("0") else bo
 
     # Format the new string
     return type_count
@@ -1244,26 +1295,32 @@ def convert_string_to_type_count(input_string):
 # //TODO ———————————————[Setting Async]———————————————
 def async_setting_number_pm(data):
     current_path = rf"C:\data"
-    name = data['name']
-    type_count_name = convert_string_to_type_count(name)
-    type_count = type_count_name if type_count_name == 0 else 1 if type_count_name == '1a' else 3 if type_count_name == '1b' else 2
-    index = extract_index(name)
+    pm = data.get("pm")
+    name = data.get("name")
 
     # Xác định phạm vi index dựa trên type_count
-    if type_count == 1:
-        range_tuple = 1,30
+    if pm == 1:
+        range_tuple = 0,30
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 2:
+    elif pm == 2:
         range_tuple = 31,60
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 3:
+    elif pm == 3:
         range_tuple = 61,90
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 0:
+    elif pm == 4:
         range_tuple = 91,120
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 5:
+        range_tuple = 121, 150
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 6:
+        range_tuple = 151,180
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     else:
@@ -1294,25 +1351,33 @@ def async_setting_range_thong(data):
     current_path = rf"C:\data"
     name = data['name']
     range_thong = data['thong']['value']
-    type_count_name = convert_string_to_type_count(name)
-    type_count = type_count_name if type_count_name == 0 else 1 if type_count_name == '1a' else 3 if type_count_name == '1b' else 2
+    pm = data.get("pm")
+
     index = extract_index(name)
 
-    # Xác định phạm vi index dựa trên type_count
-    if type_count == 1:
-        range_tuple = 1,30
+    # Xác định phạm vi index dựa trên pm
+    if pm == 1:
+        range_tuple = get_range_by_index(index, 0)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 2:
-        range_tuple = 31,60
+    elif pm == 2:
+        range_tuple = get_range_by_index(index, 30)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 3:
-        range_tuple = 61,90
+    elif pm == 3:
+        range_tuple = get_range_by_index(index, 60)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 0:
-        range_tuple = 91,120
+    elif pm == 4:
+        range_tuple = get_range_by_index(index, 90)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 5:
+        range_tuple = get_range_by_index(index, 120)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 6:
+        range_tuple = get_range_by_index(index, 150)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     else:
@@ -1345,24 +1410,35 @@ def save_setting_tables(data):
     with open(os.path.join(path_thong, "thongs.json"), "r") as file:
         thong_db = json.load(file)
 
-    type_count = thong_db["type_count"]
+    pm = thong_db["pm"]
     current_path = rf"C:\data"
 
+    # Xác định phạm vi index dựa trên pm
+    index = extract_index(name)
+
     # Xác định phạm vi index dựa trên type_count
-    if type_count == 1:
+    if pm == 1:
         range_tuple = get_range_by_index(index, 0)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 2:
+    elif pm == 2:
         range_tuple = get_range_by_index(index, 30)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 3:
+    elif pm == 3:
         range_tuple = get_range_by_index(index, 60)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
-    elif type_count == 0:
+    elif pm == 4:
         range_tuple = get_range_by_index(index, 90)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 5:
+        range_tuple = get_range_by_index(index, 120)
+        if range_tuple is None:
+            return "Index không nằm trong phạm vi hợp lệ"
+    elif pm == 6:
+        range_tuple = get_range_by_index(index, 150)
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     else:

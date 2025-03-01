@@ -29,6 +29,7 @@ from Pages.components.stylesheet import (
     css_input,
     SendMessage,
     css_title,
+    Font
 )
 
 from functools import partial
@@ -58,6 +59,7 @@ class SettingTable(QDialog):
         self.setWindowTitle("Cài đặt bảng")
         self.setWindowIcon(QIcon(icon))
         self.showFullScreen()
+        self.font = Font()
 
         # Create main layout
         dialog_main_layout = QVBoxLayout()
@@ -195,18 +197,7 @@ class SettingTable(QDialog):
         )
         # save_button.setFixedWidth(200)
         save_button.setCursor(QCursor(Qt.PointingHandCursor))
-        save_button.clicked.connect(
-            lambda _: self.save_setting_all_app(
-                {
-                    "col": self.ban_info["col"],
-                    "meta": self.ban_info["meta"],
-                    "thong": {
-                        "value": self.ban_info["thong"]["value"],
-                        "name": self.ban_info["thong"]["name"],
-                    },
-                }
-            )
-        )  # Connect to reject action
+        save_button.clicked.connect(self.save_setting_all_app)  # Connect to reject action
         # Add buttons to the button layout
         horizontalSpacer = QSpacerItem(
             40, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
@@ -234,6 +225,7 @@ class SettingTable(QDialog):
         result = message.exec()
         if result == QMessageBox.Yes:
             msg = async_setting_number_pm({
+                "pm": self.col_thong["pm"],
                 "name": self.col_thong["name"]
             })
             return SendMessage(msg)
@@ -257,10 +249,11 @@ class SettingTable(QDialog):
                 "thong": {
                             "value": self.ban_info["thong"]["value"],
                         },
+                "pm": self.col_thong["pm"]
             })
             return SendMessage(msg)
 
-    def save_setting_all_app(self, data):
+    def save_setting_all_app(self):
         icon = Path().path_logo()
         message = QMessageBox()
         message.setWindowTitle("Thông Báo")
@@ -274,7 +267,15 @@ class SettingTable(QDialog):
         # Hiển thị hộp thoại và lấy kết quả
         result = message.exec()
         if result == QMessageBox.Yes:
-            msg = save_setting_tables(data)
+            msg = save_setting_tables({
+                    "col": self.ban_info["col"],
+                    "meta": self.ban_info["meta"],
+                    "thong": {
+                        "value": self.ban_info["thong"]["value"],
+                        "name": self.ban_info["thong"]["name"],
+                        "pm": self.ban_info["thong"]["pm"],
+                    },
+                })
             return SendMessage(f"{msg} {self.name_type}")
 
     def create_tab_main_setting(self):
@@ -326,7 +327,7 @@ class SettingTable(QDialog):
         s_values_thong_spinbox_1 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_1, 1, 0)
         s_values_thong_spinbox_1.setMinimum(1)
-        s_values_thong_spinbox_1.setMaximum(1200)
+        s_values_thong_spinbox_1.setMaximum(1500)
         s_values_thong_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_1.setValue(self.col_thong["value"][0])
         s_values_thong_spinbox_1.setDisabled(True)
@@ -335,7 +336,7 @@ class SettingTable(QDialog):
         s_values_thong_spinbox_2 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_2, 1, 1)
         s_values_thong_spinbox_2.setMinimum(1)
-        s_values_thong_spinbox_2.setMaximum(1200)
+        s_values_thong_spinbox_2.setMaximum(1500)
         s_values_thong_spinbox_2.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_2.setValue(self.col_thong["value"][1])
         s_values_thong_spinbox_2.setDisabled(True)
@@ -427,6 +428,7 @@ class SettingTable(QDialog):
         s_size_table_spinbox_1 = QSpinBox()
         s_size_table_l.addWidget(s_size_table_spinbox_1, 1, 0)
         s_size_table_spinbox_1.setMinimum(12)
+        s_size_table_spinbox_1.setMaximum(50)
         s_size_table_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_size_table_spinbox_1.setValue(self.ban_info.get('size', 28))
         s_size_table_spinbox_1.setDisabled(True)
@@ -823,6 +825,7 @@ class SettingTable(QDialog):
             spin_label = QSpinBox()
             spin_label.setDisabled(True)
             spin_label.setMinimum(1)
+            spin_label.setMaximum(1500)
             spin_label.setStyleSheet("font-size: 24px;border: 0px;")
             spin_label.setValue(info_table["col_d"][i])
             spin_label.valueChanged.connect(partial(self.change_table_col_d, type, i))
@@ -857,12 +860,12 @@ class SettingTable(QDialog):
 
             label_layout.addWidget(label)
             label_layout.addWidget(spin_label)
-            label_layout.addWidget(btn_notice_label)
-            label_layout.addWidget(widget_btn_notice)
+            # label_layout.addWidget(btn_notice_label) # Ban toan theo thong 
+            # label_layout.addWidget(widget_btn_notice) # Ban toan theo thong
 
             spin_boxes.append(spin_label)
-            spin_boxes.append(spin_label_btn_notice_first)
-            spin_boxes.append(spin_label_btn_notice_second)
+            # spin_boxes.append(spin_label_btn_notice_first) # Ban toan theo thong
+            # spin_boxes.append(spin_label_btn_notice_second) # Ban toan theo thong
 
             # Thêm widget vào lưới 4 cột
             row = i // 4
@@ -871,44 +874,6 @@ class SettingTable(QDialog):
 
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
-
-        # # / Add Notice Color
-        # notice = QWidget()
-        # notice.setStyleSheet("border: 1px solid #999;")
-        # notice_l = QVBoxLayout(notice)
-        # layout.addWidget(notice) // Disable Notice Color
-
-        # # / Lable > SpinBox
-        # notice_lable = QLabel(f"Báo Màu M{type + 1}")
-        # notice_lable.setStyleSheet("border: 0px;font-size:24px;")
-        # notice_l.addWidget(notice_lable)
-
-        # notice_spinBox_w = QWidget()
-        # notice_spinBox_w.setStyleSheet("border: 0px;")
-        # notice_spinBox_l = QHBoxLayout(notice_spinBox_w)
-        # notice_l.addWidget(notice_spinBox_w)
-        # notice_spinBox_1 = QSpinBox()
-        # notice_spinBox_1.setMinimum(0)
-        # notice_spinBox_1.setMaximum(999)
-        # notice_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
-        # notice_spinBox_1.setValue(
-        #     self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][0]
-        # )
-        # notice_spinBox_2 = QSpinBox()
-        # notice_spinBox_2.setMinimum(0)
-        # notice_spinBox_2.setMaximum(999)
-        # notice_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
-        # notice_spinBox_2.setValue(
-        #     self.old_data[f'color{"M" + str(type + 1) if type != 0 else ""}'][1]
-        # )
-
-        # notice_spinBox_l.addWidget(notice_spinBox_1)
-        # notice_spinBox_l.addWidget(notice_spinBox_2)
-
-        # notice_spinBox_1.setDisabled(True)
-        # notice_spinBox_2.setDisabled(True)
-        # spin_boxes.append(notice_spinBox_1)
-        # spin_boxes.append(notice_spinBox_2)
 
         # / Add Config Col D
         config_col = QWidget()
@@ -928,14 +893,14 @@ class SettingTable(QDialog):
 
         config_col_spinBox_1 = QSpinBox()
         config_col_spinBox_1.setMinimum(1)
-        config_col_spinBox_1.setMaximum(120)
+        config_col_spinBox_1.setMaximum(1500)
         config_col_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
         config_col_spinBox_1.setValue(
             self.col_e[f"col_e{type + 1 if type != 0 else ''}"][0]
         )
         config_col_spinBox_2 = QSpinBox()
         config_col_spinBox_2.setMinimum(1)
-        config_col_spinBox_2.setMaximum(120)
+        config_col_spinBox_2.setMaximum(1500)
         config_col_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
         config_col_spinBox_2.setValue(
             self.col_e[f"col_e{type + 1 if type != 0 else ''}"][1]
@@ -948,6 +913,45 @@ class SettingTable(QDialog):
         config_col_spinBox_2.setEnabled(False)
         spin_boxes.append(config_col_spinBox_1)
         spin_boxes.append(config_col_spinBox_2)
+        
+        # / Add Config Bao mau Bang Mau
+        config_bao_mau = QWidget()
+        config_bao_mau.setStyleSheet("border: 1px solid #999;")
+        config_bao_mau_l = QVBoxLayout(config_bao_mau)
+        layout.addWidget(config_bao_mau)
+
+        # / Lable > SpinBox
+        config_bao_mau_lable = QLabel(f"Báo màu m{type + 1}")
+        config_bao_mau_lable.setStyleSheet("border: 0px;font-size:24px;")
+        config_bao_mau_l.addWidget(config_bao_mau_lable)
+
+        config_bao_mau_spinBox_w = QWidget()
+        config_bao_mau_spinBox_w.setStyleSheet("border: 0px;")
+        config_bao_mau_spinBox_l = QHBoxLayout(config_bao_mau_spinBox_w)
+        config_bao_mau_l.addWidget(config_bao_mau_spinBox_w)
+
+        config_bao_mau_spinBox_1 = QSpinBox()
+        config_bao_mau_spinBox_1.setMinimum(1)
+        config_bao_mau_spinBox_1.setMaximum(120)
+        config_bao_mau_spinBox_1.setStyleSheet("font-size: 24px;border: 0px;")
+        config_bao_mau_spinBox_1.setValue(
+            self.old_data[f"colorM{type + 1 if type != 0 else '1'}"][0]
+        )
+        config_bao_mau_spinBox_2 = QSpinBox()
+        config_bao_mau_spinBox_2.setMinimum(1)
+        config_bao_mau_spinBox_2.setMaximum(120)
+        config_bao_mau_spinBox_2.setStyleSheet("font-size: 24px;border: 0px;")
+        config_bao_mau_spinBox_2.setValue(
+            self.old_data[f"colorM{type + 1 if type != 0 else '1'}"][1]
+        )
+
+        config_bao_mau_spinBox_l.addWidget(config_bao_mau_spinBox_1)
+        config_bao_mau_spinBox_l.addWidget(config_bao_mau_spinBox_2)
+
+        config_bao_mau_spinBox_1.setEnabled(False)
+        config_bao_mau_spinBox_2.setEnabled(False)
+        # spin_boxes.append(config_bao_mau_spinBox_1)
+        # spin_boxes.append(config_bao_mau_spinBox_2)
 
         # Label number btn_notice
         number_btn_notice_col = QWidget()
@@ -961,7 +965,7 @@ class SettingTable(QDialog):
         spin_label_number_btn_notice = QSpinBox()
         spin_label_number_btn_notice.setEnabled(False)
         spin_label_number_btn_notice.setMinimum(1)
-        spin_label_number_btn_notice.setMaximum(21)
+        spin_label_number_btn_notice.setMaximum(24)
         spin_label_number_btn_notice.setStyleSheet("font-size: 24px;border: 0px;")
         spin_label_number_btn_notice.setValue(info_table['number_btn_notice'])
         spin_label_number_btn_notice.valueChanged.connect(partial(self.save_number_btn_notice, type))
@@ -969,6 +973,10 @@ class SettingTable(QDialog):
 
         number_btn_notice_col_l.addWidget(number_btn_notice_label)
         number_btn_notice_col_l.addWidget(spin_label_number_btn_notice)
+
+        title_number_btn_notice_lable = QLabel("Số nút màu tối đa cho phép là 24 nút, 4 hàng")
+        title_number_btn_notice_lable.setStyleSheet("font-size: 16px;border: 0px;")
+        number_btn_notice_col_l.addWidget(title_number_btn_notice_lable)
 
         spin_boxes.append(spin_label_number_btn_notice)
         # verticalSpacer2 = QSpacerItem(
@@ -1009,6 +1017,22 @@ class SettingTable(QDialog):
                 1,
             )
         )
+        
+        # / Config Color
+        config_bao_mau_spinBox_1.valueChanged.connect(
+            partial(
+                self.value_change_col_table_color_config_color,
+                f"colorM{type + 1 if type != 0 else '1'}",
+                0,
+            )
+        )
+        config_bao_mau_spinBox_2.valueChanged.connect(
+            partial(
+                self.value_change_col_table_color_config_color,
+                f"colorM{type + 1 if type != 0 else '1'}",
+                1,
+            )
+        )
 
         # / Config turn_setting
         turn_setting.checkStateChanged.connect(toggle_all_spinboxes)
@@ -1034,3 +1058,6 @@ class SettingTable(QDialog):
 
     def value_change_col_table_color_config_col(self, type, index, value):
         self.col_e[type][index] = value
+    
+    def value_change_col_table_color_config_color(self, type, index, value):
+        self.old_data[type][index] = value

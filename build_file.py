@@ -167,815 +167,658 @@ def TachVaGhep(number, value):
     joined_string = "".join(list(chuSo))
     return joined_string
 
-
-def createThong(data, path):
-    os.makedirs(path, exist_ok=True)
-    thong_path = path
+def createThongData(data):
     row = 131
     value = data.get("value")
     col = value
-    id = Generate_Id()
-    type_count = data.get("type_count")
-
     thong_file = []
     thong_file_sp = []
     step = 0
-    # / Create Thong
-    if type_count == 1:
-        # Define steps
-        steps = [
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
-            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
-        ]
+    # Define steps
+    steps = [
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
+        [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
+        [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+        [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
+        [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
+        [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
+        [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+    ]
 
-        # Initialize modifications for array a in each step
-        modifications_a = [0, 8, 4, 2]
+    # Initialize modifications for array a in each step
+    modifications_a = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+    ]
 
-        # Process data in steps
-        step_size = 1200 // 4
-        thong_package = []
+    # Process data in steps
+    step_size = 1500 // 8
+    # if type_count == 0:
+    thong_package = []
+    for row in range(131):
+        line = f"{row:02}"
+        thong_data = []
+        thong_value_data = []
+        count = 0
+        for step in range(col):
+            thong_data.append("")
+            for luot in range(step, step + step_size, 15):
+                thong_value_data.append(["", ""])
+        thong_package.append(thong_data)
+        thong_file_sp.append(thong_value_data)
+
+    # Convert to thong data file old
+    for thong in range(col):
+        thong_data = []
         for row in range(131):
-            line = f"{row:02}"
-            thong_data = []
-            thong_value_data = []
-            count = 0
-            if row > 99:
-                for step in range(1200):
-                    thong_data.append("")
-                    for luot in range(step, step + step_size, 30):
-                        thong_value_data.append(["", ""])
-            else:
-                for step in range(0, 1200, step_size):
-                    count_h = 0
-                    for luot in range(step, step + step_size, 30):
-                        e = (int(line[0]) + modifications_a[count]) % 10
-                        h = (int(line[1]) + steps[count][count_h]) % 10
-                        for thong in range(luot, luot + 30):
-                            if thong == luot:
-                                thong_data.append((e + h) % 10)
-                            elif thong == luot + 1:
-                                thong_data.append((h + thong_data[thong - 1]) % 10)
-                            else:
-                                thong_data.append(
-                                    (thong_data[thong - 2] + thong_data[thong - 1]) % 10
-                                )
-                        thong_value_data.append([e, h])
-                        count_h += 1
-                    count += 1
-            thong_package.append(thong_data)
-            thong_file_sp.append(thong_value_data)
-
-        # Convert to thong data file old
-        for thong in range(1200):
-            thong_data = []
-            for row in range(131):
-                value = thong_package[row][thong]
-                thong_data.append(value)
-            thong_file.append(thong_data)
-
-    if type_count == 3:
-        # Define steps
-        steps = [
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
-            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
-        ]
-
-        # Initialize modifications for array a in each step
-        modifications_a = [0, 8, 4, 2]
-
-        # Process data in steps
-        step_size = 1200 // 4
-        thong_package = []
-        for row in range(131):
-            line = f"{row:02}"
-            thong_data = []
-            thong_value_data = []
-            count = 0
-            if row > 99:
-                for step in range(1200):
-                    thong_data.append("")
-                    for luot in range(step, step + step_size, 30):
-                        thong_value_data.append(["", ""])
-            else:
-                for step in range(0, 1200, step_size):
-                    count_h = 0
-                    for luot in range(step, step + step_size, 30):
-                        e = (int(line[0]) + modifications_a[count]) % 10
-                        h = (int(line[1]) + steps[count][count_h]) % 10
-                        for thong in range(luot, luot + 30):
-                            if thong == luot:
-                                thong_data.append((e + h) % 10)
-                            elif thong == luot + 1:
-                                thong_data.append((h + thong_data[thong - 1]) % 10)
-                            else:
-                                thong_data.append(
-                                    (thong_data[thong - 2] + thong_data[thong - 1]) % 10
-                                )
-                        thong_value_data.append([e, h])
-                        count_h += 1
-                    count += 1
-            thong_package.append(thong_data)
-            thong_file_sp.append(thong_value_data)
-
-        # Convert to thong data file old
-        for thong in range(1200):
-            thong_data = []
-            for row in range(131):
-                value = thong_package[row][thong]
-                thong_data.append(value)
-            thong_file.append(thong_data)
-
-    if type_count == 2:
-
-        # Populate thong_file based on row and column values
-        for i in range(0, col, 100):
-            for k in range(i, i + 100, 10):
-                for l in range(10):
-                    thong_data = []
-                    for j in range(row):
-                        line = f"{j:02}"  # Format j as a two-digit string
-                        if j > 99:
-                            thong_data.append("")  # Append empty string if j exceeds 99
-                        else:
-                            if l == 0:
-                                thong_data.append(
-                                    f"{line}"
-                                )  # Append formatted line for the first column
-                            else:
-                                thong_data.append(0)  # Default value for other columns
-                    thong_file.append(thong_data)  # Append the constructed thong_data
-
-        # Process and calculate values for thong_file
-        for j in range(row):
-            if j > 99:
-                break  # Exit if j exceeds 99
-            for i in range(0, col, 100):
-                for k in range(i, i + 100, 10):
-                    for l in range(10):
-                        if i == 0:
-                            if k == 0:
-                                if l > 0:
-                                    first = thong_file[k + l - 1][
-                                        j
-                                    ]  # Get previous value
-                                    c = (
-                                        int(first[0]) + int(first[1])
-                                    ) % 10  # Calculate first digit
-                                    d = (
-                                        int(first[1]) + c
-                                    ) % 10  # Calculate second digit
-                                    thong_file[k + l][
-                                        j
-                                    ] = f"{c}{d}"  # Update thong_file
-                            else:
-                                if l == 0:
-                                    first = thong_file[k + l - 10][
-                                        j
-                                    ]  # Reference a different row
-                                    c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
-                                    thong_file[k + l][j] = f"{c}"  # Update first column
-                                else:
-                                    first = thong_file[k + l - 1][
-                                        j
-                                    ]  # Get previous value
-                                    c = (
-                                        int(first[0]) + int(first[1])
-                                    ) % 10  # Calculate first digit
-                                    d = (
-                                        int(first[1]) + c
-                                    ) % 10  # Calculate second digit
-                                    thong_file[k + l][
-                                        j
-                                    ] = f"{c}{d}"  # Update thong_file
-
-                        else:
-                            if k == 100:
-                                if l == 0:
-                                    first = thong_file[98][
-                                        j
-                                    ]  # Reference the penultimate row
-                                    second = thong_file[99][j]  # Reference the last row
-                                    thong_file[100][
-                                        j
-                                    ] = f"{first[1]}{second[0]}"  # Update based on previous rows
-                                else:
-                                    first = thong_file[k + l - 1][
-                                        j
-                                    ]  # Get previous value
-                                    c = (
-                                        int(first[0]) + int(first[1])
-                                    ) % 10  # Calculate first digit
-                                    d = (
-                                        int(first[1]) + c
-                                    ) % 10  # Calculate second digit
-                                    thong_file[k + l][
-                                        j
-                                    ] = f"{c}{d}"  # Update thong_file
-                            else:
-                                if l == 0:
-                                    first = thong_file[k + l - 10][
-                                        j
-                                    ]  # Reference a different row
-                                    c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
-                                    thong_file[k + l][j] = f"{c}"  # Update first column
-                                else:
-                                    first = thong_file[k + l - 1][
-                                        j
-                                    ]  # Get previous value
-                                    c = (
-                                        int(first[0]) + int(first[1])
-                                    ) % 10  # Calculate first digit
-                                    d = (
-                                        int(first[1]) + c
-                                    ) % 10  # Calculate second digit
-                                    thong_file[k + l][
-                                        j
-                                    ] = f"{c}{d}"  # Update thong_file
-
-    if type_count == 0:
-        for i in range(col):
-            thong_data = []
-            for j in range(row):
-                thong_data.append("")
-            thong_file.append(thong_data)
-
-    # / Make fisrt file Thong
-    with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
-        json.dump(thong_file, file)
-
-    if type_count == 1 or type_count == 3:
-        with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
-            json.dump(thong_file_sp, file)
-
+            value = thong_package[row][thong]
+            thong_data.append(value)
+        thong_file.append(thong_data)
+    
     # / Make Chuyen Doi
+    stt_data = []
+    data_arr = []
     for i in range(11):
+        stt_col = []
+        for j in range(131):
+            value = f"{j:02}"
+            stt_col.append(value)
+        stt_data.append(stt_col)
         if i == 0:
-            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
-                json.dump(thong_file, file)
+            data_arr.append(thong_file)
         else:
             number_change = list(
                 map(
                     lambda item: list(map(lambda x: TachVaGhep(i, x), item)), thong_file
                 )
             )
-            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
-                json.dump(number_change, file)
+            data_arr.append(number_change)
+
+        
 
     # / Make Data Custom for thong data
     data_custon = [
-        [
-            "77902",
-            "2345",
-            "4562",
-            "8906",
-            "3456",
-            "8712",
-            "2389",
-            "7623",
-            "7823",
-            "0921",
-            "6721",
-            "9853",
-            "4509",
-            "0732",
-            "1231",
-            "1250",
-            "4587",
-            "4589",
-            "7894",
-            "9856",
-            "6542",
-            "4125",
-            "6352",
-            "4562",
-            "7845",
-            "6523",
-            "7896",
-            "4589",
-            "5632",
-            "1235",
-            "0214",
-            "4563",
-            "1234",
-            "5687",
-            "2135",
-            "5896",
-            "7896",
-            "1478",
-            "8524",
-            "9635",
-            "77894",
-            "1234",
-            "9865",
-            "7894",
-            "7896",
-            "1478",
-            "8529",
-            "2589",
-            "7897",
-            "0145",
-            "2589",
-            "3214",
-            "7456",
-            "3210",
-            "6875",
-            "7532",
-            "1598",
-            "7530",
-            "9876",
-            "7896",
-            "4589",
-            "7896",
-            "3258",
-            "9654",
-            "4568",
-            "7896",
-            "7532",
-            "0236",
-            "8657",
-            "3210",
-            "7418",
-            "0147",
-            "5468",
-            "7896",
-            "6547",
-            "8521",
-            "3654",
-            "3257",
-            "9804",
-            "4178",
-            "8963",
-            "4578",
-            "3214",
-            "7896",
-            "7441",
-            "7896",
-            "4561",
-            "2147",
-            "3210",
-            "0147",
-            "2314",
-            "5698",
-            "2145",
-            "3578",
-            "9514",
-            "7536",
-            "9578",
-            "9510",
-            "3257",
-            "4568",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-        ],
-        [
-            "8024",
-            "7032",
-            "4784",
-            "1346",
-            "8928",
-            "5780",
-            "2342",
-            "9234",
-            "6236",
-            "3168",
-            "5297",
-            "2789",
-            "9251",
-            "6213",
-            "3795",
-            "0137",
-            "7809",
-            "4601",
-            "1563",
-            "8025",
-            "0124",
-            "7896",
-            "4678",
-            "1680",
-            "8152",
-            "5374",
-            "2346",
-            "9028",
-            "6930",
-            "3452",
-            "5671",
-            "2453",
-            "9025",
-            "6897",
-            "3569",
-            "0231",
-            "7983",
-            "4785",
-            "1097",
-            "8039",
-            "0568",
-            "7890",
-            "4312",
-            "1234",
-            "8906",
-            "5238",
-            "2450",
-            "9132",
-            "6794",
-            "3126",
-            "5885",
-            "2357",
-            "9889",
-            "6231",
-            "3673",
-            "0345",
-            "7987",
-            "4569",
-            "1231",
-            "8903",
-            "0342",
-            "7984",
-            "4896",
-            "1678",
-            "8790",
-            "5342",
-            "2354",
-            "9056",
-            "6708",
-            "3450",
-            "5789",
-            "2341",
-            "9023",
-            "6345",
-            "3457",
-            "0679",
-            "7021",
-            "4563",
-            "1345",
-            "8567",
-            "0346",
-            "7098",
-            "4560",
-            "1032",
-            "8234",
-            "5346",
-            "2348",
-            "9230",
-            "6782",
-            "3564",
-            "5463",
-            "2345",
-            "9087",
-            "6789",
-            "3451",
-            "0123",
-            "7895",
-            "4567",
-            "1239",
-            "8231",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-        ],
-        [
-            "2345",
-            "1478",
-            "7410",
-            "4789",
-            "7417",
-            "8975",
-            "9630",
-            "7536",
-            "9510",
-            "7532",
-            "9512",
-            "7531",
-            "7536",
-            "9874",
-            "1478",
-            "7412",
-            "8521",
-            "7475",
-            "7531",
-            "9547",
-            "4580",
-            "4567",
-            "9864",
-            "4678",
-            "1270",
-            "0532",
-            "5690",
-            "3491",
-            "8931",
-            "2367",
-            "0945",
-            "0934",
-            "2345",
-            "9854",
-            "4567",
-            "0934",
-            "2345",
-            "7521",
-            "2980",
-            "4567",
-            "9801",
-            "4567",
-            "2345",
-            "5678",
-            "7642",
-            "2439",
-            "2312",
-            "5632",
-            "1743",
-            "8932",
-            "2367",
-            "2315",
-            "8439",
-            "6557",
-            "4567",
-            "7490",
-            "2145",
-            "7390",
-            "4513",
-            "6577",
-            "2341",
-            "6789",
-            "2345",
-            "1234",
-            "6789",
-            "6543",
-            "1232",
-            "3456",
-            "7891",
-            "3456",
-            "2345",
-            "9087",
-            "4357",
-            "1234",
-            "8901",
-            "3456",
-            "3456",
-            "5678",
-            "6789",
-            "6789",
-            "5679",
-            "4567",
-            "3457",
-            "0987",
-            "5673",
-            "2347",
-            "5670",
-            "0852",
-            "2345",
-            "1234",
-            "0961",
-            "0986",
-            "3456",
-            "6780",
-            "5421",
-            "6709",
-            "4568",
-            "1268",
-            "2345",
-            "4567",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-        ],
-        [
-            "2345",
-            "1478",
-            "7410",
-            "4789",
-            "7417",
-            "8975",
-            "9630",
-            "7536",
-            "9510",
-            "7532",
-            "9512",
-            "7531",
-            "7536",
-            "9874",
-            "1478",
-            "7412",
-            "8521",
-            "7475",
-            "7531",
-            "9547",
-            "4580",
-            "4567",
-            "9864",
-            "4678",
-            "1270",
-            "0532",
-            "5690",
-            "3491",
-            "8931",
-            "2367",
-            "0945",
-            "0934",
-            "2345",
-            "9854",
-            "4567",
-            "0934",
-            "2345",
-            "7521",
-            "2980",
-            "4567",
-            "9801",
-            "4567",
-            "2345",
-            "5678",
-            "7642",
-            "2439",
-            "2312",
-            "5632",
-            "1743",
-            "8932",
-            "2367",
-            "2315",
-            "8439",
-            "6557",
-            "4567",
-            "7490",
-            "2145",
-            "7390",
-            "4513",
-            "6577",
-            "2341",
-            "6789",
-            "2345",
-            "1234",
-            "6789",
-            "6543",
-            "1232",
-            "3456",
-            "7891",
-            "3456",
-            "2345",
-            "9087",
-            "4357",
-            "1234",
-            "8901",
-            "3456",
-            "3456",
-            "5678",
-            "6789",
-            "6789",
-            "5679",
-            "4567",
-            "3457",
-            "0987",
-            "5673",
-            "2347",
-            "5670",
-            "0852",
-            "2345",
-            "1234",
-            "0961",
-            "0986",
-            "3456",
-            "6780",
-            "5421",
-            "6709",
-            "4568",
-            "1268",
-            "2345",
-            "4567",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-        ],
-    ]
+		[
+			"23rt",
+			"357u",
+			"4562",
+			"jkn",
+			"3456",
+			"8712",
+			"67gb",
+			"7623",
+			"56hj",
+			"0921",
+			"\u1ebbq2",
+			"9853",
+			"4509",
+			"56ui",
+			"1231",
+			"1250",
+			"568k",
+			"459rt",
+			"56vb",
+			"\u1ebb45",
+			"6542",
+			"678j",
+			"6352",
+			"4562",
+			"7845",
+			"6523",
+			"7896",
+			"34tg",
+			"5632",
+			"12io",
+			"2wer",
+			"4563",
+			"12kj",
+			"56gf",
+			"45tg",
+			"89oop",
+			"45gf",
+			"1478t",
+			"85[[",
+			"96[[",
+			"]][[",
+			"1234",
+			"76hk",
+			"7894",
+			"7896",
+			"14[]]",
+			"8529",
+			"45uy",
+			"7897",
+			"0145",
+			"2589",
+			"3yui",
+			"7456",
+			"3210",
+			"6875",
+			"7535",
+			"87jn",
+			"7530",
+			"9876",
+			"78jlf",
+			"4589",
+			"78ui",
+			"3258",
+			"yt5",
+			"4568",
+			"7896",
+			"7532",
+			"02nv",
+			"8657",
+			"3210",
+			"lkj",
+			"0147",
+			"5468",
+			"yu[[",
+			"6547",
+			"8521",
+			"hjk4",
+			"3257",
+			"9804",
+			"4178",
+			"yu7",
+			"4578",
+			"3214",
+			"78kl",
+			"7441",
+			"nmbv",
+			"4561",
+			"2147",
+			"3210",
+			"0147",
+			"2314",
+			"jhhh",
+			"kjh",
+			"3578",
+			"9514",
+			"7536",
+			"9lkh",
+			"9510",
+			"fgtk",
+			"4568",
+			"q\u1ebbyu",
+			"q\u1ebbg",
+			"opk",
+			"\u1ee5ik",
+			"fgh",
+			"hjk",
+			"lkj",
+			"dsq",
+			"\u1ebbt",
+			"tyu",
+			"tgh",
+			"qqw",
+			"za2",
+			"e4y",
+			"df4",
+			"qe5",
+			"aq34",
+			"sq3",
+			"w3t",
+			"\u1ebb4",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			""
+		],
+		[
+			"8024",
+			"3rty",
+			"4784",
+			"1346",
+			"67u",
+			"5780",
+			"23\u1ee5",
+			"9234",
+			"6236",
+			"3168",
+			"5297",
+			"2789",
+			"9251",
+			"6213",
+			"3795",
+			"0137",
+			"7809",
+			"4601",
+			"1lkj",
+			"8025",
+			"uiop",
+			"7896",
+			"4678",
+			"67uj",
+			"8152",
+			"5t67",
+			"pqwe",
+			"9028",
+			"6930",
+			"3452",
+			"5671",
+			"2453",
+			"9025",
+			"6897",
+			"3569",
+			"0231",
+			"7983",
+			"4785",
+			"1097",
+			"8039",
+			"0568",
+			"7890",
+			"4312",
+			"1234",
+			"8906",
+			"5238",
+			"2450",
+			"9132",
+			"tyu",
+			"3126",
+			"5885",
+			"jhk",
+			"9okm",
+			"62et",
+			"3673",
+			"0345",
+			"7987",
+			"48ix",
+			"1231",
+			"8903",
+			"klz",
+			"7984",
+			"4896",
+			"16ui",
+			"8790",
+			"53jh",
+			"2354",
+			"9056",
+			"67gh",
+			"3450",
+			"5789",
+			"2341",
+			"9023",
+			"6345",
+			"jhq",
+			"0679",
+			"7021",
+			"4563",
+			"1345",
+			"8567",
+			"03jkk",
+			"7098",
+			"4560",
+			"1032",
+			"8234",
+			"\u1ebbty",
+			"2348",
+			"qyyy",
+			"6782",
+			"3564",
+			"5463",
+			"2345",
+			"9087",
+			"6789",
+			"3uio",
+			"0123",
+			"7895",
+			"4567",
+			"1239",
+			"8231",
+			"rty",
+			"sdf",
+			"fgh",
+			"45h",
+			"uik",
+			"ghq",
+			"\u01b0e3",
+			"f7i",
+			"\u1ebb2",
+			"gt6",
+			"mny",
+			"xfr",
+			"i9l",
+			"vg8",
+			"4r",
+			"fr7",
+			"de5",
+			"e45",
+			"23x",
+			"dr6",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			""
+		],
+		[
+			"ioe",
+			"1478",
+			"7jmn",
+			"4789",
+			"7417",
+			"55tg",
+			"9630",
+			"75kj",
+			"9510",
+			"7532",
+			"89mn",
+			"7531",
+			"uio3",
+			"9874",
+			"1478",
+			"uiop",
+			"8521",
+			"uio9",
+			"7531",
+			"9547",
+			"4580",
+			"4567",
+			"98poi",
+			"4678",
+			"r4ey",
+			"0532",
+			"5690",
+			"ikm",
+			"jyt",
+			"23[o",
+			"0945",
+			"[po",
+			"2345",
+			"9854",
+			"4567",
+			"0934",
+			"2345",
+			"7u[5",
+			"2980",
+			"4567",
+			"oi8",
+			"4567",
+			"ju8",
+			"5kln",
+			"7642",
+			"243p",
+			"]p65",
+			"5632",
+			"17op",
+			"8932",
+			"2367",
+			"2jhgf",
+			"8439",
+			"6557",
+			"78uj",
+			"745l",
+			"2145",
+			"op8",
+			"4513",
+			"65yu",
+			"2341",
+			"67tr",
+			"2345",
+			"1234",
+			"6789",
+			"65iu",
+			"1232",
+			"34io",
+			"7891",
+			"3jkl",
+			"2345",
+			"op8",
+			"4357",
+			"1234",
+			"8901",
+			"kkk[",
+			"3456",
+			"56op",
+			"kjy",
+			"6789",
+			"5679",
+			"q\u01b0e",
+			"3457",
+			"0987",
+			"5kjh",
+			"2347",
+			"5670",
+			"0852",
+			"2op9",
+			"1234",
+			"0opu",
+			"jkl",
+			"3456",
+			"6poy",
+			"5421",
+			"6kklj",
+			"4568",
+			"bnm",
+			"2345",
+			"4567",
+			"\u01b03y",
+			"rtq",
+			"hjk",
+			"hu9",
+			"7ui",
+			"2qe",
+			"4tv",
+			"drw",
+			"36k",
+			"56h",
+			"rt6",
+			"347",
+			"m0",
+			"vg7",
+			"gt7",
+			"1qw",
+			"fr6",
+			"tg7",
+			"xft",
+			"xft",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			""
+		],
+		[
+			"2345",
+			"1478",
+			"7410",
+			"4789",
+			"2er",
+			"8975",
+			"9630",
+			"7536",
+			"ty67",
+			"7532",
+			"9512",
+			"7531",
+			"7536",
+			"9874",
+			"1478",
+			"7412",
+			"8521",
+			"7475",
+			"7531",
+			"9547",
+			"iop2",
+			"4567",
+			"9864",
+			"4678",
+			"1270",
+			"02fxz",
+			"5690",
+			"3491",
+			"iou",
+			"2367",
+			"0945",
+			"0934",
+			"2345",
+			"9854",
+			"4567",
+			"iop",
+			"2345",
+			"uot6",
+			"2980",
+			"4567",
+			"9801",
+			"4567",
+			"2345",
+			"5678",
+			"7642",
+			"2439",
+			"2312",
+			"5632",
+			"1743",
+			"89\u1ebb",
+			"2367",
+			"2315",
+			"8439",
+			"6557",
+			"4567",
+			"7490",
+			"2145",
+			"7390",
+			"4513",
+			"57[[]]",
+			"2341",
+			"67jh",
+			"2345",
+			"12\u1ee5",
+			"6789",
+			"6543",
+			"12gh",
+			"3456",
+			"7891",
+			"3456",
+			"2345",
+			"9087",
+			"4357",
+			"1234",
+			"8901",
+			"3456",
+			"3456",
+			"5678",
+			"klh",
+			"6789",
+			"5679",
+			"4567",
+			"3457",
+			"0987",
+			"5673",
+			"poi[",
+			"5670",
+			"0852",
+			"2345",
+			"1234",
+			"0961",
+			"0986",
+			"3456",
+			"6780",
+			"5421",
+			"6709",
+			"4568",
+			"1268",
+			"2345",
+			"4567",
+			"rew",
+			"f4u",
+			"hge",
+			"yuo",
+			"6bn",
+			"mk4",
+			"q2t",
+			"fgt",
+			"hui",
+			"7jh",
+			"rt7",
+			"cd6",
+			"gt8",
+			"vg8",
+			"bh9",
+			"\u01b0e4",
+			"gy8",
+			"yu8",
+			"xft",
+			"cf5",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			""
+		]
+	],
 
-    # / Make Data STT for thong data
-    stt_data = []
-    for i in range(11):
-        stt_col = []
-        for j in range(row):
-            value = f"{j:02}"
-            stt_col.append(value)
-        stt_data.append(stt_col)
+    return {
+        "thong_files": data_arr,
+        "thong_sp": thong_file_sp,
+        "data_custom": data_custon,
+        "stt_data": stt_data
+    }
+
+def createThong(data,thong_files,thong_file_sp,data_custom,stt_data,   path):
+    os.makedirs(path, exist_ok=True)
+    thong_path = path
+    id = Generate_Id()
+    type_count = data.get("type_count")
+
+    # / Make fisrt file Thong
+    for index, thong_file in enumerate(thong_files):
+        if index == 0:
+            with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
+                json.dump(thong_file, file)
+            with open(os.path.join(thong_path, f"thong_{id}_{index}.json"), "w") as file:
+                json.dump(thong_file, file)
+        else:
+            with open(os.path.join(thong_path, f"thong_{id}_{index}.json"), "w") as file:
+                json.dump(thong_file, file)
+            
+
+    with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
+        json.dump(thong_file_sp, file)
+
+    
 
     # / Make new Data thong
-    data["data"] = data_custon
+    data["data"] = data_custom[0]
     data["stt"] = stt_data
     data["id"] = id
     data["number"] = 0
@@ -1014,12 +857,11 @@ def createDB(thong, name, path):
         "name": name,
         "password": "0",
         "col": [1, 10],
-        "thong": {"name": thongName, "value": [1, 10], "id": thongId},
+        "thong": {"name": thongName, "value": [1, 10], "id": thongId, "pm": thong["pm"]},
         "meta": {
             "notice": {
                 "count": [1, 1],
-                "color": [1, 1],
-                "color2": [1, 1],
+                "colorM1": [1, 1],
                 "colorM2": [1, 1],
                 "colorM3": [1, 1],
                 "colorM4": [1, 1],
@@ -2311,6 +2153,8 @@ def createDB(thong, name, path):
 
     with open(os.path.join(path, "stay.json"), "w") as file:
         json.dump(stay, file)
+    
+    print(f'Done {name}')
 
 
 def copy_files_into_folders(source_folder, destination_folder):
@@ -2339,33 +2183,51 @@ def create():
     default_dir = r"C:\data\1"
     arr_folder = ["image", "number"]
 
-    for i in range(2, 121):
+    data_thong = createThongData({
+        "value": 1500
+    })
+    data_arr = data_thong.get("thong_files")
+    thong_file_sp = data_thong.get("thong_sp")
+    data_custom = data_thong.get("data_custom")
+    stt_data = data_thong.get("stt_data")
+
+    for i in range(2, 181):
         for folder in arr_folder:
             prev_dir = os.path.join(current_dir, str(i), folder)
             next_dir = os.path.join(default_dir, folder)
             copy_files_into_folders(next_dir, prev_dir)
 
-    for i in range(1, 121):
+    for i in range(1, 181):
         thong_dir = os.path.join(current_dir, str(i), "thong")
         db_dir = os.path.join(current_dir, str(i), "db")
         if i < 31:
             dataThong = createThong(
-                {"value": 1200, "type_count": 1, "name": f"Bản 1a.{i}"}, thong_dir
+                {"value": 1500, "type_count": 1,"pm": 1, "name": f"Bản 1a.{i}"}, data_arr,thong_file_sp,data_custom,stt_data, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
         elif i > 30 and i < 61:
             dataThong = createThong(
-                {"value": 600, "type_count": 2, "name": f"Bản 2.{i - 30}"}, thong_dir
+                {"value": 1500, "type_count": 1,"pm": 2, "name": f"Bản 1b.{i - 30}"}, data_arr,thong_file_sp,data_custom,stt_data, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
         elif i > 60 and i < 91:
             dataThong = createThong(
-                {"value": 1200, "type_count": 3, "name": f"Bản 1b.{i - 60}"}, thong_dir
+                {"value": 1500, "type_count": 1,"pm": 3, "name": f"Bản 1c.{i - 60}"}, data_arr,thong_file_sp,data_custom,stt_data, thong_dir
+            )
+            createDB(dataThong, f"B{i}", db_dir)
+        elif i > 90 and i < 121:
+            dataThong = createThong(
+                {"value": 1500, "type_count": 1,"pm": 4, "name": f"Bản 1d.{i - 90}"}, data_arr,thong_file_sp,data_custom,stt_data, thong_dir
+            )
+            createDB(dataThong, f"B{i}", db_dir)
+        elif i > 120 and i < 151:
+            dataThong = createThong(
+                {"value": 1500, "type_count": 1,"pm": 5, "name": f"Bản 0a.{i - 120}"}, data_arr,thong_file_sp,data_custom,stt_data, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
         else:
             dataThong = createThong(
-                {"value": 600, "type_count": 0, "name": f"Bản 0.{i - 90}"}, thong_dir
+                {"value": 1500, "type_count": 1,"pm": 6, "name": f"Bản 0b.{i - 150}"}, data_arr,thong_file_sp,data_custom,stt_data, thong_dir
             )
             createDB(dataThong, f"B{i}", db_dir)
 
@@ -2386,6 +2248,4 @@ def create_ngang_file():
                 json.dump(number_change, file)
 
 
-# Example usage
 create()
-# create_ngang_file()

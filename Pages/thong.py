@@ -69,11 +69,11 @@ class ThongPage(QWidget):
         with open(os.path.join(self.thong_path, "thongs.json"), "r") as file:
             self.thong_db = json.load(file)
 
-        isThong_one = True if self.thong_db["type_count"] in [1,3] else False
-        if isThong_one:
-            thong_sp_path = self.path.path_thong_sp_with_id(self.thong_db["id"])
-            with open(thong_sp_path, 'r') as file:
-                self.thong_sp = json.load(file)
+        # isThong_one = True
+        # if isThong_one:
+        thong_sp_path = self.path.path_thong_sp_with_id(self.thong_db["id"])
+        with open(thong_sp_path, 'r') as file:
+            self.thong_sp = json.load(file)
             
         with open(os.path.join(self.current_dir, "db", 'stay.json'), "r") as file:
             self.stay = json.load(file)
@@ -207,10 +207,29 @@ class ThongPage(QWidget):
         layout_table.addWidget(self.note)
         # layout_table.addWidget(self.hidden)
 
+        self.table_title = QTableWidget()
+        self.table_title.setMaximumHeight(60)
+        self.table_title.setRowCount(1)
+        self.table_title.horizontalHeader().setHidden(True)
+        self.table_title.setRowHeight(0,40)
+        self.table_title.setVerticalHeaderLabels(["STT"])
+        layout_table.addWidget(self.table_title)
+
         self.table_main = QTableWidget()
         layout_table.addWidget(self.table_main)
 
         # / Config Font
+        self.table_title.setFont(self.font)
+        self.table_title.horizontalHeader().setFont(self.font)
+        self.table_title.verticalHeader().setFont(self.font)
+
+        self.table_title.setStyleSheet(
+            """
+                QTableView {
+                    gridline-color: black;
+                }
+            """
+        )
         self.table_main.setFont(self.font)
         self.table_main.horizontalHeader().setFont(self.font)
         self.table_main.verticalHeader().setFont(self.font)
@@ -221,6 +240,14 @@ class ThongPage(QWidget):
                     gridline-color: black;
                 }
             """
+        )
+
+        self.table_title.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table_title.verticalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.table_title.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
         )
 
         self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -244,10 +271,10 @@ class ThongPage(QWidget):
                 pos = item_data.get("pos")
 
                 if name == "data_custom":
-                    self.thong_data[index][row] = item.text()
+                    self.thong_db["data"][index][row] = item.text()
 
                 if name == "thong":
-                    self.thong_db["data"][index][row] = item.text()
+                    self.thong_data[index][row] = item.text()
 
                 if name == "thong_sp":
                     current_number = self.ChangeNumber.currentIndex()
@@ -280,6 +307,13 @@ class ThongPage(QWidget):
         self.table_main.itemSelectionChanged.connect(selectedRow)
 
         self.table_main.itemChanged.connect(on_item_changed)
+
+        self.table_main.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_count)
+        self.table_title.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_count)
+    
+    def sync_horizontal_scroll_count(self, value):
+        self.table_main.horizontalScrollBar().setValue(value)
+        self.table_title.horizontalScrollBar().setValue(value)
 
     def renderThongButton(self):
         self.button_wid_main = QWidget()
@@ -384,10 +418,10 @@ class ThongPage(QWidget):
         layout.addWidget(SaveData, 1, 2)
 
         # / Create Backup
-        ButtonType = QPushButton("Nhập Liệu B Thông")
-        ButtonType.setStyleSheet(css_button_submit)
-        ButtonType.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(ButtonType, 1, 3)
+        ThongInput = QPushButton("Nhập Liệu B Thông")
+        ThongInput.setStyleSheet(css_button_submit)
+        ThongInput.setCursor(QCursor(Qt.PointingHandCursor))
+        layout.addWidget(ThongInput, 1, 3)
 
         # / Hidden or show
         self.hidden = QPushButton("Hiện ABCD Gốc")
@@ -473,11 +507,11 @@ class ThongPage(QWidget):
                     SendMessage("Xin vui lòng chọn dòng để nhập liệu")
                     return
                 for row in data_select:
-                    setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
+                    # setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
                     data = {}
                     data["row"] = row
                     data["number"] = self.ban_info["meta"]['number']
-                    data["setting"] = setting
+                    data["setting"] = 1
                     data["stt"] = self.thong_db["stt"]
                     data["type_count"] = self.thong_db["type_count"]
                     data["value"] = self.thong_db["value"]
@@ -531,7 +565,7 @@ class ThongPage(QWidget):
         DeleteColor.clicked.connect(self.delete_color_click)
         SaveFile.clicked.connect(saveFile_click)
         SettingType.clicked.connect(self.setting_type_click)
-        ButtonType.clicked.connect(type_with_button)
+        ThongInput.clicked.connect(type_with_button)
         save_back_up.clicked.connect(self.saveBackUp)
         backToFirst.clicked.connect(back_to_first)
         skipToEnd.clicked.connect(skip_to_end)
@@ -582,61 +616,76 @@ class ThongPage(QWidget):
     def updateHeaderRow(self):
         value_thong = self.thong_db["value"]
         colCount = value_thong
-        isThong_one = 80 if self.thong_db["type_count"] in [1,3] else 0
-        isThong_step = 30 if self.thong_db["type_count"] in [1,3] else 10
+        isThong_one = 200
         self.table_main.setColumnCount(0)
         self.table_main.setColumnCount(colCount + 4 + isThong_one)
+        self.table_title.setColumnCount(colCount + 4 + isThong_one)
 
         # Setting header Thong
+
         steps = [
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
             [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
             [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
+            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
+            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
+            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
         ]
 
-        modifications_a = [0, 8, 4, 2]  # Biến đổi cho cột E trong từng step
+        # Initialize modifications for array a in each step
+        modifications_a = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+        ]
         thong_header_label = []  # Lưu nhãn tiêu đề
 
         # Biến số lượng cột và các giá trị liên quan
         total_columns = value_thong
-        num_steps = 4
-        num_luots_per_step = 10
-        num_thong_per_luot = 30
-        isThong_step = num_thong_per_luot  # Số lượng thông trong mỗi lượt
-        isThong_one = 80 if total_columns % 2 == 0 else 0  # Điều kiện thêm E
-
-        count_luot = 0  # Số lượt trong step
-        count_step = 0  # Số step (0 -> 3)
+        isThong_one = 200  # Điều kiện thêm E
 
         if isThong_one != 0:
-            # Vòng lặp qua tất cả các thông
-            for thong_luot in range(0, total_columns, isThong_step):
-                if isThong_one != 0:
-                    # Cấu hình nhãn E
-                    e_modifi = modifications_a[count_step]
-                    e_label = "E" + (f" + {e_modifi}" if e_modifi > 0 else "")
-                    thong_header_label.append(e_label)
+            # Số cột tổng cộng
+            # Số tập
+            num_sets = 10
+            # Số lượt trong mỗi tập
+            rounds_per_set = 10
+            # Số thông trong mỗi lượt
+            columns_per_round = 15
 
-                    # Cấu hình nhãn H
-                    h_modifi = steps[count_step][count_luot]
-                    h_label = "H" + (f" + {h_modifi}" if h_modifi > 0 else "")
-                    thong_header_label.append(h_label)
+            # Mảng lưu kết quả
+            thong_header_label = []
 
-                # Thêm nhãn cho các cột T (thông)
-                for thong in range(isThong_step):
-                    thong_header_label.append(f'T.{thong_luot + thong + 1}')
-
-                # Cập nhật số lượt và bước
-                count_luot += 1
-                if count_luot == num_luots_per_step:  # Nếu đạt 10 lượt, reset lượt và tăng step
-                    count_luot = 0
-                    count_step += 1
-                    if count_step == num_steps:  # Nếu đạt step cuối cùng, dừng lại
-                        break
+            # Lặp qua từng tập
+            for set_index in range(num_sets):
+                # Lặp qua từng lượt trong mỗi tập
+                for round_index in range(rounds_per_set):
+                    # Tính chỉ số cột bắt đầu và kết thúc của lượt
+                    start_col = (set_index * rounds_per_set * columns_per_round) + (round_index * columns_per_round)
+                    end_col = start_col + columns_per_round
+                    
+                    # Thêm cột e và h trước mỗi lượt
+                    e = f"E + {modifications_a[set_index][round_index]}"
+                    h = f"H + {steps[set_index][round_index]}"
+                    thong_header_label.append(e)
+                    thong_header_label.append(h)
+                    
+                    # Thêm các cột thông
+                    for thong in range(start_col, end_col):
+                        thong_header_label.append(f"T. {thong + 1}")
         else:
             thong_header_label = [f"T.{thong + 1}" for thong in range(total_columns)]
-
         
         header_labels = ["A", "B", "C", "D"] + thong_header_label
         self.table_main.setHorizontalHeaderLabels(header_labels)
@@ -692,41 +741,65 @@ class ThongPage(QWidget):
                 self.table_main.setItem(j, i, item)
 
         # * Cập nhật dữ liệu từ thong_data
-        isThong_step = 30 if self.thong_db["type_count"] in [1, 3] else 10
-        if isThong_step == 30:
-            for row in range(131):
-                count_luot = 0
-                for luot in range(0, self.thong_db.get("value", 0), isThong_step):
-                    # Add E & H trước
-                    if row < len(self.thong_sp) and count_luot < len(self.thong_sp[row]):
-                        bg_color = QColor("#ffd867")
-                        # E column
-                        e_row = self.thong_sp[row][count_luot][0]
-                        item_e = create_table_item(e_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row":row ,"index": count_luot, "name":"thong_sp", "pos": 0})
-                        self.table_main.setItem(row, 4 + count_luot * (isThong_step + 2), item_e)
+        isThong_step = 15
+        if isThong_step == 15:
+            self.table_title.setSpan(0, 0, 1, 4)
+            count_luot = 0
 
-                        # H column
-                        h_row = self.thong_sp[row][count_luot][1]
-                        item_h = create_table_item(h_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row":row ,"index": count_luot, "name":"thong_sp", "pos": 1})
-                        self.table_main.setItem(row, 4 + count_luot * (isThong_step + 2) + 1, item_h)
+            # Duyệt qua các tập (8 tập)
+            for tap_index in range(10):
+                for luot_title in range(10):  # Mỗi tập có 10 lượt
+                    span_start_col = 4 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
+                    span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
+                    tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
 
-                    # Add các cột thong sau
-                    for thong_col in range(luot, luot + isThong_step):
-                        if thong_col < len(thong_data) and row < len(thong_data[thong_col]):
-                            thong_row = thong_data[thong_col][row]
-                            item = create_table_item(thong_row, Qt.AlignmentFlag.AlignCenter, None, {"row":row ,"index": thong_col, "name": "thong"})
-                            self.table_main.setItem(
-                                row,
-                                4 + count_luot * (isThong_step + 2) + 2 + (thong_col - luot),
-                                item,
-                            )
-
+                    self.table_title.setSpan(0, span_start_col, 1, span_colspan)
+                    item = QTableWidgetItem(f"{tap}Lượt {count_luot + 1}")
+                    item.setTextAlignment(Qt.AlignCenter)
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignLeft)
+                    self.table_title.setItem(0, span_start_col, item)
                     count_luot += 1
-        else:
-            for i, thong_row in enumerate(thong_data):
-                for j, cell_value in enumerate(thong_row):
-                    item = create_table_item(cell_value, thong_data={"row":row ,"index": i, "name": "thong"})
-                    self.table_main.setItem(j, i + 4, item)
+
+            for row in range(131):  # Số lượng hàng (131 là ví dụ)
+                # Duyệt qua từng tập và lượt
+                for tap_index in range(10):
+                    for luot in range(10):
+                        luot_index = tap_index * 10 + luot
+                        start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
+
+                        # Thêm cột E và H
+                        if row < len(self.thong_sp) and luot_index < len(self.thong_sp[row]):
+                            bg_color = QColor("#b581ff") if luot_index % 10 == 0 else QColor("#FFD700")
+
+                            # E column
+                            e_row = self.thong_sp[row][luot_index][0]
+                            item_e = create_table_item(e_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 0})
+                            self.table_main.setItem(row, start_col, item_e)
+
+                            # H column
+                            h_row = self.thong_sp[row][luot_index][1]
+                            item_h = create_table_item(h_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 1})
+                            self.table_main.setItem(row, start_col + 1, item_h)
+
+                        # Thêm 10 cột thong
+                        thong_start_index = luot_index * isThong_step  # Tính chỉ số bắt đầu cho thong_data
+                        for thong_col in range(isThong_step):
+                            thong_index = thong_start_index + thong_col
+                            if thong_index < len(thong_data) and row < len(thong_data[thong_index]):
+                                thong_row = thong_data[thong_index][row]
+                                item = create_table_item(thong_row, Qt.AlignmentFlag.AlignCenter, None, {"row": row, "index": thong_index, "name": "thong"})
+                                self.table_main.setItem(
+                                    row,
+                                    start_col + 2 + thong_col,  # Sau 2 cột E và H
+                                    item,
+                                )
+
+
+        # else:
+        #     for i, thong_row in enumerate(thong_data):
+        #         for j, cell_value in enumerate(thong_row):
+        #             item = create_table_item(cell_value, thong_data={"row":row ,"index": i, "name": "thong"})
+        #             self.table_main.setItem(j, i + 4, item)
 
         
         # * To mau du lieu
@@ -778,10 +851,10 @@ class ThongPage(QWidget):
 
         # * Delete du lieu Thong data * thong sp
         for row in range(rowCount):
-            for i in range(len(self.thong_data[0])):
+            for i in range(len(self.thong_data)):
                 self.thong_data[i][row] = ""
 
-            isThong_one = True if self.thong_db.get("type_count", 0) in [1,3] else False
+            isThong_one = True
             if isThong_one:
                 for i in range(len(self.thong_sp[0])):
                     self.thong_sp[row][i] = ["",""]
@@ -978,7 +1051,7 @@ class ThongPage(QWidget):
             for i in range(len(self.thong_data[0])):
                 self.thong_data[i][row] = ""
 
-            isThong_one = True if self.thong_db.get("type_count", 0) in [1,3] else False
+            isThong_one = True
             if isThong_one:
                 for i in range(len(self.thong_sp[0])):
                     self.thong_sp[row][i] = ["",""]
@@ -1161,10 +1234,11 @@ class ThongPage(QWidget):
             data["stt"] = self.thong_db["stt"]
             data["change"] = self.thong_db["change"]
             data["type_count"] = self.thong_db["type_count"]
-            data["type_count"] = self.thong_db["type_count"]
-            isThong_one = True if self.thong_db.get('type_count', 0) in [1,3] else False
-            if isThong_one:
-                data["thong_sp"] = self.thong_sp
+            data["pm"] = self.thong_db["pm"]
+            data["thong_sp"] = self.thong_sp
+            # isThong_one = True
+            # if isThong_one:
+            #     data["thong_sp"] = self.thong_sp
             msg = saveAllThong(data)
             self.delete_color_click()
             self.show_loading_screen()
