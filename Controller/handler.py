@@ -4,165 +4,10 @@ from Pages.components.path import Path
 import secrets
 import glob
 from datetime import datetime
-import re
+import math
 
 
 # TODO Handler Data
-def changeNumber_old(number, value):
-    if number == 1:
-        if value != 0 and value != 1 and value != 2 and value != 3 and value != 4:
-            if value == 5:
-                return 0
-            elif value == 6:
-                return 1
-            elif value == 7:
-                return 2
-            elif value == 8:
-                return 3
-            elif value == 9:
-                return 4
-            else:
-                return value
-        return value
-    elif number == 2:
-        if value != 0 and value != 2 and value != 4 and value != 6 and value != 8:
-            if value == 1:
-                return 0
-            elif value == 3:
-                return 2
-            elif value == 5:
-                return 4
-            elif value == 7:
-                return 6
-            elif value == 9:
-                return 8
-            else:
-                return value
-        return value
-    elif number == 3:
-        if value != 1 and value != 3 and value != 5 and value != 7 and value != 9:
-            if value == 2:
-                return 1
-            elif value == 4:
-                return 3
-            elif value == 6:
-                return 5
-            elif value == 8:
-                return 7
-            elif value == 0:
-                return 9
-            else:
-                return value
-        return value
-    elif number == 4:
-        if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
-            if value == 0:
-                return 5
-            elif value == 1:
-                return 7
-            elif value == 2:
-                return 8
-            elif value == 3:
-                return 9
-            elif value == 4:
-                return 6
-            else:
-                return value
-        return value
-    elif number == 5:
-        if value != 1 and value != 2 and value != 3 and value != 4 and value != 0:
-            if value == 5:
-                return 1
-            elif value == 6:
-                return 2
-            elif value == 7:
-                return 3
-            elif value == 8:
-                return 4
-            elif value == 9:
-                return 0
-            else:
-                return value
-        return value
-    elif number == 6:
-        if value != 0 and value != 1 and value != 2 and value != 3 and value != 4:
-            if value == 5:
-                return 3
-            elif value == 6:
-                return 4
-            elif value == 7:
-                return 0
-            elif value == 8:
-                return 1
-            elif value == 9:
-                return 2
-            else:
-                return value
-        return value
-    elif number == 7:
-        if value != 5 and value != 6 and value != 7 and value != 8 and value != 9:
-            if value == 0:
-                return 7
-            elif value == 1:
-                return 8
-            elif value == 2:
-                return 6
-            elif value == 3:
-                return 5
-            elif value == 4:
-                return 9
-            else:
-                return value
-        return value
-    elif number == 8:
-        if value != 0 and value != 1 and value != 2 and value != 3 and value != 9:
-            if value == 4:
-                return 2
-            elif value == 5:
-                return 3
-            elif value == 6:
-                return 9
-            elif value == 7:
-                return 0
-            elif value == 8:
-                return 1
-            else:
-                return value
-        return value
-    elif number == 9:
-        if value != 0 and value != 1 and value != 7 and value != 8 and value != 9:
-            if value == 2:
-                return 0
-            elif value == 3:
-                return 1
-            elif value == 4:
-                return 7
-            elif value == 5:
-                return 8
-            elif value == 6:
-                return 9
-            else:
-                return value
-        return value
-    elif number == 10:
-        if value != 2 and value != 3 and value != 4 and value != 6 and value != 7:
-            if value == 0:
-                return 2
-            elif value == 1:
-                return 3
-            elif value == 5:
-                return 4
-            elif value == 8:
-                return 7
-            elif value == 9:
-                return 6
-            else:
-                return value
-        return value
-    else:
-        return value
-
-
 def changeNumber(number, value):
     if number == 1:
         if value != 0 and value != 1 and value != 2 and value != 3 and value != 4:
@@ -518,6 +363,7 @@ def deleteFromToBan(fromdate, todate, id, isChecked):
 
     return {"status": True, "data": data_db, "msg": "Đã xóa dữ liệu thành công!"}
 
+
 # TODO Handler Data Thong
 def CreateNumber():
     path = Path()
@@ -666,20 +512,10 @@ def createThong(data):
 def saveThong(data):
     thong_path = Path().path_thong()
     update = data["update"]
-    custom = data["custom"]
-    id = data["id"]
     number = data["number"]
-    stt = data["stt"]
-    change = data["change"]
-    setting = data["setting"]
-    # / Load File thong db
-    with open(os.path.join(thong_path, "thongs.json"), "r") as file:
-        thong_db = json.load(file)
 
-    thong_db["data"] = custom
-    thong_db["stt"] = stt
-    thong_db["change"] = change
-    thong_db["setting"] = setting
+    thong_db = data["data"]
+    id = thong_db.get("id")
 
     # / Save Thong DB
     with open(os.path.join(thong_path, "thongs.json"), "w") as file:
@@ -731,13 +567,10 @@ def backupThong(data):
 
 def saveBackupThong(data):
     thong_path = Path().path_thong()
-    id = data["id"]
+    thong_db = data["data"]
+    id = thong_db.get("id")
     thong_data = data["thong_data"]
-    custom = data["custom"]
     thong_sp = data["thong_sp"]
-    # / Load File thong db
-    with open(os.path.join(thong_path, "thongs.json"), "r") as file:
-        thong_db = json.load(file)
 
     # / Make Data STT for thong data
     stt_data = []
@@ -750,7 +583,6 @@ def saveBackupThong(data):
 
     thong_db["stt"] = stt_data
     thong_db["change"] = []
-    thong_db["data"] = custom
 
     # / Save Thong DB
     with open(os.path.join(thong_path, "thongs.json"), "w") as file:
@@ -759,12 +591,8 @@ def saveBackupThong(data):
     # / Save new backup thong
     with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
         json.dump(thong_data, file)
-    
+
     # / Save data thong sp
-    # isThong_one = True if thong_db['type_count'] in [1,3] else False
-    # if isThong_one:
-    #     with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
-    #         json.dump(thong_sp, file)
     with open(os.path.join(thong_path, f"thong_sp_{id}.json"), "w") as file:
         json.dump(thong_sp, file)
 
@@ -774,11 +602,20 @@ def saveBackupThong(data):
             with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
                 json.dump(thong_data, file)
         else:
-            number_change = list(
-                map(
-                    lambda item: list(map(lambda x: TachVaGhep(i, x), item)), thong_data
-                )
-            )
+            number_change = []
+            for j, thong in enumerate(thong_data):
+                thong_index = []
+                for k, item in enumerate(thong):
+                    if item != "":
+                        # Chuyển chuỗi thành số thực (float) trước
+                        item = float(item)
+                        # Sau đó áp dụng math.floor()
+                        item = math.floor(item)
+                        value = TachVaGhep(i, item)
+                        thong_index.append(value)
+                    else:
+                        thong_index.append(item)
+                number_change.append(thong_index)
             with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
                 json.dump(number_change, file)
 
@@ -786,22 +623,21 @@ def saveBackupThong(data):
 
 
 def saveAllThong(data):
-    type_count = data["type_count"]
     update = data["update"]
-    custom = data["custom"]
-    number = data["number"]
-    name = data["name"]
-    change = data["change"]
-    stt = data["stt"]
-    pm = data["pm"]
-    
-    # isThong_one = True if type_count in [1,3] else False
-    # if isThong_one:
-    #     thong_sp = data["thong_sp"]
     thong_sp = data["thong_sp"]
+    number = data["number"]
+
+    thong_db_old = data["data"]
+
+    custom = thong_db_old["data"]
+    name = thong_db_old["name"]
+    change = thong_db_old["change"]
+    stt = thong_db_old["stt"]
+    pm = thong_db_old["pm"]
+    thong_per_luot = thong_db_old["thong_per_luot"]
     index = extract_index(name)
 
-    current_path = rf"C:\data"
+    current_path = rf"D:\Python\chu-kien\data-test"
 
     # Xác định phạm vi index dựa trên type_count
     if pm == 1:
@@ -835,60 +671,59 @@ def saveAllThong(data):
 
     # / re-render all bo chuyen doi
     data_async = []
-    for k in range(11):
-        if k == 0:
+    for i in range(11):
+        if i == 0:
             data_async.append(update)
         else:
-            number_change = list(
-                map(
-                    lambda item: list(map(lambda x: TachVaGhep(k, x), item)), update
-                )
-            )
+            number_change = []
+            for j, thong in enumerate(update):
+                thong_index = []
+                for k, item in enumerate(thong):
+                    if item != "":
+                        # Chuyển chuỗi thành số thực (float) trước
+                        item = float(item)
+                        # Sau đó áp dụng math.floor()
+                        item = math.floor(item)
+                        value = TachVaGhep(i, item)
+                        thong_index.append(value)
+                    else:
+                        thong_index.append(item)
+                number_change.append(thong_index)
             data_async.append(number_change)
 
-    for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
+    for i in range(range_start - 1, range_end):
         file_type = i + 1
-        thong_path = os.path.join(current_path, f"{file_type}", "thong")
-
+        thong_path = os.path.join(current_path, str(file_type), "thong")
+        
+        # Đọc dữ liệu từ tệp thongs.json
         with open(os.path.join(thong_path, "thongs.json"), "r") as file:
             thong_db = json.load(file)
 
         thong_id = thong_db["id"]
-        thong_db["stt"] = stt
-        thong_db["data"] = custom
-        thong_db["change"] = change
+        thong_db.update({
+            "stt": stt,
+            "data": custom,
+            "change": change,
+            "thong_per_luot": thong_per_luot
+        })
 
-        # / Save Thong DB
-        with open(os.path.join(thong_path, "thongs.json"), "w") as file:
-            json.dump(thong_db, file)
+        # Lưu Thong DB
+        json.dump(thong_db, open(os.path.join(thong_path, "thongs.json"), "w"))
 
-        # / Save thong data
-        with open(
-            os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"
-        ) as file:
-            json.dump(update, file)
-        
-        # / Save new backup thong
-        with open(os.path.join(thong_path, f"thong_{thong_id}_backup.json"), "w") as file:
-            json.dump(update, file)
-        
-        # if type_count in [1,3]:
-        #     with open(os.path.join(thong_path, f"thong_sp_{thong_id}.json"), "w") as file:
-        #         json.dump(thong_sp, file)
-        with open(os.path.join(thong_path, f"thong_sp_{thong_id}.json"), "w") as file:
-            json.dump(thong_sp, file)
+        # Lưu thong data
+        json.dump(update, open(os.path.join(thong_path, f"thong_{thong_id}_{number}.json"), "w"))
 
+        # Lưu backup thong
+        json.dump(update, open(os.path.join(thong_path, f"thong_{thong_id}_backup.json"), "w"))
+
+        # Lưu thong_sp
+        json.dump(thong_sp, open(os.path.join(thong_path, f"thong_sp_{thong_id}.json"), "w"))
+
+        # Lưu dữ liệu async
         for k, data_arr_async in enumerate(data_async):
-            with open(os.path.join(thong_path, f"thong_{thong_id}_{k}.json"), "w") as file:
-                json.dump(data_arr_async, file)
-        
-        print(f"Done {i + 1}")
+            json.dump(data_arr_async, open(os.path.join(thong_path, f"thong_{thong_id}_{k}.json"), "w"))
 
-    # type_count_label = (
-    #     "1a Số"
-    #     if type_count == 1
-    #     else ("2 Số" if type_count == 2 else "trắng" if type_count == 0 else "1b Số")
-    # )
+        print(f"Done {i + 1}")
 
     return f"Đã đồng bộ dữ liệu"
 
@@ -899,6 +734,7 @@ def typeWithRecipe(data):
     value = data["value"]
     thong_sp = data["thong_sp"]
     update = data["update"]
+    thong_per_luot = data["thong_per_luot"]
     col = value
     # / Create new Rowstep = 0
     if setting == 1:
@@ -931,21 +767,23 @@ def typeWithRecipe(data):
         ]
 
         # Initialize result containers
-        current_thong_data = [0] * 1500
+        current_thong_data = [0] * value
         thong_value_data = []
 
         # Process data for each tap and luot
-        for count in range(10):  # 8 tập
+        for count in range(10):  # 10 tập
             for count_h in range(10):  # Mỗi tập 10 lượt
                 # Calculate E and H
                 e = (int(thong_sp[row][0][0]) + modifications_a[count][count_h]) % 10
                 h = (int(thong_sp[row][0][1]) + steps[count][count_h]) % 10
 
                 # Determine starting index for thong in current_thong_data
-                thong_start_index = (count * 10 + count_h) * 15  # Tính chỉ số dựa trên tập và lượt
+                thong_start_index = (
+                    count * 10 + count_h
+                ) * thong_per_luot  # Tính chỉ số dựa trên tập và lượt
 
-                # Generate 15 thong values for this luot
-                for thong_index in range(15):
+                # Generate thong_per_luot thong values for this luot
+                for thong_index in range(thong_per_luot):
                     thong = thong_index + thong_start_index
                     if thong_index == 0:
                         current_thong_data[thong] = (e + h) % 10
@@ -1029,10 +867,55 @@ def typeWithRecipe(data):
 
     return data
 
+def changeThongPerLuot(data):
+    thong_path = Path().path_thong()
+    thong_db = data["data"]
+    thong_value = thong_db.get("value")
+    id = thong_db.get("id")
+    thong_data = data["update"]
+    old_length_data = len(thong_data)
+    new_length_data = thong_value
+    new_thong_data = []
+    if old_length_data < new_length_data: # Them data
+        value_new = new_length_data - old_length_data
+        new_thong_data = thong_data + [[""] * 131 for _ in range(value_new)]
+    if old_length_data > new_length_data: # Giam data
+        new_thong_data = thong_data[:new_length_data]
+    
+    # / Save Thong DB
+    with open(os.path.join(thong_path, "thongs.json"), "w") as file:
+        json.dump(thong_db, file)
+
+    # / Save new backup thong
+    with open(os.path.join(thong_path, f"thong_{id}_backup.json"), "w") as file:
+        json.dump(new_thong_data, file)
+    
+    # / re-render all bo chuyen doi
+    for i in range(11):
+        if i == 0:
+            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
+                json.dump(new_thong_data, file)
+        else:
+            number_change = []
+            for j, thong in enumerate(new_thong_data):
+                thong_index = []
+                for k, item in enumerate(thong):
+                    if item != "":
+                        # Chuyển chuỗi thành số thực (float) trước
+                        item = float(item)
+                        # Sau đó áp dụng math.floor()
+                        item = math.floor(item)
+                        value = TachVaGhep(i, item)
+                        thong_index.append(value)
+                    else:
+                        thong_index.append(item)
+                number_change.append(thong_index)
+            with open(os.path.join(thong_path, f"thong_{id}_{i}.json"), "w") as file:
+                json.dump(number_change, file)
+    return True
+
 
 # TODO Handler Data Ngang
-
-
 def saveNgang(data):
     ngang_path = Path().path_number()
     update = data["update"]
@@ -1192,7 +1075,7 @@ def sync_ngang(data):
     name = data["name"]
     stt = data["stt"]
     pm = data["pm"]
-    current_path = rf"C:\data"
+    current_path = rf"D:\Python\chu-kien\data-test"
     index = extract_index(name)
 
     # Xác định phạm vi index dựa trên pm
@@ -1270,6 +1153,7 @@ def convert_string_format_type(input_string):
     # Format the new string
     return f"Bộ {type_count} - {type_app}"
 
+
 def convert_string_format_type_pm(input_string):
     # Match the pattern "Bản Xb.Y" where X and Y are numbers
     _, suffix = input_string.split(" ", 1)
@@ -1294,25 +1178,25 @@ def convert_string_to_type_count(input_string):
 
 # //TODO ———————————————[Setting Async]———————————————
 def async_setting_number_pm(data):
-    current_path = rf"C:\data"
+    current_path = rf"D:\Python\chu-kien\data-test"
     pm = data.get("pm")
     name = data.get("name")
 
     # Xác định phạm vi index dựa trên type_count
     if pm == 1:
-        range_tuple = 0,30
+        range_tuple = 0, 30
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     elif pm == 2:
-        range_tuple = 31,60
+        range_tuple = 31, 60
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     elif pm == 3:
-        range_tuple = 61,90
+        range_tuple = 61, 90
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     elif pm == 4:
-        range_tuple = 91,120
+        range_tuple = 91, 120
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     elif pm == 5:
@@ -1320,12 +1204,12 @@ def async_setting_number_pm(data):
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     elif pm == 6:
-        range_tuple = 151,180
+        range_tuple = 151, 180
         if range_tuple is None:
             return "Index không nằm trong phạm vi hợp lệ"
     else:
         return "Type count không hợp lệ"
-    
+
     range_start, range_end = range_tuple
     step = 0
     for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
@@ -1333,12 +1217,12 @@ def async_setting_number_pm(data):
         file_type = i + 1
         db_path = os.path.join(current_path, f"{file_type}", "db")
 
-        with open(os.path.join(db_path, 'index.json') , 'r') as file:
+        with open(os.path.join(db_path, "index.json"), "r") as file:
             db = json.load(file)
 
-        db['meta']['number'] = step
-        
-        with open(os.path.join(db_path, 'index.json') , 'w') as file:
+        db["meta"]["number"] = step
+
+        with open(os.path.join(db_path, "index.json"), "w") as file:
             json.dump(db, file)
         if step == 10:
             step = 0
@@ -1347,10 +1231,11 @@ def async_setting_number_pm(data):
 
     return f"Đã đặt bộ chuyển đổi cho {name_pm}, xin vui lòng thoát Bảng Tính"
 
+
 def async_setting_range_thong(data):
-    current_path = rf"C:\data"
-    name = data['name']
-    range_thong = data['thong']['value']
+    current_path = rf"D:\Python\chu-kien\data-test"
+    name = data["name"]
+    range_thong = data["thong"]["value"]
     pm = data.get("pm")
 
     index = extract_index(name)
@@ -1382,23 +1267,24 @@ def async_setting_range_thong(data):
             return "Index không nằm trong phạm vi hợp lệ"
     else:
         return "Type count không hợp lệ"
-    
+
     range_start, range_end = range_tuple
     for i in range(range_start - 1, range_end):  # Chuyển đổi sang chỉ số 0
         file_type = i + 1
         db_path = os.path.join(current_path, f"{file_type}", "db")
 
-        with open(os.path.join(db_path, 'index.json') , 'r') as file:
+        with open(os.path.join(db_path, "index.json"), "r") as file:
             db = json.load(file)
 
-        db['thong']['value'] = range_thong
-        
-        with open(os.path.join(db_path, 'index.json') , 'w') as file:
-            json.dump(db,file)
+        db["thong"]["value"] = range_thong
+
+        with open(os.path.join(db_path, "index.json"), "w") as file:
+            json.dump(db, file)
 
     name_pm = convert_string_format_type_pm(name)
 
     return f"Đã đồng bộ khoảng thông cho {name_pm}, xin vui lòng thoát Bảng Tính"
+
 
 def save_setting_tables(data):
     col = data["col"]
@@ -1411,7 +1297,7 @@ def save_setting_tables(data):
         thong_db = json.load(file)
 
     pm = thong_db["pm"]
-    current_path = rf"C:\data"
+    current_path = rf"D:\Python\chu-kien\data-test"
 
     # Xác định phạm vi index dựa trên pm
     index = extract_index(name)
@@ -1477,5 +1363,3 @@ def save_setting_tables(data):
     # )
 
     return f"Đã đồng bộ dữ liệu"
-
-

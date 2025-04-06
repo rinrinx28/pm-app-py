@@ -12,5 +12,7 @@ PyInstaller.__main__.run(
         "--add-data=path_file.txt;.",
         "--add-data=type_pm.txt;.",
         "--add-data=button_clicks.txt;.",
+        "--add-data=module.txt;.",
+        "--add-data=sheet.txt;.",
     ]
 )

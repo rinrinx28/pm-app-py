@@ -1,0 +1,99 @@
+Private Sub Worksheet_BeforeRightClick(ByVal Target As Range, Cancel As Boolean)
+    Cancel = True
+    Dim selectedValue As String
+    Dim ws As Worksheet
+    Dim found As Range
+    Dim foundDate As Range
+    Dim firstAddress As String
+    Dim splitValues() As String
+    Dim lengthCheck As Integer
+    Dim result As String
+    Dim data As String
+    Dim nameWs As String
+    Dim contextMenu As CommandBar
+    Dim item As CommandBarButton
+    Dim lines() As String
+    Dim datas() As String
+    Dim nameWss() As String
+    Dim i As Integer
+    Dim dateValue As String
+
+    ' Kiem tra Target co du lieu khong
+    If IsEmpty(Target) Then
+        MsgBox "Du lieu khong duoc toan.", vbExclamation
+        Exit Sub
+    End If
+
+    dateValue = Me.Range("A" & Target.Row).Value
+    
+    ' Kiem tra du lieu co dau " - " hay khong
+    If InStr(Target.Value, " - ") > 0 Then
+        ' Tach du lieu tu dau "-"
+        selectedValue = Split(Target.Value, " - ")(0) ' Lay du lieu truoc dau " - "
+    Else
+        ' Lay gia tri du lieu o can tim
+        selectedValue = Target.Value
+    End If
+    
+    ' Tach gia tri bang dau "/"
+    splitValues = Split(selectedValue, "/")
+    
+    ' Kiem tra du lieu co hop le
+    lengthCheck = UBound(splitValues) - LBound(splitValues) + 1
+    
+    If lengthCheck <> 4 Then
+        MsgBox "Du lieu khong duoc toan.", vbExclamation
+        Exit Sub
+    End If
+    
+    ' Lap qua tat ca cac sheet dang hien co
+    result = ""
+    data = ""
+    nameWs = ""
+    For Each ws In ThisWorkbook.Worksheets
+        ' Bo qua sheet dang tim du lieu
+        If ws.Name <> Me.Name Then
+            ' Tim gia tri date trong sheet
+            Set foundDate = ws.Columns("A").Find(What:=dateValue, LookIn:=xlValues, LookAt:=xlWhole)
+            If Not foundDate Is Nothing Then
+                ' Tim gia tri trong sheet
+                Set found = ws.Rows(foundDate.Row).Find(What:=selectedValue, LookIn:=xlValues, LookAt:=xlPart)
+                If Not found Is Nothing Then
+                    result = result & "Ve " & ws.Name & vbCrLf
+                    data = data & found.Address & vbCrLf
+                    nameWs = nameWs & ws.Name & vbCrLf
+                End If
+            End If
+        End If
+    Next ws
+    
+    ' Neu khong tim thay du lieu
+    If result = "" Then
+        MsgBox "Du lieu khong duoc tim thay.", vbExclamation
+    Else
+        ' Kiem tra va xoa menu da ton tai
+        On Error Resume Next
+        Application.CommandBars("CustomContextMenu").Delete
+        On Error GoTo 0
+        
+        ' Tao menu context new
+        Set contextMenu = Application.CommandBars.Add("CustomContextMenu", msoBarPopup, False, True)
+        
+        ' Them cac tuy chon menu
+        lines = Split(result, vbCrLf)
+        datas = Split(data, vbCrLf)
+        nameWss = Split(nameWs, vbCrLf)
+
+        
+        For i = LBound(lines) To UBound(lines) - 1 ' Bo qua dong cuoi cung
+            Set item = contextMenu.Controls.Add(Type:=msoControlButton)
+            item.Caption = lines(i)
+            item.OnAction = "'GoToSheet """ & nameWss(i) & """, """ & datas(i) & """'" ' Call func GoToSheet
+        Next i
+        
+        ' Hien thi menu
+        contextMenu.ShowPopup
+    End If
+End Sub
+
+

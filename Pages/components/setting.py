@@ -37,10 +37,11 @@ from functools import partial
 
 class SettingTable(QDialog):
 
-    def __init__(self, ban_info):
+    def __init__(self, ban_info, thong_db):
         super().__init__()
         # / Config Icon Windows
         self.path = Path()
+        self.thong_db = thong_db
         self.ban_info = ban_info
         self.change_data = self.ban_info["meta"]["number"]
         self.old_data = self.ban_info["meta"]["notice"]
@@ -327,7 +328,7 @@ class SettingTable(QDialog):
         s_values_thong_spinbox_1 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_1, 1, 0)
         s_values_thong_spinbox_1.setMinimum(1)
-        s_values_thong_spinbox_1.setMaximum(1500)
+        s_values_thong_spinbox_1.setMaximum(self.thong_db["value"])
         s_values_thong_spinbox_1.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_1.setValue(self.col_thong["value"][0])
         s_values_thong_spinbox_1.setDisabled(True)
@@ -336,7 +337,7 @@ class SettingTable(QDialog):
         s_values_thong_spinbox_2 = QSpinBox()
         s_values_thong_l.addWidget(s_values_thong_spinbox_2, 1, 1)
         s_values_thong_spinbox_2.setMinimum(1)
-        s_values_thong_spinbox_2.setMaximum(1500)
+        s_values_thong_spinbox_2.setMaximum(self.thong_db["value"])
         s_values_thong_spinbox_2.setStyleSheet("font-size: 24px;border: 0px;")
         s_values_thong_spinbox_2.setValue(self.col_thong["value"][1])
         s_values_thong_spinbox_2.setDisabled(True)
@@ -772,7 +773,7 @@ class SettingTable(QDialog):
             "maxRow": self.maxRow["maxRow"],
             "buttons": self.ban_info["meta"]["buttons"],
             "tables": self.ban_info["meta"]["tables"],
-            "size": self.ban_info['size']
+            "size": self.ban_info['size'] if self.ban_info['size'] else 28
         }
         msg = updateColorInsert(data)
         SendMessage(msg["msg"])
@@ -950,8 +951,9 @@ class SettingTable(QDialog):
 
         config_bao_mau_spinBox_1.setEnabled(False)
         config_bao_mau_spinBox_2.setEnabled(False)
-        # spin_boxes.append(config_bao_mau_spinBox_1)
-        # spin_boxes.append(config_bao_mau_spinBox_2)
+        
+        spin_boxes.append(config_bao_mau_spinBox_1)
+        spin_boxes.append(config_bao_mau_spinBox_2)
 
         # Label number btn_notice
         number_btn_notice_col = QWidget()

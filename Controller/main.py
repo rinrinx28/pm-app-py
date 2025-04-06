@@ -43,9 +43,8 @@ class Controller:
     def show_page(self, page_class):
         self.show_loading_screen()
         if self.current_page:
-            self.current_page.hide()  # Ẩn trước khi xóa
             self.main_widget.layout().removeWidget(self.current_page)
-        #     self.current_page.deleteLater()  # Đảm bảo widget được giải phóng bộ nhớ
+            self.current_page.deleteLater()  # Đảm bảo widget được giải phóng bộ nhớ
             self.current_page = None
 
         self.thread = Thread()

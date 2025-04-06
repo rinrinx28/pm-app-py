@@ -5,9 +5,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QStackedWidget,
     QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
     QComboBox,
     QLabel,QMessageBox
 )
@@ -26,8 +23,9 @@ import os
 from Controller.handler import backUpNgang, saveNgang, convert_string_format,sync_ngang
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
-
-prev_selected_rows = set()
+import xlwings as xw
+import math
+import pandas as pd
 
 
 class NgangPage(QWidget):
@@ -52,6 +50,26 @@ class NgangPage(QWidget):
         self.loadingScreen = LoadingScreen(self.path.path_loading())
         # / Config Font
         self.font = Font()
+
+        # / Kết nối với Excel
+        self.app = xw.App(visible=True)  # Mở Excel
+        self.wb = self.app.books.active  # Workbook hiện tại
+        self.sheet = self.wb.sheets[0]   # Sheet đầu tiên
+
+        self.pwd = "rindev-pm"
+        
+        # Xác định phạm vi bảng (tự động tìm kích thước bảng)
+        last_row = self.sheet.range("A1").end("down").row
+        last_col = self.sheet.range("A1").end("right").column
+        self.table_range = self.sheet.range((1, 1), (last_row, last_col))
+
+        # 🌟 **Áp dụng định dạng cho toàn bảng**
+        self.table_range.api.Font.Name = "Arial"  # Font chữ
+        self.table_range.api.Font.Size = 24  # Cỡ chữ
+        self.table_range.api.HorizontalAlignment = -4108  # Căn giữa
+        self.table_range.api.VerticalAlignment = -4107  # Căn giữa theo chiều dọc
+        self.table_range.api.Borders.Weight = 2  # Độ dày đường viền
+        self.table_range.api.Font.Bold = True  # In đậm tiêu đề
 
         # / Load Data Bans
         self.bans_path = self.path.path_db()
@@ -139,7 +157,7 @@ class NgangPage(QWidget):
         # / Render Component
         self.changeDataNgangWithNumber(self.stay.get('ngang', 0))   
         self.renderButton()
-        self.renderTable()
+        self.update_excel()
 
     # TODO Handler render component
     def renderButton(self):
@@ -191,7 +209,7 @@ class NgangPage(QWidget):
         DeleteColor = QPushButton("Xóa Màu")
         DeleteColor.setStyleSheet(css_button_cancel)
         DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
-        widget_button_first_layout.addWidget(DeleteColor)
+        # widget_button_first_layout.addWidget(DeleteColor)
 
         # / Skip to end row
         skipToEnd = QPushButton("Về Cột Cuối")
@@ -245,7 +263,8 @@ class NgangPage(QWidget):
             value = self.Change_number.currentIndex()
             self.save_stay(value)
             self.changeDataNgangWithNumber(value)
-            self.updateRows()
+            self.toggle_editable(True)
+            self.update_excel()
             if value != 0:
                 note = Note[value - 1]
                 self.note.setText(f"Cơ {value} - {note}")
@@ -258,57 +277,90 @@ class NgangPage(QWidget):
         def changeTypeCount():
             types = self.HandlerData.text()
             if types == "Tắt Tùy Chỉnh":
-                self.table_main.setEditTriggers(QTableWidget.EditTrigger.DoubleClicked)
+                self.toggle_editable(True)
                 self.HandlerData.setText("Bật Tùy Chỉnh")
             else:
-                self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+                self.toggle_editable(False)
                 self.HandlerData.setText("Tắt Tùy Chỉnh")
 
         def saveChange():
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
+            self.toggle_editable(False)
             self.saveRowNgang()
 
         def backupNgang():
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            self.toggle_editable(False)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
             self.backUpNgang()
 
         def deleteRows():
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
             self.delete_all_row()
 
         def copyRow_Click():
-            if len(self.current_select) < 2 or len(self.current_select) > 2:
-                SendMessage("Xin vui lòng chọn dòng chép và nhận!")
-                return
-            sender = self.prev_selected_row
-            receiver = [item for item in self.current_select if item != sender][0]
-            self.copyRowNgang([sender, receiver])
+            # Lấy đối tượng App từ Workbook
+            app = self.sheet.book.app
+            try:
+                # Lấy vùng được chọn
+                selection = app.selection
+                if selection is None:
+                    SendMessage("Vui lòng chọn ít nhất một dòng!")
+                    return None
+
+                # Lấy tất cả các dòng từ các vùng chọn, giữ nguyên thứ tự
+                selected_rows = []
+                seen_rows = set()  # Để kiểm tra trùng lặp mà không thay đổi thứ tự
+                for area in selection.api.Areas:  # Duyệt qua từng vùng chọn riêng lẻ
+                    for row in area.Rows:  # Duyệt qua từng dòng trong vùng
+                        row_num = row.Row  # Không trừ 1 để giữ nguyên số dòng Excel
+                        if row_num not in seen_rows:  # Chỉ thêm nếu chưa gặp
+                            selected_rows.append(row_num)
+                            seen_rows.add(row_num)
+
+                # In danh sách dòng và kiểm tra số lượng
+                print(f"Các dòng được chọn (theo thứ tự): {selected_rows}")
+                if len(selected_rows) != 2:  # Yêu cầu đúng 2 dòng
+                    SendMessage("Xin vui lòng chọn đúng 2 dòng để tiến hành sao chép dữ liệu!")
+                    return None
+
+                # Gọi hàm sao chép với danh sách dòng giữ nguyên thứ tự
+                self.copyRowNgang(selected_rows)
+                return selected_rows
+
+            except AttributeError as e:
+                print(f"Lỗi truy cập vùng chọn: {e}")
+                SendMessage("Không thể truy cập vùng chọn. Vui lòng thử lại!")
+                return None
+            except Exception as e:
+                print(f"Đã xảy ra lỗi: {e}")
+                SendMessage("Không thể sao chép dữ liệu. Vui lòng thử lại!")
+                return None
         
         def saveFile_click():
             self.showQuestion()
 
-        def back_to_first():
-            row = self.table_main.rowCount() - 2  # Get the current row
-            item = self.table_main.item(0, 0)  # Get the first column item
-            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            return
+        def move_cursor(position: str):
+            """
+            Di chuyển con trỏ đến vị trí được chỉ định trong cột: "first", "middle", "last"
+            """
+            data_range = self.sheet.range("A1").expand("right")  # Lấy phạm vi dữ liệu theo cột
+            total_cols = data_range.columns.count  # Số cột trong bảng
 
-        def skip_to_end():
-            row = self.table_main.rowCount() - 2  # Get the current row
-            col = self.table_main.columnCount() - 1  # Get the current row
-            item = self.table_main.item(0, col)  # Get the first column item
-            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            return
-        
-        def skip_to_mid():
-            row = self.table_main.rowCount() - 2  # Get the current row
-            col = self.table_main.columnCount() - 1  # Get the current row
-            item = self.table_main.item(0, col // 2)  # Get the first column item
-            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            return
+            if total_cols == 0:
+                return  # Không có dữ liệu thì không làm gì cả
+
+            if position == "first":
+                col_index = 2  # Cột đầu tiên (A)
+            elif position == "middle":
+                col_index = (int(total_cols) / 2) + 1  # Cột giữa
+            elif position == "last":
+                col_index = total_cols  # Cột cuối cùng
+            else:
+                SendMessage("Vị trí không hợp lệ!")
+                return
+
+            cell = self.sheet.cells(1, col_index)  # Chọn ô đầu tiên của cột tương ứng (hàng 1)
+            cell.api.Activate()  # Di chuyển con trỏ đến ô đó
+
 
 
         self.Change_number.currentIndexChanged.connect(change_number_selected)
@@ -319,11 +371,11 @@ class NgangPage(QWidget):
         Delete.clicked.connect(deleteRows)
         DeleteRow.clicked.connect(self.delete_one_row)
         CopyRow.clicked.connect(copyRow_Click)
-        DeleteColor.clicked.connect(self.delete_color_click)
+        # DeleteColor.clicked.connect(self.delete_color_click)
         SaveFile.clicked.connect(saveFile_click)
-        backToFirst.clicked.connect(back_to_first)
-        skipToEnd.clicked.connect(skip_to_end)
-        skipToMind.clicked.connect(skip_to_mid)
+        backToFirst.clicked.connect(lambda _: move_cursor("first"))
+        skipToMind.clicked.connect(lambda _: move_cursor("middle"))
+        skipToEnd.clicked.connect(lambda _: move_cursor("last"))
 
         # Default value
         current_number = self.stay.get('ngang', 0)
@@ -332,114 +384,6 @@ class NgangPage(QWidget):
             current_number = current_ban_info_number
         self.Change_number.setCurrentIndex(current_number)
 
-    def renderTable(self):
-        data = self.ngang_data
-        # TODO Data configuration
-        colCount = len(data[0][:300])
-        self.start_col = 0
-        self.value_col = 0
-
-        self.table_main = QTableWidget()
-        self.widget_main.addWidget(self.table_main)
-
-        # TODO Config table
-        self.table_main.setColumnCount(colCount)  # / Add STT into col
-
-        # / Render Rows
-        self.updateRows()
-        # TODO Render Header Table
-        header_lables = [f"C.{i+1}" for i in range(colCount)]
-        self.table_main.setHorizontalHeaderLabels(header_lables)
-
-        # TODO Add Font
-        self.table_main.setFont(self.font)
-        self.table_main.horizontalHeader().setFont(self.font)
-        self.table_main.verticalHeader().setFont(self.font)
-
-        self.table_main.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-
-        # TODO Config table Width
-        self.table_main.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_main.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-
-        # TODO Freeze Col STT Table
-
-        # self.table_main.horizontalScrollBar().valueChanged.connect(self.freeze_col_stt)
-
-        self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-
-        self.table_main.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
-
-        def selectedRow():
-            # Lấy các hàng được chọn từ các mục được chọn
-            selected_items = self.table_main.selectedItems()
-            self.selected_row_indices = {item.row() for item in selected_items} if selected_items else set()
-
-            # Lấy chỉ số của các mục được chọn
-            selected_indexes = self.table_main.selectedIndexes()
-            if selected_indexes:
-                # Xác định hàng hiện tại được chọn
-                current_selected_row = selected_indexes[0].row()
-                if current_selected_row != getattr(self, 'prev_selected_row', None):
-                    self.prev_selected_row = current_selected_row
-
-                # Lưu danh sách các hàng được chọn
-                self.current_select = list({index.row() for index in selected_indexes})
-
-        def changeValue(row, column):
-            isEdit = self.table_main.editTriggers()
-            if isEdit == QTableWidget.EditTrigger.NoEditTriggers:
-                return
-            else:
-                item = self.table_main.item(row, column)
-                filter_db = [
-                    item
-                    for item in self.ngang_info["change"]
-                    if item["row"] != row
-                    and item["column"] != column
-                    and item["number"] != self.ban_info["meta"]['number']
-                ]
-                filter_data = [
-                    item
-                    for item in self.ngang_info["change"]
-                    if item["row"] == row
-                    and item["column"] == column
-                    and item["number"] == self.ban_info["meta"]['number']
-                ]
-                if len(filter_data) > 0:
-                    filter_data[0]["new"] = item.text()
-                    self.ngang_info["change"] = filter_db + filter_data
-                    if filter_data[0]["new"] != filter_data[0]["old"]:
-                        item.setBackground(self.cyan)
-                    else:
-                        item.setBackground(self.normal)
-                else:
-                    self.ngang_info["change"].append(
-                        {
-                            "row": row,
-                            "column": column,
-                            "number": self.ban_info["meta"]['number'],
-                            "new": item.text(),
-                            "old": self.ngang_data[row][column],
-                        }
-                    )
-                    item.setBackground(self.cyan)
-                self.ngang_data[row][column] = item.text()
-                    
-
-        self.table_main.itemSelectionChanged.connect(selectedRow)
-        self.table_main.cellChanged.connect(changeValue)
-
     def save_stay(self, value):
         self.ban_info["meta"]['number'] = int(value)
         self.stay['ngang'] = int(value)
@@ -447,27 +391,22 @@ class NgangPage(QWidget):
             json.dump(self.stay, file)
     
     # TODO Handler Events
-    def delete_color_click(self):
-        self.table_main.clearSelection()
-        self.prev_selected_row = None
-        self.selected_row_indices = None
-        self.current_select = []
+    def toggle_editable(self, enable_edit: bool):
+        """Bật/Tắt chế độ chỉnh sửa nhưng vẫn cho phép thay đổi định dạng"""
+        self.sheet.api.Unprotect(Password=self.pwd)  # Bỏ bảo vệ sheet trước khi thay đổi
 
-    def freeze_col_stt(self, value):
-        if value >= self.start_col:
-            self.table_main.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
-        elif value < self.start_col:
-            value = self.start_col
-            self.table_main.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
+        if enable_edit:
+            self.table_range.api.Locked = False  # Mở khóa để chỉnh sửa dữ liệu
+        else:
+            self.table_range.api.Locked = True  # Khóa dữ liệu nhưng không khóa định dạng
+
+        # Bảo vệ sheet nhưng cho phép định dạng (AllowFormattingCells=True)
+        self.sheet.api.Protect(Password=self.pwd, AllowFormattingCells=True, AllowFormattingColumns=True, AllowFormattingRows=True)
 
     def swapNgangRow(self):
         # / Check isEditor
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
+        self.toggle_editable(True)
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
         # / Ngang Data and Ngang stt
         stt = self.stt_ngang[self.ban_info["meta"]['number']]
         data = self.ngang_data
@@ -493,11 +432,12 @@ class NgangPage(QWidget):
 
         self.stt_ngang[self.ban_info["meta"]['number']] = shifted_stt
         self.ngang_data = shifted_data
-        SendMessage("Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại")
+        
 
         self.show_loading_screen()
         self.thread = Thread()
-        self.thread.task_completed.connect(lambda: self.updateWidget([self.updateRows]))
+        self.thread.task_completed.connect(lambda: self.updateWidget([self.update_excel]))
+        self.thread.task_completed.connect(lambda: SendMessage("Đã đổi dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại"))
         self.thread.start()
         return
 
@@ -506,40 +446,6 @@ class NgangPage(QWidget):
         with open(os.path.join(self.ngang_path, f"number_{number}.json"), "r") as file:
             data = json.load(file)
             self.ngang_data = data
-        # SendMessage(f"Đã mở Bộ chuyển đổi {number}")
-
-    def updateRows(self):
-        if self.table_main is None:
-            return
-        self.table_main.clearSelection()
-        meta_number = self.stay.get('ngang', 0)
-        if meta_number == 0:
-            current_ban_info_number = self.ban_info["meta"]["number"]
-            meta_number = current_ban_info_number
-        data = self.ngang_data
-        rowCount = len(data[:35])
-        self.table_main.setRowCount(0)
-        # Thiết lập số hàng
-        self.table_main.setRowCount(rowCount)
-
-        # TODO: Render Rows
-        for i in range(rowCount):
-            # Thêm giá trị từng cột
-            for j, value in enumerate(data[i]):
-                item = QTableWidgetItem(f"{value}")
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-
-                # Kiểm tra thay đổi
-                change_info = next(
-                    (change for change in self.ngang_info["change"]
-                    if change["row"] == i and change["column"] == j and change["number"] == meta_number),
-                    None
-                )
-                if change_info and change_info["new"] != change_info["old"]:
-                    item.setBackground(self.cyan)
-
-                # Đặt vào bảng
-                self.table_main.setItem(i, j, item)
 
     def backUpNgang(self):
         data = {}
@@ -550,68 +456,80 @@ class NgangPage(QWidget):
 
         self.stt_ngang = self.ngang_info["stt"]
         self.ngang_data = result["ngang_data"]
+        self.toggle_editable(True)
 
         self.show_loading_screen()
         self.thread = Thread()
-        self.thread.task_completed.connect(lambda: self.updateWidget([self.updateRows]))
+        self.thread.task_completed.connect(lambda: self.updateWidget([self.update_excel]))
+        self.thread.task_completed.connect(lambda: SendMessage("Đã khôi phục dữ liệu thành công!"))
         self.thread.start()
-        SendMessage("Đã khôi phục dữ liệu thành công!")
 
     def saveRowNgang(self):
+        data_excel = self.get_change_history()
         data = {}
-        data["update"] = self.ngang_data
+        data["update"] = data_excel
         data["number"] = self.Change_number.currentIndex()
         data["stt"] = self.stt_ngang
         data["change"] = self.ngang_info["change"]
         saveNgang(data)
-        self.delete_color_click()
         SendMessage("Đã lưu dữ liệu thành công!")
 
     def delete_all_row(self):
-        rowCount = len(self.ngang_data)
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
+        self.toggle_editable(True)
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
 
         # self.table_main.setRowCount(0)
         # self.table_main.setRowCount(rowCount)
-        self.table_main.clearContents()
+        
+        last_row = self.sheet.range("B2").end("down").row
+        last_col = self.sheet.range("B2").end("right").column
+        table_range = self.sheet.range((2, 2), (last_row, last_col))
+        table_range.clear_contents()
 
         self.show_loading_screen()
         self.thread = Thread()
         self.thread.task_completed.connect(lambda: self.updateWidget([]))
         self.thread.start()
+        self.toggle_editable(False)
 
     def delete_one_row(self):
-        # / Check isEditor
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
+        """Xóa dòng hiện tại mà người dùng đã chọn"""
+        self.toggle_editable(True)  # Cho phép chỉnh sửa trước khi xóa
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
 
-        # / Find Select Row
-        data_select = list(self.selected_row_indices)
-        if len(data_select) == -1:
-            SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
-            return
-        for row in data_select:
-            for i in range(len(self.ngang_data[row])):
-                self.ngang_data[row][i] = ""
+        # Lấy đối tượng App từ Workbook
+        app = self.sheet.book.app  
 
-        SendMessage("Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại")
+        try:
+            # Lấy dòng được chọn
+            data_select = app.selection.row  
 
-        self.show_loading_screen()
-        self.thread = Thread()
-        self.thread.task_completed.connect(lambda: self.updateWidget([self.updateRows]))
-        self.thread.start()
+            # Kiểm tra nếu không có dòng nào được chọn
+            if not data_select:
+                SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
+                return
+
+            # Xóa dòng
+            self.ngang_data[data_select - 2] = [""] * 600
+
+            # Cập nhật giao diện
+            self.show_loading_screen()
+            self.thread = Thread()
+            self.thread.task_completed.connect(lambda: self.updateWidget([self.update_excel]))
+            self.thread.task_completed.connect(lambda: SendMessage(f"Đã xóa dòng {data_select} thành công, xin vui lòng lưu dữ liệu lại"))
+            self.thread.start()
+
+        except Exception as e:
+            print(f"Lỗi khi xóa dòng: {e}")
+            SendMessage("Không thể xóa dòng. Vui lòng thử lại!")
+
         return
 
     def copyRowNgang(self, selceted_rows):
-        row1 = selceted_rows[0]
-        row2 = selceted_rows[1]
-        row1_h = f"{row1 + 1:02}"  # Ensure proper formatting for display
-        row2_h = f"{row2 + 1:02}"
+        row1 = selceted_rows[0] - 2
+        row2 = selceted_rows[1] - 2
+        # row1_h = f"{row1:02}"  # Ensure proper formatting for display
+        row2_h = f"{row2:02}"
         # / Check row2 selected, if it not null is return
         data_row2 = self.ngang_data[row2]
         for i, item in enumerate(data_row2):
@@ -620,11 +538,13 @@ class NgangPage(QWidget):
                 return
         sender = self.ngang_data[row1][:]
         self.ngang_data[row2] = sender  # / Copy from sender to receiver
+        self.toggle_editable(True)
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
         self.show_loading_screen()
         self.thread = Thread()
-        self.thread.task_completed.connect(lambda: self.updateWidget([self.updateRows]))
+        self.thread.task_completed.connect(lambda: self.updateWidget([self.update_excel]))
+        self.thread.task_completed.connect(lambda: SendMessage(f"Đã copy dữ liệu từ dòng {selceted_rows[0]} sang dòng {selceted_rows[1]} thành công!"))
         self.thread.start()
-        SendMessage(f"Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!")
         return
 
     def show_loading_screen(self):
@@ -639,6 +559,64 @@ class NgangPage(QWidget):
         self.hide_loading_screen()
         for widget in widgets:
             widget()
+
+    # TODO Execl Function
+    def get_change_history(self):
+        # Đọc dữ liệu từ bảng
+        data = pd.DataFrame(self.sheet.range("B2").expand().value)
+        data = data.fillna("")
+        number_change = []
+        for j, row in enumerate(data.values.tolist()):
+            row_v = []
+            for k, cell in enumerate(row):
+                if cell != "":
+                    # Chuyển chuỗi thành số thực (float) trước
+                    cell = float(cell)
+                    # Sau đó áp dụng math.floor()
+                    cell = math.floor(cell)
+                    row_v.append(cell)
+                else:
+                    row_v.append(cell)
+            number_change.append(row_v)
+        return number_change  # Trả về danh sách lịch sử thay đổi
+
+    def update_excel(self):
+        # TODO Data configuration
+        data = self.ngang_data
+        stt = self.stt_ngang[self.ban_info["meta"]['number']]
+        meta_number = self.stay.get('ngang', 0)
+        if meta_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            meta_number = current_ban_info_number
+        rowCount = len(data)
+        colCount = len(data[0])
+
+        # TODO Render Header Table
+        header_lables = [f"C.{i+1}" for i in range(colCount)]
+        data_excel = []
+
+        # TODO: Render Rows
+        for i in range(rowCount):
+            row_data = []
+            row_data.append(f"{stt[i]:02}")
+            # Thêm giá trị từng cột
+            for j, value in enumerate(data[i]):
+                row_data.append(value)
+            data_excel.append(row_data)
+
+        # Ghi dữ liệu vào Excel
+        self.sheet.range("A1").value = [["STT"] + header_lables]  # Tiêu đề
+        self.sheet.range("A2").value = data_excel  # Dữ liệu
+
+        # Tự động căn chỉnh kích thước cột dựa trên nội dung
+        self.sheet.autofit('c')  # 'c' để autofit các cột
+        
+        # Chọn ô B1 (Excel sẽ đóng băng tất cả cột bên trái ô này, tức là cột A)
+        self.sheet.range("B2").select()
+
+        # Đóng băng cột A
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        self.toggle_editable(False)
 
     # TODO Handler Question
     def showQuestion(self):
@@ -664,5 +642,17 @@ class NgangPage(QWidget):
             data['name'] = self.ban_info['thong']['name']
             data["pm"] = self.ban_info["thong"]["pm"]
             msg = sync_ngang(data)
-            self.delete_color_click()
-            SendMessage(f'{msg} {self.name}')
+            self.show_loading_screen()
+            self.thread = Thread()
+            self.thread.task_completed.connect(
+                lambda: SendMessage(f'{msg} {self.name}')
+            )
+            self.thread.start()
+
+    def closeEvent(self, event):
+        """Xử lý khi cửa sổ PySide6 đóng"""
+        if self.wb:
+            self.wb.close()  # Đóng workbook mà không lưu
+        if self.app:
+            self.app.quit()  # Đóng Excel ngay lập tức
+        event.accept()  # Chấp nhận sự kiện đóng

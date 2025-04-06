@@ -1,7 +1,7 @@
 import sys
 import os
 from datetime import datetime, timedelta
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -28,11 +28,12 @@ from Pages.components.stylesheet import (
     SendMessage,
 )
 import json
+import socket
 
 # from PySide6.QtCore import QRect
 
 basedir = os.path.dirname(__file__)
-data_sp_dir = "C:/data_sp"
+data_sp_dir = r"C:/data_sp"
 APP_NAME = "Project Management"
 
 # Set up unique application ID on Windows
@@ -88,7 +89,6 @@ css_custom_opened = """
         color: #000;
     }
 """
-
 
 class AppSelectionDialog(QDialog):
     def __init__(self, opened_apps):
@@ -266,7 +266,7 @@ class AppSelectionDialog(QDialog):
         self.show()
 
     def login_app(self, value):
-        pwd_path = os.path.join("C:/data_pwd", f"{self.type_pm}", "pwd.txt")
+        pwd_path = os.path.join(r"C:/data_pwd", f"{self.type_pm}", "pwd.txt")
         with open(pwd_path, "r") as file:
             pwd = file.read().strip()
 
@@ -464,7 +464,7 @@ class AppSelectionDialog(QDialog):
         if type_count == 6:
             skip = 150
         with open(file_path, "w") as file:
-            file.write(f"D:/data/{index + skip}")
+            file.write(fr"C:/data/{index + skip}")
 
     def open_app(self, index, type_count):
         self.modify_text_file(index, type_count)
@@ -545,7 +545,7 @@ class ChangePwd(QDialog):
 
     def change_pwd(self, value):
         print(self.main.type_pm)
-        pwd_path = os.path.join("C:/data_pwd", f"{self.main.type_pm}", "pwd.txt")
+        pwd_path = os.path.join(r"C:/data_pwd", f"{self.main.type_pm}", "pwd.txt")
         with open(pwd_path, "w") as file:
             file.write(value)
         SendMessage("Xin vui lòng đăng nhập lại!")
@@ -618,6 +618,12 @@ class FullScreenApp(QMainWindow):
         main_layout.addWidget(navbar)
         self.setFocus()
         self.show()
+
+    def update_text(self, data):
+        self.text_edit.append(data)
+
+    def closeEvent(self, event):
+        event.accept()
 
 
 if __name__ == "__main__":

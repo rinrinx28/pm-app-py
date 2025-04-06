@@ -59,6 +59,9 @@ from Pages.components.stylesheet import (
     css_title,css_button_start
 )
 from time import sleep
+import xlwings as xw
+import pandas as pd
+from Pages.components.tableFormatter import TableFormatter
 
 
 
@@ -109,10 +112,36 @@ class TinhAndMauPage(QWidget):
         self.thong_info = None
         self.number_info = None
 
+        # / Kết nối với Excel
+        self.app = xw.App(visible=True)  # Mở Excel
+        self.wb = self.app.books.active  # Workbook hiện tại
+        self.add_vba_code()
+        self.sheet_bt = self.wb.sheets[0]
+        self.sheet_bt.name = "Bang tinh"
+        
+        self.sheet_m1 = self.wb.sheets.add(after=self.wb.sheets[0], name="Bang mau M1")
+        self.sheet_m2 = self.wb.sheets.add(after=self.wb.sheets[1], name="Bang mau M2")
+        self.sheet_m3 = self.wb.sheets.add(after=self.wb.sheets[2], name="Bang mau M3")
+        self.sheet_m4 = self.wb.sheets.add(after=self.wb.sheets[3], name="Bang mau M4")
+        self.sheet_m5 = self.wb.sheets.add(after=self.wb.sheets[4], name="Bang mau M5")
+        self.sheet_m6 = self.wb.sheets.add(after=self.wb.sheets[5], name="Bang mau M6")
+        self.sheet_m7 = self.wb.sheets.add(after=self.wb.sheets[6], name="Bang mau M7")
+        self.sheet_m8 = self.wb.sheets.add(after=self.wb.sheets[7], name="Bang mau M8")
+        self.sheet_m9 = self.wb.sheets.add(after=self.wb.sheets[8], name="Bang mau M9")
+        self.sheet_m10 = self.wb.sheets.add(after=self.wb.sheets[9], name="Bang mau M10")
+
+        self.pwd = "rindev-pm"
+
         # / Notice
         self.jumpAction = {}
         self.noticeView = []
         self.analysis_data = ""
+
+        # / Mau cua o du lieu cu
+        self.lastSheetName = ""
+        self.lastAddress = ""
+        self.lastColor = ""
+        self.lastFontColor = ""
 
         # / Current name table
         self.current_table = "Bảng Tính"
@@ -127,8 +156,8 @@ class TinhAndMauPage(QWidget):
         self.font = font
 
         # / Config Color
-        self.red = QColor(255, 0, 0)
-        self.yellow = QColor(255, 215, 0)
+        self.red = (255, 0, 0)
+        self.yellow = (255, 215, 0)
         self.cyan = QColor(178, 255, 255)
         self.normal = QColor("#FFFFFF")
         self.stt_highlight = QColor("#EDEADE")
@@ -264,11 +293,11 @@ class TinhAndMauPage(QWidget):
 
     def showSelectBan(self):
         self.loadData()
-        self.handlerData()
-        self.renderNavigation()
-        self.renderTableCount()
+        # /Render Sheet Excel
+        self.reload_widget()
+        self.add_vba_code_sheets()
+        self.focus_sheet()
         self.renderButton()
-        self.widget_main.setCurrentWidget(self.table_main_count)
         return
 
     def renderNavigation(self, type=None):
@@ -444,308 +473,6 @@ class TinhAndMauPage(QWidget):
                 value_input = [value_input]
             self.handler_data_analysis(value_input)
 
-    def renderTableCount(self):
-        thong_range_1 = self.ban_info["thong"]["value"][0]
-
-        # Create Widget table
-        self.table_main_count = QSplitter(Qt.Horizontal)
-        self.table_main_count.setContentsMargins(0, 0, 0, 0)
-        self.frozen_table_count = QTableWidget()
-        self.table_scroll_count = QTableWidget()
-        self.table_main_count.addWidget(self.frozen_table_count)
-        self.table_main_count.addWidget(self.table_scroll_count)
-        self.widget_main.addWidget(self.table_main_count)
-
-        # Config Header
-        self.updateHeaderCount()
-
-        # Set column count and header items for frozen_table_count
-        self.frozen_table_count.setColumnCount(2)
-        headers = ["Ngày", f"T.{thong_range_1}"]
-        for i, header_text in enumerate(headers):
-            item = QTableWidgetItem(header_text)
-            item.setForeground(self.red) if i == 1 else None
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_count.setHorizontalHeaderItem(i, item)
-
-        # Set font and style for tables
-        tables = [self.frozen_table_count, self.table_scroll_count]
-        for table in tables:
-            table.setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-
-        # Render row
-        self.updateTableCount()
-
-        self.frozen_table_count.horizontalHeader().setStretchLastSection(True)
-        # Set properties for frozen_table_count
-        self.frozen_table_count.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.frozen_table_count.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.frozen_table_count.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectItems
-        )
-        self.frozen_table_count.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.frozen_table_count.verticalHeader().hide()
-        self.frozen_table_count.setMaximumWidth(150 * 2)
-        self.frozen_table_count.setMinimumWidth(150 * 2)
-        self.frozen_table_count.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-        self.frozen_table_count.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-
-        # Set properties for table_scroll_count
-        self.table_scroll_count.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_scroll_count.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_scroll_count.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_scroll_count.setSelectionBehavior(
-            QTableWidget.SelectionBehavior.SelectItems
-        )
-        self.table_scroll_count.verticalHeader().hide()
-
-        # Connect signal handlers
-        self.table_scroll_count.horizontalScrollBar().valueChanged.connect(
-            self.update_count
-        )
-        for scroll_bar in [
-            self.table_scroll_count.verticalScrollBar(),
-            self.frozen_table_count.verticalScrollBar(),
-        ]:
-            scroll_bar.valueChanged.connect(self.sync_vertical_scroll_count)
-        self.table_scroll_count.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_count.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-    def get_title_text(self, type=None):
-        if type is None:
-            table_enabel = [
-            i for i, x in enumerate(self.ban_info["meta"]["tables"]) if x["enable"]
-            ]
-            last_index = table_enabel[-1] if table_enabel else None
-            current_color = last_index
-        else:
-            current_color = int(type.split('m')[1]) - 1
-        # / Config Ban info
-        ban_info = self.ban_info
-        filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
-        row_count = len(filter_data)
-        max_row = ban_info["meta"]["maxRow"]
-        change_number = ban_info["meta"]["number"]
-        ban_col = ban_info["col"]
-        ban_thong_value = ban_info["thong"]["value"]
-        ban_thong_name = ban_info["thong"]["name"]
-        co_so = change_number if change_number != 0 else "gốc"
-        index = current_color + 1 if current_color != 0 else ''
-        thong_ke_d_m = self.ban_info['meta']['setting'][f'col_e{index}']
-        list_table_color = [
-            f"m{i+1}" for i, v in enumerate(ban_info["meta"]["tables"]) if v["enable"]
-        ]
-        name = convert_string_format(ban_thong_name)
-        return (
-            f"{self.current_table}: {name} ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
-            + f"T{ban_thong_value[1]} **  Cơ: {co_so} ** "
-            + f"Số dòng: {row_count}/{max_row} ** Thống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))} ** Toán màu: {list_table_color[0]} đến {list_table_color[-1]}"
-        )
-
-    # / Update function for horizontal scrollbar value change
-
-    def update_count(self, value):
-        filter_data = [
-            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
-        ]
-        index_near = bisect.bisect_left([item["start"] for item in self.ranges], value)
-        index = max(0, index_near - 1)
-        if self.ranges[index]["start"] <= value < self.ranges[index]["end"]:
-            new_value = value
-        elif value < self.ranges[index]["start"]:
-            new_value = self.ranges[index]["start"]
-        else:
-            return
-        if self.ranges_current == index:
-            return
-        thong_header = self.ranges[index]["thong"]
-        self.frozen_table_count.horizontalHeaderItem(1).setText(f"T.{thong_header + 1}")
-        for i, item in enumerate(filter_data):
-            item_thong = item["thong"]
-            if item_thong > -1:
-                thong_value = self.thong_info[thong_header][item_thong]
-                self.frozen_table_count.item(i, 1).setText(f"{thong_value}")
-        self.ranges[index]["value"] = new_value
-        self.ranges_current = index
-
-    # TODO Function to sync vertical scrollbar
-    def sync_vertical_scroll_count(self, value):
-        self.frozen_table_count.verticalScrollBar().setValue(value)
-        self.table_scroll_count.verticalScrollBar().setValue(value)
-
-    # TODO Handle Table M1
-
-    def renderTableColor(self):
-        # / Create Widget table
-        self.table_main_color = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_color)
-
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_left = QSplitter(Qt.Vertical)
-        self.frozen_table_left = QTableWidget()
-        self.table_scroll_left = QTableWidget()
-        self.splitter_left.addWidget(self.frozen_table_left)
-        self.splitter_left.addWidget(self.table_scroll_left)
-
-        self.table_main_color.addWidget(self.splitter_left)
-
-        # Create a vertical splitter
-        self.splitter_right = QSplitter(Qt.Vertical)
-        self.frozen_table_color = QTableWidget()
-        self.table_scroll_color = QTableWidget()
-        self.splitter_right.addWidget(self.frozen_table_color)
-        self.splitter_right.addWidget(self.table_scroll_color)
-
-        self.table_main_color.addWidget(self.splitter_right)
-
-        # / Config table
-        self.frozen_table_color.setRowCount(1)
-
-        self.frozen_table_left.setRowCount(1)
-
-        self.frozen_table_left.setColumnCount(1)
-        self.table_scroll_left.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColor()
-        # / config header Row
-        for i in range(self.frozen_table_left.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_left.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_color()
-
-        
-        self.frozen_table_color.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_left.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_left.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_color.horizontalHeader().setDefaultSectionSize(100)
-
-        width_of_row = self.frozen_table_color.horizontalHeader().sectionSize(0)
-        self.frozen_table_color.setMaximumHeight(50)
-        self.frozen_table_color.setMinimumHeight(50)
-
-        self.frozen_table_left.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_left.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_left.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_left.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_color.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_left.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_left.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_left.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scroll(vale):
-            self.frozen_table_color.horizontalScrollBar().setValue(vale)
-            self.table_scroll_color.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scroll(vale):
-            self.table_scroll_left.verticalScrollBar().setValue(vale)
-            self.table_scroll_color.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_color.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scroll
-        )
-        self.frozen_table_color.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scroll
-        )
-        self.table_scroll_color.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scroll
-        )
-        self.table_scroll_left.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scroll
-        )
-
-        self.table_scroll_color.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_color.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColor()
-
-    def configheader_table_color(self):
-        for table in [
-            self.frozen_table_color,
-            self.frozen_table_left,
-            self.table_scroll_color,
-            self.table_scroll_left,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_color, self.frozen_table_left]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_color:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
     # TODO Handler Button PM
     def renderButton(self):
         button_main_1_w = QWidget()
@@ -836,87 +563,67 @@ class TinhAndMauPage(QWidget):
                 self.insertData()
 
         def changeTable():
-            self.widget_main.setCurrentWidget(self.table_main_count)
+            self.focus_sheet()
             self.current_table = "Bảng Tính"
             self.renderNavigation()
             return
 
         def changeTableM1():
-            if self.table_main_color is None:
-                self.start_render_tables(0)
-            self.widget_main.setCurrentWidget(self.table_main_color)
+            self.focus_sheet(1)
             self.current_table = "Bảng màu 1"
             self.renderNavigation("m1")
             return
 
         def changeTableM2():
-            if self.table_main_colorM2 is None:
-                self.start_render_tables(1)
-            self.widget_main.setCurrentWidget(self.table_main_colorM2)
+            self.focus_sheet(2)
             self.current_table = "Bảng màu 2"
             self.renderNavigation("m2")
             return
 
         def changeTableM3():
-            if self.table_main_colorM3 is None:
-                self.start_render_tables(2)
-            self.widget_main.setCurrentWidget(self.table_main_colorM3)
+            self.focus_sheet(3)
             self.current_table = "Bảng màu 3"
             self.renderNavigation("m3")
             return
 
         def changeTableM4():
-            if self.table_main_colorM4 is None:
-                self.start_render_tables(3)
-            self.widget_main.setCurrentWidget(self.table_main_colorM4)
+            self.focus_sheet(4)
             self.current_table = "Bảng màu 4"
             self.renderNavigation("m4")
             return
 
         def changeTableM5():
-            if self.table_main_colorM5 is None:
-                self.start_render_tables(4)
-            self.widget_main.setCurrentWidget(self.table_main_colorM5)
+            self.focus_sheet(5)
             self.current_table = "Bảng màu 5"
             self.renderNavigation("m5")
             return
 
         def changeTableM6():
-            if self.table_main_colorM6 is None:
-                self.start_render_tables(5)
-            self.widget_main.setCurrentWidget(self.table_main_colorM6)
+            self.focus_sheet(6)
             self.current_table = "Bảng màu 6"
             self.renderNavigation("m6")
             return
 
         def changeTableM7():
-            if self.table_main_colorM7 is None:
-                self.start_render_tables(6)
-            self.widget_main.setCurrentWidget(self.table_main_colorM7)
+            self.focus_sheet(7)
             self.current_table = "Bảng màu 7"
             self.renderNavigation("m7")
             return
 
         def changeTableM8():
-            if self.table_main_colorM8 is None:
-                self.start_render_tables(7)
-            self.widget_main.setCurrentWidget(self.table_main_colorM8)
+            self.focus_sheet(8)
             self.current_table = "Bảng màu 8"
             self.renderNavigation("m8")
             return
 
         def changeTableM9():
-            if self.table_main_colorM9 is None:
-                self.start_render_tables(8)
-            self.widget_main.setCurrentWidget(self.table_main_colorM9)
+            self.focus_sheet(9)
             self.current_table = "Bảng màu 9"
             self.renderNavigation("m9")
             return
 
         def changeTableM10():
-            if self.table_main_colorM10 is None:
-                self.start_render_tables(9)
-            self.widget_main.setCurrentWidget(self.table_main_colorM10)
+            self.focus_sheet(10)
             self.current_table = "Bảng màu 10"
             self.renderNavigation("m10")
             return
@@ -993,1543 +700,428 @@ class TinhAndMauPage(QWidget):
                     case _:
                         pass
 
-        def back_to_first():
-            if self.current_table == "Bảng Tính":
-                row = self.table_scroll_count.rowCount() - 2  # Get the current row
-                item = self.table_scroll_count.item(row, 0)  # Get the first column item
-                self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 1':
-                row = self.table_scroll_color.rowCount() - 2  # Get the current row
-                item = self.table_scroll_color.item(row, 0)  # Get the first column item
-                self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 2':
-                row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM2.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 3':
-                row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM3.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 4':
-                row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM4.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 5':
-                row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM5.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 6':
-                row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM6.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 7':
-                row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM7.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 8':
-                row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM8.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 9':
-                row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM9.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 10':
-                row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
-                item = self.table_scroll_colorM10.item(row, 0)  # Get the first column item
-                self.table_scroll_colorM10.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
+        def move_cursor(pos):
+            # Lấy sheet hiện tại
+            active_sheet = self.wb.sheets.active
+            data_range = active_sheet.range("A1").expand("right")
+            total_cols = data_range.columns.count
+            if total_cols == 0:
+                return  # Không có dữ liệu thì không làm gì cả
+            if pos == "fisrt":
+                col_index = 2  # Cột đầu tiên (A)
+            elif pos == "midle":
+                col_index = (int(total_cols) / 2) + 1  # Cột giữa
             else:
-                return
+                col_index = total_cols  # Cột cuối cùng
 
-        def skip_to_end():
-            if self.current_table == "Bảng Tính":
-                row = self.table_scroll_count.rowCount() - 2  # Get the current row
-                col = self.table_scroll_count.columnCount() - 1  # Get the current row
-                item = self.table_scroll_count.item(row, col)  # Get the first column item
-                self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            elif self.current_table == 'Bảng màu 1':
-                row = self.table_scroll_color.rowCount() - 2  # Get the current row
-                col = self.table_scroll_color.columnCount() - 1  # Get the current row
-                item = self.table_scroll_color.item(row, col)  # Get the first column item
-                self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 2':
-                row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM2.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM2.item(row, col)  # Get the first column item
-                self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 3':
-                row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM3.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM3.item(row, col)  # Get the first column item
-                self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 4':
-                row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM4.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM4.item(row, col)  # Get the first column item
-                self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 5':
-                row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM5.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM5.item(row, col)  # Get the first column item
-                self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 6':
-                row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM6.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM6.item(row, col)  # Get the first column item
-                self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 7':
-                row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM7.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM7.item(row, col)  # Get the first column item
-                self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 8':
-                row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM8.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM8.item(row, col)  # Get the first column item
-                self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 9':
-                row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM9.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM9.item(row, col)  # Get the first column item
-                self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-                
-            elif self.current_table == 'Bảng màu 10':
-                row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM10.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM10.item(row, col)  # Get the first column item
-                self.table_scroll_colorM10.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            else:
-                return
-        
-        def skip_to_mid():
-            if self.current_table == "Bảng Tính":
-                row = self.table_scroll_count.rowCount() - 2  # Get the current row
-                col = self.table_scroll_count.columnCount() - 1  # Get the current row
-                item = self.table_scroll_count.item(row, col / 2)  # Get the first column item
-                self.table_scroll_count.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            elif self.current_table == 'Bảng màu 1':
-                row = self.table_scroll_color.rowCount() - 2  # Get the current row
-                col = self.table_scroll_color.columnCount() - 1  # Get the current row
-                item = self.table_scroll_color.item(row, col / 2)  # Get the first column item
-                self.table_scroll_color.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 2':
-                row = self.table_scroll_colorM2.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM2.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM2.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM2.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 3':
-                row = self.table_scroll_colorM3.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM3.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM3.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM3.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 4':
-                row = self.table_scroll_colorM4.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM4.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM4.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM4.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 5':
-                row = self.table_scroll_colorM5.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM5.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM5.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM5.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 6':
-                row = self.table_scroll_colorM6.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM6.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM6.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM6.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 7':
-                row = self.table_scroll_colorM7.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM7.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM7.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM7.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 8':
-                row = self.table_scroll_colorM8.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM8.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM8.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM8.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-
-            elif self.current_table == 'Bảng màu 9':
-                row = self.table_scroll_colorM9.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM9.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM9.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM9.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-                
-            elif self.current_table == 'Bảng màu 10':
-                row = self.table_scroll_colorM10.rowCount() - 2  # Get the current row
-                col = self.table_scroll_colorM10.columnCount() - 1  # Get the current row
-                item = self.table_scroll_colorM10.item(row, col / 2)  # Get the first column item
-                self.table_scroll_colorM10.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            else:
-                return
+            cell = active_sheet.cells(1, col_index)  # Chọn ô đầu tiên của cột tương ứng (hàng 1)
+            cell.api.Activate()  # Di chuyển con trỏ đến ô đó
 
         InsertData.clicked.connect(insertData_Click)
         self.TableChange.clicked.connect(changeTable)
         SettingTable.clicked.connect(self.changeSettingColor)
         DeleteNewRow.clicked.connect(self.deleteNewRow)
         DeleteFromTo.clicked.connect(self.deleteFromToRow)
-        backToFirst.clicked.connect(back_to_first)
-        skipToEnd.clicked.connect(skip_to_end)
-        skipToMind.clicked.connect(skip_to_mid)
+        backToFirst.clicked.connect(lambda: move_cursor("fisrt"))
+        skipToMind.clicked.connect(lambda: move_cursor("midle"))
+        skipToEnd.clicked.connect(lambda: move_cursor("last"))
         self.TableM1.clicked.connect(changeTableM1)
 
+    def renderTableCount(self):
+        formatter = TableFormatter(self.sheet_bt)
+        # Config Header
+        header_thong =  self.updateHeaderCount()
+        # Render row
+        data_row = self.updateTableCount()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
+
+        headers = [["Ngày"] + header_thong]
+        self.sheet_bt.range("A1").value = headers # Tiêu đề
+        self.sheet_bt.range("A2:A2").value = date_d
+        self.sheet_bt.range("B2").value = data_r
+
+        # Chuẩn bị format rules và data menu
+        format_rules = []
+        for item in self.dataCount:
+            col = item['col'] + 3
+            row = item['row'] + 2
+
+            format_rules.append({
+                'row': row,
+                'col': col,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
+
+        self.sheet_bt.range("B2").select()
+
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+
+    def get_title_text(self, type=None):
+        if type is None:
+            table_enabel = [
+            i for i, x in enumerate(self.ban_info["meta"]["tables"]) if x["enable"]
+            ]
+            last_index = table_enabel[-1] if table_enabel else None
+            current_color = last_index
+        else:
+            current_color = int(type.split('m')[1]) - 1
+        # / Config Ban info
+        ban_info = self.ban_info
+        filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
+        row_count = len(filter_data)
+        max_row = ban_info["meta"]["maxRow"]
+        change_number = ban_info["meta"]["number"]
+        ban_col = ban_info["col"]
+        ban_thong_value = ban_info["thong"]["value"]
+        ban_thong_name = ban_info["thong"]["name"]
+        co_so = change_number if change_number != 0 else "gốc"
+        index = current_color + 1 if current_color != 0 else ''
+        thong_ke_d_m = self.ban_info['meta']['setting'][f'col_e{index}']
+        list_table_color = [
+            f"m{i+1}" for i, v in enumerate(ban_info["meta"]["tables"]) if v["enable"]
+        ]
+        name = convert_string_format(ban_thong_name)
+        return (
+            f"{self.current_table}: {name} ** C{ban_col[0]} đến C{ban_col[1]} ** T{ban_thong_value[0]} đến "
+            + f"T{ban_thong_value[1]} **  Cơ: {co_so} ** "
+            + f"Số dòng: {row_count}/{max_row} ** Thống kê d m{current_color + 1}: {' đến '.join(map(str, thong_ke_d_m))} ** Toán màu: {list_table_color[0]} đến {list_table_color[-1]}"
+        )
+
+    # TODO Handle Table M1
+    def renderTableColor(self):
+        formatter = TableFormatter(self.sheet_m1)
+
+        # Config Header
+        header_thong =  self.updateHeaderColor()
+        # Render row
+        data_row = self.updateTableColor()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
+
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m1.range("A1").value = headers # Tiêu đề
+        self.sheet_m1.range("A2:A2").value = date_d
+        self.sheet_m1.range("B2").value = data_r
+
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
+        
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
+
+        self.sheet_m1.range("B2").select()
+
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M2
-
     def renderTableColorM2(self):
-        # / Create Widget table
-        self.table_main_colorM2 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM2)
+        formatter = TableFormatter(self.sheet_m2)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM2 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM2 = QTableWidget()
-        self.table_scroll_leftM2 = QTableWidget()
-        self.splitter_leftM2.addWidget(self.frozen_table_leftM2)
-        self.splitter_leftM2.addWidget(self.table_scroll_leftM2)
+        # Config Header
+        header_thong =  self.updateHeaderColorM2()
+        # Render row
+        data_row = self.updateTableColorM2()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM2.addWidget(self.splitter_leftM2)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m2.range("A1").value = headers # Tiêu đề
+        self.sheet_m2.range("A2:A2").value = date_d
+        self.sheet_m2.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM2 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM2 = QTableWidget()
-        self.table_scroll_colorM2 = QTableWidget()
-        self.splitter_rightM2.addWidget(self.frozen_table_colorM2)
-        self.splitter_rightM2.addWidget(self.table_scroll_colorM2)
-
-        self.table_main_colorM2.addWidget(self.splitter_rightM2)
-
-        # / Config table
-        self.frozen_table_colorM2.setRowCount(1)
-
-        self.frozen_table_leftM2.setRowCount(1)
-
-        self.frozen_table_leftM2.setColumnCount(1)
-        self.table_scroll_leftM2.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM2()
-        # / config header Row
-        for i in range(self.frozen_table_leftM2.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM2.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM2()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor2:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM2.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM2.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM2.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM2.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM2.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM2.setMaximumHeight(50)
-        self.frozen_table_colorM2.setMinimumHeight(50)
+        self.sheet_m2.range("B2").select()
 
-        self.frozen_table_leftM2.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM2.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM2.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM2.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM2.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM2.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM2.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM2.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM2(vale):
-            self.frozen_table_colorM2.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM2.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM2(vale):
-            self.table_scroll_leftM2.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM2.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM2.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM2
-        )
-        self.frozen_table_colorM2.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM2
-        )
-        self.table_scroll_colorM2.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM2
-        )
-        self.table_scroll_leftM2.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM2
-        )
-
-        self.table_scroll_colorM2.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM2.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM2()
-
-    def configheader_table_colorM2(self):
-        for table in [
-            self.frozen_table_colorM2,
-            self.frozen_table_leftM2,
-            self.table_scroll_colorM2,
-            self.table_scroll_leftM2,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM2, self.frozen_table_leftM2]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM2:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M3
-
     def renderTableColorM3(self):
-        # / Create Widget table
-        self.table_main_colorM3 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM3)
+        formatter = TableFormatter(self.sheet_m3)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM3 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM3 = QTableWidget()
-        self.table_scroll_leftM3 = QTableWidget()
-        self.splitter_leftM3.addWidget(self.frozen_table_leftM3)
-        self.splitter_leftM3.addWidget(self.table_scroll_leftM3)
+        # Config Header
+        header_thong =  self.updateHeaderColorM3()
+        # Render row
+        data_row = self.updateTableColorM3()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM3.addWidget(self.splitter_leftM3)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m3.range("A1").value = headers # Tiêu đề
+        self.sheet_m3.range("A2:A2").value = date_d
+        self.sheet_m3.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM3 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM3 = QTableWidget()
-        self.table_scroll_colorM3 = QTableWidget()
-        self.splitter_rightM3.addWidget(self.frozen_table_colorM3)
-        self.splitter_rightM3.addWidget(self.table_scroll_colorM3)
-
-        self.table_main_colorM3.addWidget(self.splitter_rightM3)
-
-        # / Config table
-        self.frozen_table_colorM3.setRowCount(1)
-
-        self.frozen_table_leftM3.setRowCount(1)
-
-        self.frozen_table_leftM3.setColumnCount(1)
-        self.table_scroll_leftM3.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM3()
-        # / config header Row
-        for i in range(self.frozen_table_leftM3.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM3.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM3()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor3:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM3.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM3.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM3.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM3.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM3.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM3.setMaximumHeight(50)
-        self.frozen_table_colorM3.setMinimumHeight(50)
+        self.sheet_m3.range("B2").select()
 
-        self.frozen_table_leftM3.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM3.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM3.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM3.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM3.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM3.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM3.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM3.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM3(vale):
-            self.frozen_table_colorM3.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM3.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM3(vale):
-            self.table_scroll_leftM3.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM3.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM3.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM3
-        )
-        self.frozen_table_colorM3.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM3
-        )
-        self.table_scroll_colorM3.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM3
-        )
-        self.table_scroll_leftM3.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM3
-        )
-
-        self.table_scroll_colorM3.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM3.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM3()
-
-    def configheader_table_colorM3(self):
-        for table in [
-            self.frozen_table_colorM3,
-            self.frozen_table_leftM3,
-            self.table_scroll_colorM3,
-            self.table_scroll_leftM3,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM3, self.frozen_table_leftM3]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM3:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M6
-
     def renderTableColorM4(self):
-        # / Create Widget table
-        self.table_main_colorM4 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM4)
+        formatter = TableFormatter(self.sheet_m4)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM4 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM4 = QTableWidget()
-        self.table_scroll_leftM4 = QTableWidget()
-        self.splitter_leftM4.addWidget(self.frozen_table_leftM4)
-        self.splitter_leftM4.addWidget(self.table_scroll_leftM4)
+        # Config Header
+        header_thong =  self.updateHeaderColorM4()
+        # Render row
+        data_row = self.updateTableColorM4()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM4.addWidget(self.splitter_leftM4)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m4.range("A1").value = headers # Tiêu đề
+        self.sheet_m4.range("A2:A2").value = date_d
+        self.sheet_m4.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM4 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM4 = QTableWidget()
-        self.table_scroll_colorM4 = QTableWidget()
-        self.splitter_rightM4.addWidget(self.frozen_table_colorM4)
-        self.splitter_rightM4.addWidget(self.table_scroll_colorM4)
-
-        self.table_main_colorM4.addWidget(self.splitter_rightM4)
-
-        # / Config table
-        self.frozen_table_colorM4.setRowCount(1)
-
-        self.frozen_table_leftM4.setRowCount(1)
-
-        self.frozen_table_leftM4.setColumnCount(1)
-        self.table_scroll_leftM4.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM4()
-        # / config header Row
-        for i in range(self.frozen_table_leftM4.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM4.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM4()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor4:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM4.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM4.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM4.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM4.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM4.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM4.setMaximumHeight(50)
-        self.frozen_table_colorM4.setMinimumHeight(50)
+        self.sheet_m4.range("B2").select()
 
-        self.frozen_table_leftM4.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM4.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM4.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM4.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM4.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM4.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM4.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM4.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM4(vale):
-            self.frozen_table_colorM4.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM4.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM4(vale):
-            self.table_scroll_leftM4.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM4.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM4.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM4
-        )
-        self.frozen_table_colorM4.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM4
-        )
-        self.table_scroll_colorM4.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM4
-        )
-        self.table_scroll_leftM4.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM4
-        )
-
-        self.table_scroll_colorM4.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM4.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM4()
-
-    def configheader_table_colorM4(self):
-        for table in [
-            self.frozen_table_colorM4,
-            self.frozen_table_leftM4,
-            self.table_scroll_colorM4,
-            self.table_scroll_leftM4,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM4, self.frozen_table_leftM4]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM4:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M5
-
     def renderTableColorM5(self):
-        # / Create Widget table
-        self.table_main_colorM5 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM5)
+        formatter = TableFormatter(self.sheet_m5)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM5 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM5 = QTableWidget()
-        self.table_scroll_leftM5 = QTableWidget()
-        self.splitter_leftM5.addWidget(self.frozen_table_leftM5)
-        self.splitter_leftM5.addWidget(self.table_scroll_leftM5)
+        # Config Header
+        header_thong =  self.updateHeaderColorM5()
+        # Render row
+        data_row = self.updateTableColorM5()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM5.addWidget(self.splitter_leftM5)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m5.range("A1").value = headers # Tiêu đề
+        self.sheet_m5.range("A2:A2").value = date_d
+        self.sheet_m5.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM5 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM5 = QTableWidget()
-        self.table_scroll_colorM5 = QTableWidget()
-        self.splitter_rightM5.addWidget(self.frozen_table_colorM5)
-        self.splitter_rightM5.addWidget(self.table_scroll_colorM5)
-
-        self.table_main_colorM5.addWidget(self.splitter_rightM5)
-
-        # / Config table
-        self.frozen_table_colorM5.setRowCount(1)
-
-        self.frozen_table_leftM5.setRowCount(1)
-
-        self.frozen_table_leftM5.setColumnCount(1)
-        self.table_scroll_leftM5.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM5()
-        # / config header Row
-        for i in range(self.frozen_table_leftM5.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM5.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM5()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor5:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM5.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM5.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM5.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM5.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM5.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM5.setMaximumHeight(50)
-        self.frozen_table_colorM5.setMinimumHeight(50)
+        self.sheet_m5.range("B2").select()
 
-        self.frozen_table_leftM5.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM5.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM5.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM5.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM5.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM5.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM5.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM5.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM5(vale):
-            self.frozen_table_colorM5.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM5.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM5(vale):
-            self.table_scroll_leftM5.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM5.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM5.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM5
-        )
-        self.frozen_table_colorM5.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM5
-        )
-        self.table_scroll_colorM5.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM5
-        )
-        self.table_scroll_leftM5.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM5
-        )
-
-        self.table_scroll_colorM5.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM5.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM5()
-
-    def configheader_table_colorM5(self):
-        for table in [
-            self.frozen_table_colorM5,
-            self.frozen_table_leftM5,
-            self.table_scroll_colorM5,
-            self.table_scroll_leftM5,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM5, self.frozen_table_leftM5]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM5:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M6
-
     def renderTableColorM6(self):
-        # / Create Widget table
-        self.table_main_colorM6 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM6)
+        formatter = TableFormatter(self.sheet_m6)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM6 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM6 = QTableWidget()
-        self.table_scroll_leftM6 = QTableWidget()
-        self.splitter_leftM6.addWidget(self.frozen_table_leftM6)
-        self.splitter_leftM6.addWidget(self.table_scroll_leftM6)
+        # Config Header
+        header_thong =  self.updateHeaderColorM6()
+        # Render row
+        data_row = self.updateTableColorM6()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM6.addWidget(self.splitter_leftM6)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m6.range("A1").value = headers # Tiêu đề
+        self.sheet_m6.range("A2:A2").value = date_d
+        self.sheet_m6.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM6 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM6 = QTableWidget()
-        self.table_scroll_colorM6 = QTableWidget()
-        self.splitter_rightM6.addWidget(self.frozen_table_colorM6)
-        self.splitter_rightM6.addWidget(self.table_scroll_colorM6)
-
-        self.table_main_colorM6.addWidget(self.splitter_rightM6)
-
-        # / Config table
-        self.frozen_table_colorM6.setRowCount(1)
-
-        self.frozen_table_leftM6.setRowCount(1)
-
-        self.frozen_table_leftM6.setColumnCount(1)
-        self.table_scroll_leftM6.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM6()
-        # / config header Row
-        for i in range(self.frozen_table_leftM6.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM6.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM6()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor6:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM6.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM6.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM6.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM6.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM6.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM6.setMaximumHeight(50)
-        self.frozen_table_colorM6.setMinimumHeight(50)
+        self.sheet_m6.range("B2").select()
 
-        self.frozen_table_leftM6.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM6.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM6.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM6.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM6.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM6.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM6.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM6.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM6(vale):
-            self.frozen_table_colorM6.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM6.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM6(vale):
-            self.table_scroll_leftM6.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM6.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM6.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM6
-        )
-        self.frozen_table_colorM6.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM6
-        )
-        self.table_scroll_colorM6.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM6
-        )
-        self.table_scroll_leftM6.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM6
-        )
-
-        self.table_scroll_colorM6.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM6.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM6()
-
-    def configheader_table_colorM6(self):
-        for table in [
-            self.frozen_table_colorM6,
-            self.frozen_table_leftM6,
-            self.table_scroll_colorM6,
-            self.table_scroll_leftM6,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM6, self.frozen_table_leftM6]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM6:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M7
-
     def renderTableColorM7(self):
-        # / Create Widget table
-        self.table_main_colorM7 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM7)
+        formatter = TableFormatter(self.sheet_m7)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM7 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM7 = QTableWidget()
-        self.table_scroll_leftM7 = QTableWidget()
-        self.splitter_leftM7.addWidget(self.frozen_table_leftM7)
-        self.splitter_leftM7.addWidget(self.table_scroll_leftM7)
+        # Config Header
+        header_thong =  self.updateHeaderColorM7()
+        # Render row
+        data_row = self.updateTableColorM7()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM7.addWidget(self.splitter_leftM7)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m7.range("A1").value = headers # Tiêu đề
+        self.sheet_m7.range("A2:A2").value = date_d
+        self.sheet_m7.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM7 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM7 = QTableWidget()
-        self.table_scroll_colorM7 = QTableWidget()
-        self.splitter_rightM7.addWidget(self.frozen_table_colorM7)
-        self.splitter_rightM7.addWidget(self.table_scroll_colorM7)
-
-        self.table_main_colorM7.addWidget(self.splitter_rightM7)
-
-        # / Config table
-        self.frozen_table_colorM7.setRowCount(1)
-
-        self.frozen_table_leftM7.setRowCount(1)
-
-        self.frozen_table_leftM7.setColumnCount(1)
-        self.table_scroll_leftM7.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM7()
-        # / config header Row
-        for i in range(self.frozen_table_leftM7.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM7.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM7()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor7:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM7.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM7.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM7.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM7.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM7.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM7.setMaximumHeight(50)
-        self.frozen_table_colorM7.setMinimumHeight(50)
+        self.sheet_m7.range("B2").select()
 
-        self.frozen_table_leftM7.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM7.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM7.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM7.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM7.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM7.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM7.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM7.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM7(vale):
-            self.frozen_table_colorM7.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM7.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM7(vale):
-            self.table_scroll_leftM7.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM7.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM7.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM7
-        )
-        self.frozen_table_colorM7.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM7
-        )
-        self.table_scroll_colorM7.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM7
-        )
-        self.table_scroll_leftM7.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM7
-        )
-
-        self.table_scroll_colorM7.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM7.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM7()
-
-    def configheader_table_colorM7(self):
-        for table in [
-            self.frozen_table_colorM7,
-            self.frozen_table_leftM7,
-            self.table_scroll_colorM7,
-            self.table_scroll_leftM7,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM7, self.frozen_table_leftM7]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM7:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M8
-
     def renderTableColorM8(self):
-        # / Create Widget table
-        self.table_main_colorM8 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM8)
+        formatter = TableFormatter(self.sheet_m8)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM8 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM8 = QTableWidget()
-        self.table_scroll_leftM8 = QTableWidget()
-        self.splitter_leftM8.addWidget(self.frozen_table_leftM8)
-        self.splitter_leftM8.addWidget(self.table_scroll_leftM8)
+        # Config Header
+        header_thong =  self.updateHeaderColorM8()
+        # Render row
+        data_row = self.updateTableColorM8()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM8.addWidget(self.splitter_leftM8)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m8.range("A1").value = headers # Tiêu đề
+        self.sheet_m8.range("A2:A2").value = date_d
+        self.sheet_m8.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM8 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM8 = QTableWidget()
-        self.table_scroll_colorM8 = QTableWidget()
-        self.splitter_rightM8.addWidget(self.frozen_table_colorM8)
-        self.splitter_rightM8.addWidget(self.table_scroll_colorM8)
-
-        self.table_main_colorM8.addWidget(self.splitter_rightM8)
-
-        # / Config table
-        self.frozen_table_colorM8.setRowCount(1)
-
-        self.frozen_table_leftM8.setRowCount(1)
-
-        self.frozen_table_leftM8.setColumnCount(1)
-        self.table_scroll_leftM8.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM8()
-        # / config header Row
-        for i in range(self.frozen_table_leftM8.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM8.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM8()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor8:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM8.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM8.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM8.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM8.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM8.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM8.setMaximumHeight(50)
-        self.frozen_table_colorM8.setMinimumHeight(50)
+        self.sheet_m8.range("B2").select()
 
-        self.frozen_table_leftM8.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM8.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM8.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM8.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM8.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM8.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM8.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM8.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM8(vale):
-            self.frozen_table_colorM8.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM8.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM8(vale):
-            self.table_scroll_leftM8.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM8.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM8.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM8
-        )
-        self.frozen_table_colorM8.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM8
-        )
-        self.table_scroll_colorM8.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM8
-        )
-        self.table_scroll_leftM8.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM8
-        )
-
-        self.table_scroll_colorM8.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM8.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM8()
-
-    def configheader_table_colorM8(self):
-        for table in [
-            self.frozen_table_colorM8,
-            self.frozen_table_leftM8,
-            self.table_scroll_colorM8,
-            self.table_scroll_leftM8,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM8, self.frozen_table_leftM8]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM8:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M9
-
     def renderTableColorM9(self):
-        # / Create Widget table
-        self.table_main_colorM9 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM9)
+        formatter = TableFormatter(self.sheet_m9)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM9 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM9 = QTableWidget()
-        self.table_scroll_leftM9 = QTableWidget()
-        self.splitter_leftM9.addWidget(self.frozen_table_leftM9)
-        self.splitter_leftM9.addWidget(self.table_scroll_leftM9)
+        # Config Header
+        header_thong =  self.updateHeaderColorM9()
+        # Render row
+        data_row = self.updateTableColorM9()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM9.addWidget(self.splitter_leftM9)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m9.range("A1").value = headers # Tiêu đề
+        self.sheet_m9.range("A2:A2").value = date_d
+        self.sheet_m9.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM9 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM9 = QTableWidget()
-        self.table_scroll_colorM9 = QTableWidget()
-        self.splitter_rightM9.addWidget(self.frozen_table_colorM9)
-        self.splitter_rightM9.addWidget(self.table_scroll_colorM9)
-
-        self.table_main_colorM9.addWidget(self.splitter_rightM9)
-
-        # / Config table
-        self.frozen_table_colorM9.setRowCount(1)
-
-        self.frozen_table_leftM9.setRowCount(1)
-
-        self.frozen_table_leftM9.setColumnCount(1)
-        self.table_scroll_leftM9.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM9()
-        # / config header Row
-        for i in range(self.frozen_table_leftM9.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM9.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM9()
-
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor9:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM9.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM9.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM9.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM9.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM9.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM9.setMaximumHeight(50)
-        self.frozen_table_colorM9.setMinimumHeight(50)
+        self.sheet_m9.range("B2").select()
 
-        self.frozen_table_leftM9.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM9.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM9.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM9.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM9.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM9.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM9.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM9.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM9(vale):
-            self.frozen_table_colorM9.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM9.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM9(vale):
-            self.table_scroll_leftM9.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM9.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM9.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM9
-        )
-        self.frozen_table_colorM9.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM9
-        )
-        self.table_scroll_colorM9.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM9
-        )
-        self.table_scroll_leftM9.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM9
-        )
-
-        self.table_scroll_colorM9.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM9.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM9()
-
-    def configheader_table_colorM9(self):
-        for table in [
-            self.frozen_table_colorM9,
-            self.frozen_table_leftM9,
-            self.table_scroll_colorM9,
-            self.table_scroll_leftM9,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM9, self.frozen_table_leftM9]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM9:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handle Table M10
-
     def renderTableColorM10(self):
-        # / Create Widget table
-        self.table_main_colorM10 = QSplitter(Qt.Horizontal)
-        self.widget_main.addWidget(self.table_main_colorM10)
+        formatter = TableFormatter(self.sheet_m10)
 
-        # / Table Create
-        # Create a vertical splitter
-        self.splitter_leftM10 = QSplitter(Qt.Vertical)
-        self.frozen_table_leftM10 = QTableWidget()
-        self.table_scroll_leftM10 = QTableWidget()
-        self.splitter_leftM10.addWidget(self.frozen_table_leftM10)
-        self.splitter_leftM10.addWidget(self.table_scroll_leftM10)
+        # Config Header
+        header_thong =  self.updateHeaderColorM10()
+        # Render row
+        data_row = self.updateTableColorM10()
+        date_d = data_row.get("date_d")
+        data_r = data_row.get("data_r")
 
-        self.table_main_colorM10.addWidget(self.splitter_leftM10)
+        headers = [["Ngày"] + header_thong]
+        self.sheet_m10.range("A1").value = headers # Tiêu đề
+        self.sheet_m10.range("A2:A2").value = date_d
+        self.sheet_m10.range("B2").value = data_r
 
-        # Create a vertical splitter
-        self.splitter_rightM10 = QSplitter(Qt.Vertical)
-        self.frozen_table_colorM10 = QTableWidget()
-        self.table_scroll_colorM10 = QTableWidget()
-        self.splitter_rightM10.addWidget(self.frozen_table_colorM10)
-        self.splitter_rightM10.addWidget(self.table_scroll_colorM10)
-
-        self.table_main_colorM10.addWidget(self.splitter_rightM10)
-
-        # / Config table
-        self.frozen_table_colorM10.setRowCount(1)
-
-        self.frozen_table_leftM10.setRowCount(1)
-
-        self.frozen_table_leftM10.setColumnCount(1)
-        self.table_scroll_leftM10.setColumnCount(1)
-
-        # / Config Header col
-        self.updateHeaderColorM10()
-        # / config header Row
-        for i in range(self.frozen_table_leftM10.rowCount()):
-            item = QTableWidgetItem(f"Ngày")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.frozen_table_leftM10.setItem(i, 0, item)
-
-        # / Config Header
-        self.configheader_table_colorM10()
+        # Chuẩn bị format rules
+        format_rules = []
+        for item in self.dataColor10:
+            format_rules.append({
+                'row': item['row'] + 2,
+                'col': item['col'] + 2,
+                'color': item.get('color'),
+                'notice': item.get('notice')
+            })
         
-        self.frozen_table_colorM10.horizontalHeader().setDefaultSectionSize(100)
-        self.frozen_table_leftM10.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_leftM10.horizontalHeader().setDefaultSectionSize(100)
-        self.table_scroll_colorM10.horizontalHeader().setDefaultSectionSize(100)
+        # Áp dụng định dạng một lần
+        formatter.apply_formats(headers, format_rules)
 
-        width_of_row = self.frozen_table_colorM10.horizontalHeader().sectionSize(0)
-        self.frozen_table_colorM10.setMaximumHeight(50)
-        self.frozen_table_colorM10.setMinimumHeight(50)
+        self.sheet_m10.range("B2").select()
 
-        self.frozen_table_leftM10.setMaximumSize(width_of_row + 110, 50)
-        self.frozen_table_leftM10.setMinimumSize(width_of_row + 110, 50)
-
-        self.frozen_table_leftM10.horizontalHeader().setStretchLastSection(True)
-        self.table_scroll_leftM10.horizontalHeader().setStretchLastSection(True)
-
-        self.frozen_table_colorM10.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.frozen_table_leftM10.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        # self.table_scroll_color.setVerticalScrollBarPolicy(
-        #     Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        # )
-        self.table_scroll_leftM10.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-        self.table_scroll_leftM10.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
-        )
-
-        def sync_horizontal_scrollM10(vale):
-            self.frozen_table_colorM10.horizontalScrollBar().setValue(vale)
-            self.table_scroll_colorM10.horizontalScrollBar().setValue(vale)
-
-        def sync_vertical_scrollM10(vale):
-            self.table_scroll_leftM10.verticalScrollBar().setValue(vale)
-            self.table_scroll_colorM10.verticalScrollBar().setValue(vale)
-
-        self.table_scroll_colorM10.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM10
-        )
-        self.frozen_table_colorM10.horizontalScrollBar().valueChanged.connect(
-            sync_horizontal_scrollM10
-        )
-        self.table_scroll_colorM10.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM10
-        )
-        self.table_scroll_leftM10.verticalScrollBar().valueChanged.connect(
-            sync_vertical_scrollM10
-        )
-
-        self.table_scroll_colorM10.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.table_scroll_colorM10.customContextMenuRequested.connect(
-            self.jumpTableWithRow
-        )
-
-        self.updateTableColorM10()
-
-    def configheader_table_colorM10(self):
-        for table in [
-            self.frozen_table_colorM10,
-            self.frozen_table_leftM10,
-            self.table_scroll_colorM10,
-            self.table_scroll_leftM10,
-        ]:
-
-            table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            # / Font
-            table.setFont(self.font)
-            table.verticalHeader().setFont(self.font)
-            table.horizontalHeader().setFont(self.font)
-            table.setStyleSheet(
-                """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-            )
-            # / Header
-            table.horizontalHeader().hide()
-            table.verticalHeader().hide()
-            table.setWordWrap(False)
-            if table not in [self.frozen_table_colorM10, self.frozen_table_leftM10]:
-                table.verticalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-                table.horizontalHeader().setSectionResizeMode(
-                    QHeaderView.ResizeMode.ResizeToContents
-                )
-            else:
-                if table == self.frozen_table_colorM10:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.ResizeToContents
-                    )
-                else:
-                    table.verticalHeader().setSectionResizeMode(
-                        QHeaderView.ResizeMode.Stretch
-                    )
-
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        
     # TODO Handler Button
-
     def clearLayout(self, layout):
         while layout.count():
             item = layout.takeAt(0)
@@ -2560,292 +1152,61 @@ class TinhAndMauPage(QWidget):
         matching_item = next(
             (item for item in self.noticeView if label == item["label"])
         )
-        current_widget = self.widget_main.currentWidget()
         if matching_item:
-            self.table_scroll_count.clearSelection()
-            # for i in range(10):
-            #     data = self.ban_info["meta"]["tables"][i]
-            #     if data["enable"]:
-            #         self.start_clear_tables_row(i)
-            # / Get Value from Item
-            localItem = matching_item["localItem"]
-            row = localItem["row"]
-            col = localItem["col"]
-            button = matching_item["button"]
-            notice = matching_item["notice"]
-
-            if "_m10" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 10", "m10")
-                if current_widget != self.table_main_colorM10:
-                    if self.table_main_colorM10 is None:
-                        self.start_render_tables(9)
-                        self.start_clear_tables_row(9)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM10)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM10.item(row, col)
-                self.table_scroll_colorM10.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            localItem = matching_item.get("localItem")
+            row = localItem.get("row")
+            col = localItem.get("col")
+            colname = self.get_column_name(col + 2)
+            if "_m10" in label:
+                self.focus_sheet(10)
+                item = self.sheet_m10.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m10)
                 return
-
-            if "_m1" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 1", "m1")
-                if current_widget != self.table_main_color:
-                    if self.table_main_color is None:
-                        self.start_render_tables(0)
-                        self.start_clear_tables_row(0)
-                    self.widget_main.setCurrentWidget(self.table_main_color)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_color.item(row, col)
-                self.table_scroll_color.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m9" in label:
+                self.focus_sheet(9)
+                item = self.sheet_m9.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m9)
                 return
-
-            if "_m2" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 2", "m2")
-                if current_widget != self.table_main_colorM2:
-                    if self.table_main_colorM2 is None:
-                        self.start_render_tables(1)
-                        self.start_clear_tables_row(1)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM2)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM2.item(row, col)
-                self.table_scroll_colorM2.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m8" in label:
+                self.focus_sheet(8)
+                item = self.sheet_m8.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m8)
                 return
-
-            if "_m3" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 3", "m3")
-                if current_widget != self.table_main_colorM3:
-                    if self.table_main_colorM3 is None:
-                        self.start_render_tables(2)
-                        self.start_clear_tables_row(2)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM3)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM3.item(row, col)
-                self.table_scroll_colorM3.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m7" in label:
+                self.focus_sheet(7)
+                item = self.sheet_m7.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m7)
                 return
-
-            if "_m4" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 4", "m4")
-                if current_widget != self.table_main_colorM4:
-                    if self.table_main_colorM4 is None:
-                        self.start_render_tables(3)
-                        self.start_clear_tables_row(3)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM4)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM4.item(row, col)
-                self.table_scroll_colorM4.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m6" in label:
+                self.focus_sheet(6)
+                item = self.sheet_m6.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m6)
                 return
-
-            if "_m5" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 5", "m5")
-                if current_widget != self.table_main_colorM5:
-                    if self.table_main_colorM5 is None:
-                        self.start_render_tables(4)
-                        self.start_clear_tables_row(4)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM5)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM5.item(row, col)
-                self.table_scroll_colorM5.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m5" in label:
+                self.focus_sheet(5)
+                item = self.sheet_m5.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m5)
                 return
-
-            if "_m6" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 6", "m6")
-                if current_widget != self.table_main_colorM6:
-                    if self.table_main_colorM6 is None:
-                        self.start_render_tables(5)
-                        self.start_clear_tables_row(5)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM6)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM6.item(row, col)
-                self.table_scroll_colorM6.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m4" in label:
+                self.focus_sheet(4)
+                item = self.sheet_m4.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m4)
                 return
-
-            if "_m7" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 7", "m7")
-                if current_widget != self.table_main_colorM7:
-                    if self.table_main_colorM7 is None:
-                        self.start_render_tables(6)
-                        self.start_clear_tables_row(6)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM7)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM7.item(row, col)
-                self.table_scroll_colorM7.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m3" in label:
+                self.focus_sheet(3)
+                item = self.sheet_m3.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m3)
                 return
-
-            if "_m8" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 8", "m8")
-                if current_widget != self.table_main_colorM8:
-                    if self.table_main_colorM8 is None:
-                        self.start_render_tables(7)
-                        self.start_clear_tables_row(7)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM8)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM8.item(row, col)
-                self.table_scroll_colorM8.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            elif "_m2" in label:
+                self.focus_sheet(2)
+                item = self.sheet_m2.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m2)
                 return
-
-            if "_m9" in matching_item["label"]:
-                self.changeStatusBar("Bảng màu 9", "m9")
-                if current_widget != self.table_main_colorM9:
-                    if self.table_main_colorM9 is None:
-                        self.start_render_tables(8)
-                        self.start_clear_tables_row(9)
-                    self.widget_main.setCurrentWidget(self.table_main_colorM9)
-                button.setStyleSheet(css_button_view)
-                item_target = self.table_scroll_colorM9.item(row, col)
-                self.table_scroll_colorM9.scrollToItem(
-                    item_target, hint=QTableWidget.ScrollHint.PositionAtCenter
-                )
-                new_data = {
-                    "current": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                    "next": {
-                        "item": item_target,
-                        "color": (notice if notice is not None else self.normal),
-                    },
-                }
-                self.setHighlight(new_data)
+            else:
+                self.focus_sheet(1)
+                item = self.sheet_m1.range(f"${colname}${row+2}")
+                self.save_color_old_cell(item, self.sheet_m1)
                 return
-
-            return
-
-    def signal_scrollbar(self, value):
-        self.scroll_area.horizontalScrollBar().setValue(value)
-        self.scroll_area_second.horizontalScrollBar().setValue(value)
-
-    def jump_fisrt_column(self):
-        filter_data = [
-            entry for entry in self.ban_info["data"] if not entry["isDeleted"]
-        ]
-        row_aline = len(filter_data)
-        current_widget = self.TableChange.text()
-        if current_widget == "Bảng màu":
-            item = self.table_scroll_count.item(row_aline - 1, 0)
-            self.table_scroll_count.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-        else:
-            item = self.table_scroll_color.item(row_aline - 1, 0)
-            self.table_scroll_color.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
 
     def insertData(self):
         # / Config Icon Windows
@@ -3198,8 +1559,6 @@ class TinhAndMauPage(QWidget):
         msg = updateBanInsert(data)
         if msg["status"]:
             dialog.reject()
-            if self.widget_main.currentWidget() != self.table_main_count:
-                self.widget_main.setCurrentWidget(self.table_main_count)
             self.ban_info = msg["data"]
             self.show_loading_screen()
             self.thread = Thread()
@@ -3413,8 +1772,6 @@ class TinhAndMauPage(QWidget):
         msg = updateThongInsert(data_send)
         if msg["status"]:
             dialog.reject()
-            if self.widget_main.currentWidget() != self.table_main_count:
-                self.widget_main.setCurrentWidget(self.table_main_count)
             self.ban_info = msg["data"]
             self.show_loading_screen()
             self.thread = Thread()
@@ -3438,14 +1795,13 @@ class TinhAndMauPage(QWidget):
         ok_button.setText("OK")
         no_button = message.addButton(QMessageBox.StandardButton.No)
         no_button.setText("Thoát")
-        # message.setDefaultButton(ok_button)
         message.setFont(self.font)
         result = message.exec()
         if result == QMessageBox.StandardButton.Yes:
             self.insertData()
 
     def changeSettingColor(self):
-        SettingTable(self.ban_info)
+        SettingTable(self.ban_info, self.thong_db)
 
     def setHighlight(self, data):
         # / Handler prev item
@@ -3472,38 +1828,6 @@ class TinhAndMauPage(QWidget):
                 prev_item = self.jumpAction["next"]
                 del self.jumpAction["next"]
                 self.jumpAction["prev"] = prev_item
-
-    def setHighlight_Thong(self, data):
-        self.table_main_thong.clearSelection()
-
-        # Khởi tạo giá trị cần thiết
-        col = data["col"]
-        value = str(data["value"])
-
-        thong_data = self.thong_info
-        thong_index_thong = data.get("index")
-
-        thong_index_row = []
-
-        # Xử lý dữ liệu
-        for i, v in enumerate(thong_data[thong_index_thong]):
-            v_str = str(v)
-            if v_str == value:
-                thong_index_row.append(i)
-            # if type_count == 1:
-            #     if v_str == value:
-            #         thong_index_row.append(i)
-            # elif type_count == 2:
-            #     if (isCol_a and self.checkColorThong(value, v_str)) or (not isCol_a and v == value):
-            #         thong_index_row.append(i)
-            # else:  # type_count == 3
-            #     if self.checkColorThong(value, v_str):
-            #         thong_index_row.append(i)
-
-        # Chọn cột và các dòng tương ứng
-        self.table_main_thong.selectColumn(col)
-        for i in thong_index_row:
-            self.table_main_thong.selectRow(i)
 
     def deleteNewRow(self):
         # / Config Icon Windows
@@ -3653,1048 +1977,6 @@ class TinhAndMauPage(QWidget):
         exit.clicked.connect(exit_click)
         submit.clicked.connect(submit_click)
 
-    def jumpTableWithRow(self, pos):
-        self.table_scroll_count.clearSelection()
-        current_widget = self.widget_main.currentWidget()
-        color_widgetM2 = self.table_main_colorM2
-        color_widgetM3 = self.table_main_colorM3
-        color_widgetM4 = self.table_main_colorM4
-        color_widgetM5 = self.table_main_colorM5
-        color_widgetM6 = self.table_main_colorM6
-        color_widgetM7 = self.table_main_colorM7
-        color_widgetM8 = self.table_main_colorM8
-        color_widgetM9 = self.table_main_colorM9
-        color_widgetM10 = self.table_main_colorM10
-        color_widget = self.table_main_color
-        count_widget = self.table_main_count
-
-        if current_widget == count_widget:
-            item_count = self.table_scroll_count.itemAt(pos)
-            item_count_data = item_count.data(Qt.ItemDataRole.UserRole)
-            if item_count_data:
-                menu = QMenu()
-                moveTable = QAction("VBM1")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_count_data, "vbm1")
-                )
-
-                if item_count_data["actionM2"] is not None:
-                    moveTable2 = QAction("VBM2")
-                    moveTable2.setFont(self.font_action)
-                    moveTable2.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm2")
-                    )
-                    menu.addAction(moveTable2)
-
-                if item_count_data["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_count_data["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_count_data["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_count_data["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_count_data["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_count_data["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_count_data["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_count_data["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_count_data, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_count_data, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_count.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widget:
-            self.start_clear_tables_row(0)
-            item_color = self.table_scroll_color.itemAt(pos)
-            item_color_data = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_data:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_data, "vbt")
-                )
-
-                if item_color_data["actionM2"] is not None:
-                    moveTable2 = QAction("VBM2")
-                    moveTable2.setFont(self.font_action)
-                    moveTable2.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm2")
-                    )
-                    menu.addAction(moveTable2)
-
-                if item_color_data["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_data["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_data["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_data["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_data["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_data["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_data["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_color_data["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_data, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_data, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_color.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM2:
-            self.start_clear_tables_row(1)
-            item_color = self.table_scroll_colorM2.itemAt(pos)
-            item_color_dataM2 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM2:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM2, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM2, "vbm1")
-                )
-
-                if item_color_dataM2["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_dataM2["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM2["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM2["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM2["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM2["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM2["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_color_dataM2["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM2, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM2, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM2.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM3:
-            self.start_clear_tables_row(2)
-            item_color = self.table_scroll_colorM3.itemAt(pos)
-            item_color_dataM3 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM3:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM3, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM3, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM3, "vbm2")
-                )
-
-                if item_color_dataM3["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM3, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM3["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM3, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM3["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM3, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM3["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM3, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM3["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM3, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM3["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM3, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_color_dataM3["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM3, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM3, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM3.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM4:
-            self.start_clear_tables_row(3)
-            item_color = self.table_scroll_colorM4.itemAt(pos)
-            item_color_dataM4 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM4:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM4, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM4, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM4, "vbm2")
-                )
-
-                if item_color_dataM4["actionM3"] is not None:
-                    moveTable4 = QAction("VBM3")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM4, "vbm3")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM4["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM4, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM4["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM4, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM4["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM4, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM4["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM4, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM4["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM4, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_color_dataM4["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM4, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM4, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM4.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM5:
-            self.start_clear_tables_row(4)
-            item_color = self.table_scroll_colorM5.itemAt(pos)
-            item_color_dataM5 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM5:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM5, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM5, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM5, "vbm2")
-                )
-
-                if item_color_dataM5["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM5, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_dataM5["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM5, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM5["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM5, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM5["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM5, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM5["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM5, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM5["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM5, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_color_dataM5["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM5, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM5, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM5.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM6:
-            self.start_clear_tables_row(5)
-            item_color = self.table_scroll_colorM6.itemAt(pos)
-            item_color_dataM6 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM6:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM6, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM6, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM6, "vbm2")
-                )
-
-                if item_color_dataM6["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM6, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_dataM6["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM6, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM6["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM6, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM6["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM6, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM6["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM6, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM6["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM6, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_color_dataM6["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM6, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM6, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM6.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM7:
-            self.start_clear_tables_row(6)
-            item_color = self.table_scroll_colorM7.itemAt(pos)
-            item_color_dataM7 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM7:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM7, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM7, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM7, "vbm2")
-                )
-
-                if item_color_dataM7["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM7, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_dataM7["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM7, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM7["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM7, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM7["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM7, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM7["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM7, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM7["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM7, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                if item_color_dataM7["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM7, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM7, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM7.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM8:
-            self.start_clear_tables_row(7)
-            item_color = self.table_scroll_colorM8.itemAt(pos)
-            item_color_dataM8 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM8:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM8, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM8, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM8, "vbm2")
-                )
-
-                if item_color_dataM8["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM8, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_dataM8["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM8, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM8["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM8, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM8["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM8, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM8["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM8, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM8["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM8, "vbm9")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM8["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM8, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM8, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM8.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM9:
-            self.start_clear_tables_row(8)
-            item_color = self.table_scroll_colorM9.itemAt(pos)
-            item_color_dataM9 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM9:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM9, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM9, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM9, "vbm2")
-                )
-
-                if item_color_dataM9["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM9, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_dataM9["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM9, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM9["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM9, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM9["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM9, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM9["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM9, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM9["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM9, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM9["actionM10"] is not None:
-                    moveTable10 = QAction("VBM10")
-                    moveTable10.setFont(self.font_action)
-                    moveTable10.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM9, "vbm10")
-                    )
-                    menu.addAction(moveTable10)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM9, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM9.mapToGlobal(pos))
-                return
-
-        if current_widget == color_widgetM10:
-            self.start_clear_tables_row(9)
-            item_color = self.table_scroll_colorM10.itemAt(pos)
-            item_color_dataM10 = item_color.data(Qt.ItemDataRole.UserRole)
-            if item_color_dataM10:
-                menu = QMenu()
-                moveTable = QAction("VBT")
-                moveTable.setFont(self.font_action)
-                moveTable.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM10, "vbt")
-                )
-
-                moveTable1 = QAction("VBM1")
-                moveTable1.setFont(self.font_action)
-                moveTable1.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM10, "vbm1")
-                )
-
-                moveTable2 = QAction("VBM2")
-                moveTable2.setFont(self.font_action)
-                moveTable2.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM10, "vbm2")
-                )
-
-                if item_color_dataM10["actionM3"] is not None:
-                    moveTable3 = QAction("VBM3")
-                    moveTable3.setFont(self.font_action)
-                    moveTable3.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM10, "vbm3")
-                    )
-                    menu.addAction(moveTable3)
-
-                if item_color_dataM10["actionM4"] is not None:
-                    moveTable4 = QAction("VBM4")
-                    moveTable4.setFont(self.font_action)
-                    moveTable4.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM10, "vbm4")
-                    )
-                    menu.addAction(moveTable4)
-
-                if item_color_dataM10["actionM5"] is not None:
-                    moveTable5 = QAction("VBM5")
-                    moveTable5.setFont(self.font_action)
-                    moveTable5.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM10, "vbm5")
-                    )
-                    menu.addAction(moveTable5)
-
-                if item_color_dataM10["actionM6"] is not None:
-                    moveTable6 = QAction("VBM6")
-                    moveTable6.setFont(self.font_action)
-                    moveTable6.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM10, "vbm6")
-                    )
-                    menu.addAction(moveTable6)
-
-                if item_color_dataM10["actionM7"] is not None:
-                    moveTable7 = QAction("VBM7")
-                    moveTable7.setFont(self.font_action)
-                    moveTable7.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM10, "vbm7")
-                    )
-                    menu.addAction(moveTable7)
-
-                if item_color_dataM10["actionM8"] is not None:
-                    moveTable8 = QAction("VBM8")
-                    moveTable8.setFont(self.font_action)
-                    moveTable8.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM10, "vbm8")
-                    )
-                    menu.addAction(moveTable8)
-
-                if item_color_dataM10["actionM9"] is not None:
-                    moveTable9 = QAction("VBM9")
-                    moveTable9.setFont(self.font_action)
-                    moveTable9.triggered.connect(
-                        partial(self.moveTableWithAction, item_color_dataM10, "vbm9")
-                    )
-                    menu.addAction(moveTable9)
-
-                moveTable_thong = QAction("VBThong")
-                moveTable_thong.setFont(self.font_action)
-                moveTable_thong.triggered.connect(
-                    partial(self.moveTableWithAction, item_color_dataM10, "vbthong")
-                )
-
-                menu.addAction(moveTable)
-                menu.addAction(moveTable1)
-                menu.addAction(moveTable2)
-                menu.addAction(moveTable_thong)
-                menu.exec(self.table_scroll_colorM10.mapToGlobal(pos))
-                return
-
     # TODO Handler Data Table
     # / Table Bang Tinh
     def updateTableCount(self):
@@ -4702,149 +1984,65 @@ class TinhAndMauPage(QWidget):
         value_col = ban_info["col"][1] - (ban_info["col"][0] - 1)
         filter_data = [entry for entry in ban_info["data"] if not entry["isDeleted"]]
         rowCount = len(filter_data)
-        # Xóa tất cả các item trong bảng trước khi đặt lại số lượng hàng
-        self.frozen_table_count.setRowCount(0)
-        self.table_scroll_count.setRowCount(0)
 
         # / Config table
-        self.frozen_table_count.setRowCount(rowCount + 1)
-        self.table_scroll_count.setRowCount(rowCount + 1)
         thong_range = ban_info["thong"]["value"]
         thong_range_1 = thong_range[0] - 1
         thong_range_2 = thong_range[1]
         thong_ranges = thong_range_2 - thong_range_1
 
+        date_d = []
         for i in range(rowCount):
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            self.frozen_table_count.setItem(i, 0, item)
-
-        # / Render Row without Thong
-        for item in self.dataCount:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            item_table = QTableWidgetItem(f"{data_item}")
-            item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_table.setForeground(color_item)
-            if notice_item:
-                item_table.setBackground(notice_item)
-            if "actionM1" in item:
-                item_table.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "actionM1": item["actionM1"],
-                        "actionM2": (item["actionM2"] if "actionM2" in item else None),
-                        "actionM3": (item["actionM3"] if "actionM3" in item else None),
-                        "actionM4": (item["actionM4"] if "actionM4" in item else None),
-                        "actionM5": (item["actionM5"] if "actionM5" in item else None),
-                        "actionM6": (item["actionM6"] if "actionM6" in item else None),
-                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_table,
-                    },
-                )
-            self.table_scroll_count.setItem(row_item, col_item, item_table)
-
+            date_d.append([date])
+            
+        data_r = []
         for i, item in enumerate(filter_data):
+            row_r = []
             item_thong = item["thong"]
-            if item_thong > -1:
-                jump_col = 0
-                for j in range(thong_ranges):
-                    thong_value = self.thong_info[j + thong_range_1][item_thong]
+            data_filter = [item for item in self.dataCount if item["row"] == i]
+            for j in range(thong_ranges):
+                thong_value = self.thong_info[j + thong_range_1][item_thong]
+                row_r.append(thong_value)
+                group = [item["data"] for item in data_filter if item['thong']['col'] == j + 4]
+                row_r.extend(group)
                     
-                    # Tạo QTableWidgetItem và cài đặt thuộc tính chung
-                    item_table = QTableWidgetItem(f"{thong_value}")
-                    item_table.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    item_table.setForeground(self.red)
-                    
-                    # Xử lý logic đặt item
-                    if j == 0:
-                        self.frozen_table_count.setItem(i, 1, item_table)
-                    else:
-                        self.table_scroll_count.setItem(i, jump_col, item_table)
-                        jump_col += 1
-                    
-                    # Cập nhật vị trí cột
-                    jump_col += value_col
+            data_r.append(row_r)
 
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_count.scrollToBottom)
-        QTimer.singleShot(0, self.frozen_table_count.scrollToBottom)
-
-        self.frozen_table_count.setColumnWidth(0, 120)
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderCount(self):
-        self.table_scroll_count.setColumnCount(0)
-        self.ranges = []
-        cols_arr = []
+        header_thong = []
 
         thong_range_1 = self.ban_info["thong"]["value"][0] - 1
         thong_range_2 = self.ban_info["thong"]["value"][1]
         thong_ranges = thong_range_2 - thong_range_1
 
         col_start, col_end = self.ban_info["col"]
-
-        total_column = 0
-
         for i in range(thong_ranges):
-            range_data = {
-                "start": total_column,
-                "thong": i + thong_range_1,
-            }
-
             # Tạo tiêu đề cho "T.x"
-            thong_name = QTableWidgetItem(f"T.{i + thong_range_1 + 1}")
-            thong_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            thong_name.setForeground(self.red)
-            if i != 0:
-                cols_arr.append(thong_name)
-                total_column += 1
-
+            header_thong.append(f"T.{i + thong_range_1 + 1}")
             # Tạo tiêu đề cho các cột "C.x"
             for j in range(col_start - 1, col_end):
-                col_name = QTableWidgetItem(f"C.{j + 1}")
-                col_name.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                cols_arr.append(col_name)
-                total_column += 1
-
-            range_data["end"] = total_column
-            self.ranges.append(range_data)
-
-        # Đặt tổng số cột và thêm tiêu đề
-        self.table_scroll_count.setColumnCount(total_column)
-        for i, item in enumerate(cols_arr):
-            self.table_scroll_count.setHorizontalHeaderItem(i, item)
+                header_thong.append(f"C.{j + 1}")
+        
+        return header_thong
 
     # / Table Bang M1
     def updateTableColor(self):
-        # / Set RowCount = 0
-        self.table_scroll_color.setRowCount(0)
-        self.table_scroll_left.setRowCount(0)
         # / Config rowCount With data
+        date_d = []
+        data_r = []
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_color.setRowCount(rowCount + 1)
-        self.table_scroll_left.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_left.setItem(i, 0, item)
-        self.table_scroll_left.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e"]
@@ -4852,68 +2050,31 @@ class TinhAndMauPage(QWidget):
         value1 = col_e[0]
         value2 = col_e[1]
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_color.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                    QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_color.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
+            data_r.append(row_r)
 
-        # / render row color table
-        for item in self.dataColor:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM2": (item["actionM2"] if "actionM2" in item else None),
-                        "actionM3": (item["actionM3"] if "actionM3" in item else None),
-                        "actionM4": (item["actionM4"] if "actionM4" in item else None),
-                        "actionM5": (item["actionM5"] if "actionM5" in item else None),
-                        "actionM6": (item["actionM6"] if "actionM6" in item else None),
-                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_color.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_color.columnCount()):
-            width = self.table_scroll_color.columnWidth(i)
-            self.frozen_table_color.setColumnWidth(i, width)
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_left.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_color.scrollToBottom)
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColor(self):
         current_column = 0
@@ -4930,9 +2091,7 @@ class TinhAndMauPage(QWidget):
             current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_color.setColumnCount(current_column)
-        self.table_scroll_color.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -4941,49 +2100,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m1: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_color.setItem(0, total_columns + j, header_item)
-                self.table_scroll_color.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                QColor(80, 200, 120)
-            )  # Đặt màu nền là màu xanh
-            self.table_scroll_color.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
-
-            # self.table_scroll_color.setColumnWidth(total_columns + num_cols, 5)
-            # self.frozen_table_color.setColumnWidth(total_columns + num_cols, 5)
+                header_lables.append(f"m1: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
-
+        return header_lables
+    
     # / Table Bang M2
     def updateTableColorM2(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM2.setRowCount(0)
-        self.table_scroll_leftM2.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM2.setRowCount(rowCount + 1)
-        self.table_scroll_leftM2.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM2.setItem(i, 0, item)
-        self.table_scroll_leftM2.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e2"]
@@ -4992,76 +2130,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor2 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM2.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM2.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor2:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM3": (item["actionM3"] if "actionM3" in item else None),
-                        "actionM4": (item["actionM4"] if "actionM4" in item else None),
-                        "actionM5": (item["actionM5"] if "actionM5" in item else None),
-                        "actionM6": (item["actionM6"] if "actionM6" in item else None),
-                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM2.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM2.columnCount()):
-            width = self.table_scroll_colorM2.columnWidth(i)
-            self.frozen_table_colorM2.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM2.viewport().update()
-        # self.table_scroll_leftM2.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM2.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM2.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM2.scrollToBottom()
-        # self.table_scroll_colorM2.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM2(self):
         current_column = 0
@@ -5078,9 +2171,7 @@ class TinhAndMauPage(QWidget):
             current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM2.setColumnCount(current_column)
-        self.table_scroll_colorM2.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -5089,46 +2180,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m2: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM2.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM2.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM2.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m2: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M3
     def updateTableColorM3(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM3.setRowCount(0)
-        self.table_scroll_leftM3.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM3.setRowCount(rowCount + 1)
-        self.table_scroll_leftM3.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM3.setItem(i, 0, item)
-        self.table_scroll_leftM3.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e3"]
@@ -5137,76 +2210,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor3 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM3.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM3.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor3:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM4": (item["actionM4"] if "actionM4" in item else None),
-                        "actionM5": (item["actionM5"] if "actionM5" in item else None),
-                        "actionM6": (item["actionM6"] if "actionM6" in item else None),
-                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM3.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM3.columnCount()):
-            width = self.table_scroll_colorM3.columnWidth(i)
-            self.frozen_table_colorM3.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM3.viewport().update()
-        # self.table_scroll_leftM3.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM3.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM3.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM3.scrollToBottom()
-        # self.table_scroll_colorM3.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM3(self):
         current_column = 0
@@ -5220,14 +2248,10 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM3.setColumnCount(current_column)
-        self.table_scroll_colorM3.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -5236,46 +2260,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m3: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM3.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM3.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM3.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m3: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M4
     def updateTableColorM4(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM4.setRowCount(0)
-        self.table_scroll_leftM4.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM4.setRowCount(rowCount + 1)
-        self.table_scroll_leftM4.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM4.setItem(i, 0, item)
-        self.table_scroll_leftM4.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e4"]
@@ -5284,76 +2290,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor4 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM4.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM4.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor4:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM3": item["actionM3"],
-                        "actionM5": (item["actionM5"] if "actionM5" in item else None),
-                        "actionM6": (item["actionM6"] if "actionM6" in item else None),
-                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM4.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM4.columnCount()):
-            width = self.table_scroll_colorM4.columnWidth(i)
-            self.frozen_table_colorM4.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM4.viewport().update()
-        # self.table_scroll_leftM4.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM4.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM4.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM4.scrollToBottom()
-        # self.table_scroll_colorM4.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM4(self):
         current_column = 0
@@ -5367,14 +2328,10 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM4.setColumnCount(current_column)
-        self.table_scroll_colorM4.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -5383,46 +2340,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m4: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM4.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM4.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM4.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m4: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M5
     def updateTableColorM5(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM5.setRowCount(0)
-        self.table_scroll_leftM5.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM5.setRowCount(rowCount + 1)
-        self.table_scroll_leftM5.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM5.setItem(i, 0, item)
-        self.table_scroll_leftM5.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e5"]
@@ -5431,76 +2370,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor5 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM5.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM5.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor5:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM3": item["actionM3"],
-                        "actionM4": item["actionM4"],
-                        "actionM6": (item["actionM6"] if "actionM6" in item else None),
-                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM5.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM5.columnCount()):
-            width = self.table_scroll_colorM5.columnWidth(i)
-            self.frozen_table_colorM5.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM5.viewport().update()
-        # self.table_scroll_leftM5.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM5.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM5.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM5.scrollToBottom()
-        # self.table_scroll_colorM5.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM5(self):
         current_column = 0
@@ -5514,14 +2408,10 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM5.setColumnCount(current_column)
-        self.table_scroll_colorM5.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -5530,46 +2420,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m5: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM5.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM5.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM5.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m5: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M6
     def updateTableColorM6(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM6.setRowCount(0)
-        self.table_scroll_leftM6.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM6.setRowCount(rowCount + 1)
-        self.table_scroll_leftM6.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM6.setItem(i, 0, item)
-        self.table_scroll_leftM6.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e6"]
@@ -5578,76 +2450,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor6 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM6.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM6.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor6:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM3": item["actionM3"],
-                        "actionM4": item["actionM4"],
-                        "actionM5": item["actionM5"],
-                        "actionM7": (item["actionM7"] if "actionM7" in item else None),
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM6.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM6.columnCount()):
-            width = self.table_scroll_colorM6.columnWidth(i)
-            self.frozen_table_colorM6.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM6.viewport().update()
-        # self.table_scroll_leftM6.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM6.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM6.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM6.scrollToBottom()
-        # self.table_scroll_colorM6.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM6(self):
         current_column = 0
@@ -5661,14 +2488,10 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM6.setColumnCount(current_column)
-        self.table_scroll_colorM6.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -5677,46 +2500,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m6: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM6.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM6.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM6.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m6: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M7
     def updateTableColorM7(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM7.setRowCount(0)
-        self.table_scroll_leftM7.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM7.setRowCount(rowCount + 1)
-        self.table_scroll_leftM7.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM7.setItem(i, 0, item)
-        self.table_scroll_leftM7.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e7"]
@@ -5725,76 +2530,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor7 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM7.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM7.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor7:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM3": item["actionM3"],
-                        "actionM4": item["actionM4"],
-                        "actionM5": item["actionM5"],
-                        "actionM6": item["actionM6"],
-                        "actionM8": (item["actionM8"] if "actionM8" in item else None),
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM7.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM7.columnCount()):
-            width = self.table_scroll_colorM7.columnWidth(i)
-            self.frozen_table_colorM7.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM7.viewport().update()
-        # self.table_scroll_leftM7.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM7.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM7.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM7.scrollToBottom()
-        # self.table_scroll_colorM7.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM7(self):
         current_column = 0
@@ -5808,14 +2568,10 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM7.setColumnCount(current_column)
-        self.table_scroll_colorM7.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -5824,46 +2580,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m7: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM7.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM7.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM7.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m7: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M8
     def updateTableColorM8(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM8.setRowCount(0)
-        self.table_scroll_leftM8.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM8.setRowCount(rowCount + 1)
-        self.table_scroll_leftM8.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM8.setItem(i, 0, item)
-        self.table_scroll_leftM8.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e8"]
@@ -5872,76 +2610,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor8 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM8.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM8.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor8:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM3": item["actionM3"],
-                        "actionM4": item["actionM4"],
-                        "actionM5": item["actionM5"],
-                        "actionM6": item["actionM6"],
-                        "actionM7": item["actionM7"],
-                        "actionM9": (item["actionM9"] if "actionM9" in item else None),
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM8.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM8.columnCount()):
-            width = self.table_scroll_colorM8.columnWidth(i)
-            self.frozen_table_colorM8.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM8.viewport().update()
-        # self.table_scroll_leftM8.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM8.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM8.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM8.scrollToBottom()
-        # self.table_scroll_colorM8.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM8(self):
         current_column = 0
@@ -5955,14 +2648,10 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM8.setColumnCount(current_column)
-        self.table_scroll_colorM8.setColumnCount(current_column)
-
+        header_lables = []
         # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
@@ -5971,46 +2660,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m8: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM8.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM8.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM8.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m8: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M9
     def updateTableColorM9(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM9.setRowCount(0)
-        self.table_scroll_leftM9.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM9.setRowCount(rowCount + 1)
-        self.table_scroll_leftM9.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM9.setItem(i, 0, item)
-        self.table_scroll_leftM9.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e9"]
@@ -6019,76 +2690,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 93
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor9 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM9.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM9.setItem(i, total_columns + num_cols, col_null)
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor9:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM3": item["actionM3"],
-                        "actionM4": item["actionM4"],
-                        "actionM5": item["actionM5"],
-                        "actionM6": item["actionM6"],
-                        "actionM7": item["actionM7"],
-                        "actionM8": item["actionM8"],
-                        "actionM10": (
-                            item["actionM10"] if "actionM10" in item else None
-                        ),
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM9.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM9.columnCount()):
-            width = self.table_scroll_colorM9.columnWidth(i)
-            self.frozen_table_colorM9.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM9.viewport().update()
-        # self.table_scroll_leftM9.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM9.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM9.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM9.scrollToBottom()
-        # self.table_scroll_colorM9.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM9(self):
         current_column = 0
@@ -6100,17 +2726,13 @@ class TinhAndMauPage(QWidget):
         col_d = self.ban_info["meta"]["tables"][8]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
-        # Tạo cột từ 0 đến 93
+        # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM9.setColumnCount(current_column)
-        self.table_scroll_colorM9.setColumnCount(current_column)
-
-        # Tạo cột từ 0 đến 93
+        header_lables = []
+        # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
@@ -6118,46 +2740,28 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m9: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM9.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM9.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM9.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m9: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Table Bang M10
     def updateTableColorM10(self):
         # / Set RowCount = 0
-        self.table_scroll_colorM10.setRowCount(0)
-        self.table_scroll_leftM10.setRowCount(0)
+        date_d = []
+        data_r = []
         # / Config rowCount With data
         filter_data = [
             entry for entry in self.ban_info["data"] if not entry["isDeleted"]
         ]
         rowCount = len(filter_data)
-        self.table_scroll_colorM10.setRowCount(rowCount + 1)
-        self.table_scroll_leftM10.setRowCount(rowCount + 1)
         for i in range(rowCount):
-            # date = filter_data[i]["date"].split("/")
-            # item = QTableWidgetItem(f"{date[0]}/{date[1]}/.")
             date = filter_data[i]["date"]
-            item = QTableWidgetItem(f"{date}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table_scroll_leftM10.setItem(i, 0, item)
-        self.table_scroll_leftM10.setHorizontalHeaderItem(0, QTableWidgetItem())
+            date_d.append([date])
 
         # / render row defalut
         col_e = self.ban_info["meta"]["setting"]["col_e10"]
@@ -6166,76 +2770,31 @@ class TinhAndMauPage(QWidget):
         value2 = col_e[1]
         # Tạo cột từ 0 đến 103
         for i in range(rowCount):
+            row_r = []
+            data_filter = [item for item in self.dataColor10 if item["row"] == i]
             # Khởi tạo biến để theo dõi tổng số cột
             total_columns = 0
             for c in range(value1 - 1, value2):
                 num_cols = col_d[c]  # Số lượng cột tối đa có thể thêm
                 # Thêm tên cột cho hàng header
                 for j in range(num_cols):
-                    col_header = QTableWidgetItem(f"*")
-                    col_header.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                    self.table_scroll_colorM10.setItem(i, total_columns + j, col_header)
+                    current_col = total_columns + j
+                    # Tìm dữ liệu khớp với row và column hiện tại
+                    matching_data = next(
+                        (item["data"] for item in data_filter if item["col"] == current_col),
+                        "*"  # Giá trị mặc định nếu không tìm thấy
+                    )
+                    row_r.append(matching_data)
                 # Tạo ô trống ở cột cuối cùng
-                col_null = QTableWidgetItem()
-                col_null.setBackground(
-                     QColor(80, 200, 120)
-                )  # Đặt màu nền là màu trắng
-                self.table_scroll_colorM10.setItem(
-                    i, total_columns + num_cols, col_null
-                )
+                row_r.append("//")
                 # Cập nhật tổng số cột
                 total_columns += num_cols + 1
-
-        # / render row color table
-        for item in self.dataColor10:
-            row_item = item["row"]
-            col_item = item["col"]
-            data_item = item["data"]
-            color_item = item["color"]
-            notice_item = item["notice"]
-            action_item = item["action"]
-            item_insert = QTableWidgetItem(f"{data_item}")
-            item_insert.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            if color_item:
-                item_insert.setForeground(color_item)
-            if notice_item:
-                item_insert.setBackground(notice_item)
-            if action_item:
-                item_insert.setData(
-                    Qt.ItemDataRole.UserRole,
-                    {
-                        "action": action_item,
-                        "actionM1": item["actionM1"],
-                        "actionM2": item["actionM2"],
-                        "actionM3": item["actionM3"],
-                        "actionM4": item["actionM4"],
-                        "actionM5": item["actionM5"],
-                        "actionM6": item["actionM6"],
-                        "actionM7": item["actionM7"],
-                        "actionM8": item["actionM8"],
-                        "actionM9": item["actionM9"],
-                        "isColor": notice_item,
-                        "thong": item["thong"],
-                        "item": item_insert,
-                    },
-                )
-            self.table_scroll_colorM10.setItem(row_item, col_item, item_insert)
-
-        for i in range(self.table_scroll_colorM10.columnCount()):
-            width = self.table_scroll_colorM10.columnWidth(i)
-            self.frozen_table_colorM10.setColumnWidth(i, width)
-
-        # Đảm bảo cập nhật giao diện của bảng
-        # self.table_scroll_colorM10.viewport().update()
-        # self.table_scroll_leftM10.viewport().update()
-
-        # Thêm nđộ trễ nhỏ trước khi cuộn
-        QTimer.singleShot(0, self.table_scroll_leftM10.scrollToBottom)
-        QTimer.singleShot(0, self.table_scroll_colorM10.scrollToBottom)
-
-        # sleep(0.5)
-        # self.table_scroll_leftM10.scrollToBottom()
-        # self.table_scroll_colorM10.scrollToBottom()
+            data_r.append(row_r)
+        
+        return {
+            "date_d": date_d,
+            "data_r": data_r
+        }
 
     def updateHeaderColorM10(self):
         current_column = 0
@@ -6247,17 +2806,13 @@ class TinhAndMauPage(QWidget):
         col_d = self.ban_info["meta"]["tables"][9]["col_d"]
         value1 = col_e[0]
         value2 = col_e[1]
-        # Tạo cột từ 0 đến 103
+        # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
-            current_column += (
-                col_d[i] + 1
-            )  # Số cột tạo cho mỗi lần là 1 cột + 1 cột phụ trợ
+            current_column += col_d[i] + 1  # Số cột tạo cho mỗi lần + 1 cột phụ trợ
 
         # Thiết lập số lượng cột cho bảng
-        self.frozen_table_colorM10.setColumnCount(current_column)
-        self.table_scroll_colorM10.setColumnCount(current_column)
-
-        # Tạo cột từ 0 đến 103
+        header_lables = []
+        # Tạo cột từ 0 đến 83
         for i in range(value1 - 1, value2):
             # Xác định số lượng cột cho mỗi lần tạo
             num_cols = col_d[i]  # Số lượng cột tối đa có thể thêm
@@ -6265,25 +2820,14 @@ class TinhAndMauPage(QWidget):
             # Thêm tên cột cho hàng header
             for j in range(num_cols):
                 # Tạo hàng header cho mỗi lần tạo cột
-                header_item = QTableWidgetItem(f"m10: {j+1}/d{i + 1}")
-                header_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.frozen_table_colorM10.setItem(0, total_columns + j, header_item)
-                self.table_scroll_colorM10.setHorizontalHeaderItem(
-                    total_columns + j, header_item
-                )
-
-            # Tạo ô trống ở cột cuối cùng
-            col_null = QTableWidgetItem()
-            col_null.setBackground(
-                 QColor(80, 200, 120)
-            )  # Đặt màu nền là màu trắng
-            self.table_scroll_colorM10.setHorizontalHeaderItem(
-                total_columns + num_cols, col_null
-            )
+                header_lables.append(f"m10: {j+1}/d{i + 1}")
+            
+            header_lables.append(f"//")
 
             # Cập nhật tổng số cột
             total_columns += num_cols + 1
             step_count += 1
+        return header_lables
 
     # / Handler Data
     def handlerData(self):
@@ -6418,6 +2962,12 @@ class TinhAndMauPage(QWidget):
                         if item_thong > -1
                         else None
                     )
+                    
+                    row_thong = item_thong
+                    if row_thong < 0:
+                        row_thong = self.find_row_thong_with_col_a(
+                            col_a, thong_info[t + thong_range_1]
+                        )
                     # / End count color with col_d
                     if value1 <= col_d <= value2:
                         if not isColFisrt in self.isFrits:
@@ -6430,7 +2980,7 @@ class TinhAndMauPage(QWidget):
                                 self.math_isFirst[maths_c1] += 1
 
                             col_c1 = self.math_isFirst[maths_c1]
-                            if col_c1 !=0: # !=0 danh cho ban toan theo dong, ko quan tam thong, == 1 danh cho ban toan theo thong
+                            if col_c1 == 1: # !=0 danh cho ban toan theo dong, ko quan tam thong, == 1 danh cho ban toan theo thong
                                 math_count_handler = f"{col_d}:{i}:_color"
                                 if not math_count_handler in self.count_handler:
                                     self.count_handler[math_count_handler] = 1
@@ -6476,11 +3026,6 @@ class TinhAndMauPage(QWidget):
                                     col_color = (
                                         find_next_color + 0 + find_stt_color
                                     )  # vi tri col cua item bang mau
-                                    row_thong = item_thong
-                                    if row_thong < 0:
-                                        row_thong = self.find_row_thong_with_col_a(
-                                            col_a, thong_info[t + thong_range_1]
-                                        )
                                     # / Add Data to Table count
                                     dataCount = {
                                         "row": countRow,
@@ -6501,6 +3046,7 @@ class TinhAndMauPage(QWidget):
                                             "col": t + 4,
                                             "col_a": col_t if col_t != "?" else col_a,
                                             "isCol_a": False if col_t != "?" else True,
+                                            "col_t": col_t
                                         },
                                         "isDeleted": isDeleted,
                                     }
@@ -7642,6 +4188,13 @@ class TinhAndMauPage(QWidget):
                                             "date": item_date,
                                             "color_value": col_d,
                                             "isDeleted": isDeleted,
+                                            "thong": {
+                                                "row": row_thong,
+                                                "col": t + 4,
+                                                "col_a": col_t if col_t != "?" else col_a,
+                                                "isCol_a": False if col_t != "?" else True,
+                                                "col_t": col_t
+                                            },
                                         }
                                     )
                                 # / End check col_c is first
@@ -7656,6 +4209,13 @@ class TinhAndMauPage(QWidget):
                                         "date": item_date,
                                         "color_value": col_d,
                                         "isDeleted": isDeleted,
+                                        "thong": {
+                                            "row": row_thong,
+                                            "col": t + 4,
+                                            "col_a": col_t if col_t != "?" else col_a,
+                                            "isCol_a": False if col_t != "?" else True,
+                                            "col_t": col_t
+                                        },
                                     }
                                 )
                         else:
@@ -7670,6 +4230,13 @@ class TinhAndMauPage(QWidget):
                                     "date": item_date,
                                     "color_value": col_d,
                                     "isDeleted": isDeleted,
+                                    "thong": {
+                                        "row": row_thong,
+                                        "col": t + 4,
+                                        "col_a": col_t if col_t != "?" else col_a,
+                                        "isCol_a": False if col_t != "?" else True,
+                                        "col_t": col_t
+                                    },
                                 }
                             )
 
@@ -7683,6 +4250,13 @@ class TinhAndMauPage(QWidget):
                                 "notice": isNoticeCount,
                                 "color_value": col_d,
                                 "isDeleted": isDeleted,
+                                "thong": {
+                                    "row": row_thong,
+                                    "col": t + 4,
+                                    "col_a": col_t if col_t != "?" else col_a,
+                                    "isCol_a": False if col_t != "?" else True,
+                                    "col_t": col_t
+                                },
                             }
                         )
                     if isEqual:
@@ -7757,611 +4331,7 @@ class TinhAndMauPage(QWidget):
         else:
             return None
 
-    def moveTableWithAction(self, data, ac):
-        self.reload_color_item()
-
-        if ac == "vbm1":
-            action = data["actionM1"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_color is None:
-                self.start_render_tables(0)
-            self.widget_main.setCurrentWidget(self.table_main_color)
-            item = self.table_scroll_color.item(row, col)
-            self.table_scroll_color.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m1")
-            self.changeStatusBar("Bảng màu 1", "m1")
-            return
-        elif ac == "vbm2":
-            action = data["actionM2"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM2 is None:
-                self.start_render_tables(1)
-            self.widget_main.setCurrentWidget(self.table_main_colorM2)
-            item = self.table_scroll_colorM2.item(row, col)
-            self.table_scroll_colorM2.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m2")
-            self.changeStatusBar("Bảng màu 2", "m2")
-            # self.note_color_label.setText(self.note_color)
-        elif ac == "vbm3":
-            action = data["actionM3"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM3 is None:
-                self.start_render_tables(2)
-            self.widget_main.setCurrentWidget(self.table_main_colorM3)
-            item = self.table_scroll_colorM3.item(row, col)
-            self.table_scroll_colorM3.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m3")
-            self.changeStatusBar("Bảng màu 3", "m3")
-        elif ac == "vbm4":
-            action = data["actionM4"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM4 is None:
-                self.start_render_tables(3)
-            self.widget_main.setCurrentWidget(self.table_main_colorM4)
-            item = self.table_scroll_colorM4.item(row, col)
-            self.table_scroll_colorM4.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m4")
-            self.changeStatusBar("Bảng màu 4", "m4")
-        elif ac == "vbm5":
-            action = data["actionM5"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM5 is None:
-                self.start_render_tables(4)
-            self.widget_main.setCurrentWidget(self.table_main_colorM5)
-            item = self.table_scroll_colorM5.item(row, col)
-            self.table_scroll_colorM5.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m5")
-            self.changeStatusBar("Bảng màu 5", "m5")
-        elif ac == "vbm6":
-            action = data["actionM6"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM6 is None:
-                self.start_render_tables(5)
-            self.widget_main.setCurrentWidget(self.table_main_colorM6)
-            item = self.table_scroll_colorM6.item(row, col)
-            self.table_scroll_colorM6.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m6")
-            self.changeStatusBar("Bảng màu 6", "m6")
-        elif ac == "vbm7":
-            action = data["actionM7"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM7 is None:
-                self.start_render_tables(6)
-            self.widget_main.setCurrentWidget(self.table_main_colorM7)
-            item = self.table_scroll_colorM7.item(row, col)
-            self.table_scroll_colorM7.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m7")
-            self.changeStatusBar("Bảng màu 7", "m7")
-        elif ac == "vbm8":
-            action = data["actionM8"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM8 is None:
-                self.start_render_tables(7)
-            self.widget_main.setCurrentWidget(self.table_main_colorM8)
-            item = self.table_scroll_colorM8.item(row, col)
-            self.table_scroll_colorM8.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m8")
-            self.changeStatusBar("Bảng màu 8", "m8")
-        elif ac == "vbm9":
-            action = data["actionM9"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM9 is None:
-                self.start_render_tables(8)
-            self.widget_main.setCurrentWidget(self.table_main_colorM9)
-            item = self.table_scroll_colorM9.item(row, col)
-            self.table_scroll_colorM9.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m9")
-            self.changeStatusBar("Bảng màu 9", "m9")
-        elif ac == "vbm10":
-            action = data["actionM10"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_colorM10 is None:
-                self.start_render_tables(9)
-            self.widget_main.setCurrentWidget(self.table_main_colorM10)
-            item = self.table_scroll_colorM10.item(row, col)
-            self.table_scroll_colorM10.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation("m10")
-            self.changeStatusBar("Bảng màu 10", "m10")
-        elif ac == "vbt":
-            action = data["action"]
-            row = action["row"]
-            col = action["col"]
-            isColor = action["isColor"]
-            if self.table_main_count is None:
-                self.renderTableColor()
-            self.widget_main.setCurrentWidget(self.table_main_count)
-            item = self.table_scroll_count.item(row, col)
-            self.table_scroll_count.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "current": {
-                    "item": data["item"],
-                    "color": (
-                        data["isColor"] if data["isColor"] is not None else self.normal
-                    ),
-                },
-                "next": {
-                    "item": item,
-                    "color": isColor if isColor is not None else self.normal,
-                },
-            }
-            self.setHighlight(new_data)
-            # / Config status bar
-            self.renderNavigation()
-            self.changeStatusBar("Bảng Tính", None)
-            # self.note_color_label.setText("")
-        else:
-            thong = data["thong"]
-            row_thong = thong["row"]
-            col_thong = thong["col"]
-            if self.table_main_thong is None:
-                self.render_table_thong()
-                SendMessage('Đã mở thành công Bảng Thông')
-            self.widget_main.setCurrentWidget(self.widget_thong)
-            item = self.search_by_index_thong_table(row_thong, col_thong)
-            self.table_main_thong.scrollToItem(
-                item, hint=QTableWidget.ScrollHint.PositionAtCenter
-            )
-            new_data = {
-                "col": item.column(),
-                "value": item.text(),
-                "isCol_a": thong["isCol_a"],
-                "index": col_thong - 4
-            }
-            self.setHighlight_Thong(new_data)
-            # / Config status bar
-            self.renderNavigation()
-            self.changeStatusBar("Bảng Thông", None)
-        return
-
     # TODO Add-on: GUI Thong Table
-    def render_table_thong(self):
-        """
-        Hiển thị bảng Thong
-        """
-        # Widget thong
-        self.widget_thong = QWidget()
-        layout_thong = QGridLayout(self.widget_thong)
-        self.widget_main.addWidget(self.widget_thong)
-
-
-
-        # # Tạo bảng Title
-        self.table_title = QTableWidget()
-        self.table_title.setMaximumHeight(60)
-        self.table_title.setRowCount(1)
-        self.table_title.horizontalHeader().setHidden(True)
-        self.table_title.setRowHeight(0,40)
-        self.table_title.setVerticalHeaderLabels(["STT"])
-        layout_thong.addWidget(self.table_title)
-
-
-        # # Tạo bảng
-        self.table_main_thong = QTableWidget()
-        layout_thong.addWidget(self.table_main_thong)
-
-        # / Config Font
-        self.table_title.setFont(self.font)
-        self.table_title.horizontalHeader().setFont(self.font)
-        self.table_title.verticalHeader().setFont(self.font)
-
-        self.table_title.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-        self.table_main_thong.setFont(self.font)
-        self.table_main_thong.horizontalHeader().setFont(self.font)
-        self.table_main_thong.verticalHeader().setFont(self.font)
-
-        self.table_main_thong.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-
-        self.table_title.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_title.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_title.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-
-        self.table_main_thong.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_main_thong.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
-
-        # # Config header
-        self.config_header_thong_table()
-
-        # # Xử lý dữ liệu trước
-        self.config_row_thong_table()
-
-        self.table_main_thong.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_thong_table)
-        self.table_title.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_thong_table)
-    
-    def config_header_thong_table(self):
-        value_thong = self.thong_db["value"]
-        colCount = value_thong
-        isThong_one = 200
-        self.table_main_thong.setColumnCount(0)
-        self.table_main_thong.setColumnCount(colCount + 4 + isThong_one)
-        self.table_title.setColumnCount(colCount + 4 + isThong_one)
-
-        # Setting header Thong
-
-        steps = [
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
-            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
-            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
-            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
-            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
-            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-        ]
-
-        # Initialize modifications for array a in each step
-        modifications_a = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
-            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
-            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
-        ]
-        thong_header_label = []  # Lưu nhãn tiêu đề
-
-        # Biến số lượng cột và các giá trị liên quan
-        total_columns = value_thong
-        isThong_one = 200  # Điều kiện thêm E
-
-        if isThong_one != 0:
-            # Số cột tổng cộng
-            # Số tập
-            num_sets = 10
-            # Số lượt trong mỗi tập
-            rounds_per_set = 10
-            # Số thông trong mỗi lượt
-            columns_per_round = 15
-
-            # Mảng lưu kết quả
-            thong_header_label = []
-
-            # Lặp qua từng tập
-            for set_index in range(num_sets):
-                # Lặp qua từng lượt trong mỗi tập
-                for round_index in range(rounds_per_set):
-                    # Tính chỉ số cột bắt đầu và kết thúc của lượt
-                    start_col = (set_index * rounds_per_set * columns_per_round) + (round_index * columns_per_round)
-                    end_col = start_col + columns_per_round
-                    
-                    # Thêm cột e và h trước mỗi lượt
-                    e = f"E + {modifications_a[set_index][round_index]}"
-                    h = f"H + {steps[set_index][round_index]}"
-                    thong_header_label.append(e)
-                    thong_header_label.append(h)
-                    
-                    # Thêm các cột thông
-                    for thong in range(start_col, end_col):
-                        thong_header_label.append(f"T. {thong + 1}")
-        else:
-            thong_header_label = [f"T.{thong + 1}" for thong in range(total_columns)]
-        
-        header_labels = ["A", "B" , "C" , "D"] + thong_header_label
-        self.table_main_thong.setHorizontalHeaderLabels(header_labels)
-    
-    def config_row_thong_table(self):
-        current_ban_info_number = self.ban_info["meta"]["number"]
-        meta_number = current_ban_info_number
-
-        stt = self.thong_db["stt"][meta_number]
-        data_value = self.thong_db["data"]
-        thong_data = self.thong_info
-        row_count = 120
-
-        # Cấu hình bảng
-        self.table_main_thong.clearContents()
-        self.table_main_thong.setRowCount(0)
-        self.table_main_thong.setRowCount(row_count)
-
-        # Hàm hỗ trợ tạo QTableWidgetItem
-        def create_table_item(value, alignment=Qt.AlignmentFlag.AlignCenter, background=None, thong_data=None):
-            item = QTableWidgetItem(str(value))
-            if alignment is not None:
-                item.setTextAlignment(alignment)
-            if background:
-                item.setBackground(background)
-            if thong_data is not None:
-                item.setData(Qt.ItemDataRole.UserRole, thong_data)
-            return item
-
-        # * Cập nhật tiêu đề hàng (STT)
-        vertica_header = [f'{stt_value:02}' for i, stt_value in enumerate(stt)]
-        self.table_main_thong.setVerticalHeaderLabels(vertica_header)
-
-        # * Xử lý dữ liệu nếu cần thay đổi số
-        if meta_number != 0 and not self.isShow:
-            data_value = [
-                [TachVaGhep(meta_number, value) for value in row]
-                for row in data_value
-            ]
-
-        # * Cập nhật dữ liệu từ data_value
-        for i, col_values in enumerate(data_value):
-            for j, cell_value in enumerate(col_values):
-                background = self.stt_highlight if i in (0, 2) else None
-                item = create_table_item(cell_value, background=background, thong_data={"row": j, "index": i, "name": "data_custom"})
-                self.table_main_thong.setItem(j, i, item)
-
-        # * Cập nhật dữ liệu từ thong_data
-        isThong_step = 15
-        if isThong_step == 15:
-            self.table_title.setSpan(0, 0, 1, 4)
-            count_luot = 0
-
-            # Duyệt qua các tập (8 tập)
-            for tap_index in range(10):
-                for luot_title in range(10):  # Mỗi tập có 10 lượt
-                    span_start_col = 4 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
-                    span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
-                    tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
-
-                    self.table_title.setSpan(0, span_start_col, 1, span_colspan)
-                    item = QTableWidgetItem(f"{tap}Lượt {count_luot + 1}")
-                    item.setTextAlignment(Qt.AlignCenter)
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignLeft)
-                    self.table_title.setItem(0, span_start_col, item)
-                    count_luot += 1
-
-            for row in range(131):  # Số lượng hàng (131 là ví dụ)
-                # Duyệt qua từng tập và lượt
-                for tap_index in range(10):
-                    for luot in range(10):
-                        luot_index = tap_index * 10 + luot
-                        start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
-
-                        # Thêm cột E và H
-                        if row < len(self.thong_sp) and luot_index < len(self.thong_sp[row]):
-                            bg_color = QColor("#b581ff") if luot_index % 10 == 0 else QColor("#FFD700")
-
-                            # E column
-                            e_row = self.thong_sp[row][luot_index][0]
-                            item_e = create_table_item(e_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 0})
-                            self.table_main_thong.setItem(row, start_col, item_e)
-
-                            # H column
-                            h_row = self.thong_sp[row][luot_index][1]
-                            item_h = create_table_item(h_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 1})
-                            self.table_main_thong.setItem(row, start_col + 1, item_h)
-
-                        # Thêm 10 cột thong
-                        thong_start_index = luot_index * isThong_step  # Tính chỉ số bắt đầu cho thong_data
-                        for thong_col in range(isThong_step):
-                            thong_index = thong_start_index + thong_col
-                            if thong_index < len(thong_data) and row < len(thong_data[thong_index]):
-                                thong_row = thong_data[thong_index][row]
-                                item = create_table_item(thong_row, Qt.AlignmentFlag.AlignCenter, None, {"row": row, "index": thong_index, "name": "thong"})
-                                self.table_main_thong.setItem(
-                                    row,
-                                    start_col + 2 + thong_col,  # Sau 2 cột E và H
-                                    item,
-                                )
-
-    def search_by_index_thong_table(self, row_thong, col_thong):
-        for row in range(self.table_main_thong.rowCount()):
-            for column in range(self.table_main_thong.columnCount()):
-                item = self.table_main_thong.item(row, column)
-                if item:
-                    # Lấy dữ liệu UserRole
-                    user_data = item.data(Qt.ItemDataRole.UserRole)
-                    if isinstance(user_data, dict) and user_data.get("name") == "thong" and user_data.get("row") == row_thong and user_data.get("index") == col_thong - 4:
-                        return item
-
-    def sync_horizontal_scroll_thong_table(self, value):
-        self.table_main_thong.horizontalScrollBar().setValue(value)
-        self.table_title.horizontalScrollBar().setValue(value)
-
-    def freeze_col_stt(self, value):
-        if value >= self.start_col:
-            self.table_main_thong.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
-        elif value < self.start_col:
-            value = self.start_col
-            self.table_main_thong.horizontalHeader().moveSection(self.value_col, value)
-            self.value_col = value
-
     def changeStatusBar(self, status, next):
         self.current_table = status
         title_text = self.get_title_text(next)
@@ -8369,13 +4339,18 @@ class TinhAndMauPage(QWidget):
         return
 
     def reload_widget(self):
-        self.handlerData()
-        self.renderNavigation()
-        self.updateTableCount()
-        for i in range(10):
-            data = self.ban_info["meta"]["tables"][i]
-            if data["enable"]:
-                self.start_render_tables_row(i)
+        try:
+            self.toggle_editable(True)
+            self.handlerData()
+            self.renderNavigation()
+            self.renderTableCount()
+            for i in range(10):
+                data = self.ban_info["meta"]["tables"][i]
+                if data["enable"]:
+                    self.start_render_tables(i)
+            self.focus_sheet()
+        finally:
+            self.toggle_editable(False)
 
     def find_row_thong_with_col_a(self, col_a, thong_data):
         for i in range(len(thong_data)):
@@ -8397,36 +4372,6 @@ class TinhAndMauPage(QWidget):
         for widget in widgets:
             widget()
             # sleep(0.5)
-
-    # TODO Handler Move
-    def move_to_right(self, dialog):
-        # Get the screen geometry
-        screen_geometry = QApplication.primaryScreen().geometry()
-
-        # Set fixed size for the dialog
-        dialog_width = 1300
-        dialog_height = 1050
-
-        # Calculate the x and y position to move the dialog to the right
-        x_pos = (
-            screen_geometry.width() - dialog_width - 20
-        )  # 20px padding from right edge
-        y_pos = (screen_geometry.height() - dialog_height) // 2  # Center vertically
-
-        # Move and set the dialog size
-        dialog.setGeometry(x_pos, y_pos, dialog_width, dialog_height)
-
-    def move_to_center(self, dialog):
-        # Center the dialog on the screen when it's shown
-        screen_geometry = QApplication.primaryScreen().geometry()
-        dialog_geometry = dialog.geometry()
-
-        # Calculate the center position
-        x = (screen_geometry.width() - dialog_geometry.width()) // 2
-        y = (screen_geometry.height() - dialog_geometry.height()) // 2
-        dialog.setGeometry(
-            QRect(x, y, dialog_geometry.width(), dialog_geometry.height())
-        )
 
     # TODO Handler Color Table
     # / M4 start
@@ -8762,7 +4707,7 @@ class TinhAndMauPage(QWidget):
         number_of_col_d = self.ban_info["meta"]["tables"][5]["col_d"][col_e_m5 - 1]
         btn_notice = self.ban_info["meta"]["tables"][5]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][5] else [[8, 36] for _ in range(120)]
         # number_color = btn_notice[col_e_m5 - 1] #! Ban toan theo thong
-        number_color = notice_colorM6
+        number_color = notice_colorM6 #! Ban toan theo dong
         if stt_count_with_d_m6 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m6 = f"{col_e_m5}:{stt_count_with_d_m6}:col_e_m6"
@@ -8926,7 +4871,7 @@ class TinhAndMauPage(QWidget):
         number_of_col_d = self.ban_info["meta"]["tables"][6]["col_d"][col_e_m6 - 1]
         btn_notice = self.ban_info["meta"]["tables"][6]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][6] else [[8, 36] for _ in range(120)]
         # number_color = btn_notice[col_e_m6 - 1] #! Ban toan theo thong
-        number_color = notice_colorM7
+        number_color = notice_colorM7 #! Ban toan theo dong
         if stt_count_with_d_m7 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m7 = f"{col_e_m6}:{stt_count_with_d_m7}:col_e_m7"
@@ -9103,7 +5048,7 @@ class TinhAndMauPage(QWidget):
         number_of_col_d = self.ban_info["meta"]["tables"][7]["col_d"][col_e_m7 - 1]
         btn_notice = self.ban_info["meta"]["tables"][7]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][7] else [[8, 36] for _ in range(120)]
         # number_color = btn_notice[col_e_m7 - 1] #! Ban toan theo thong
-        number_color = notice_colorM8
+        number_color = notice_colorM8 #! Ban toan theo dong
         if stt_count_with_d_m8 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m8 = f"{col_e_m7}:{stt_count_with_d_m8}:col_e_m8"
@@ -9293,7 +5238,7 @@ class TinhAndMauPage(QWidget):
         number_of_col_d = self.ban_info["meta"]["tables"][8]["col_d"][col_e_m8 - 1]
         btn_notice = self.ban_info["meta"]["tables"][8]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][8] else [[8, 36] for _ in range(120)]
         # number_color = btn_notice[col_e_m8 - 1] #! Ban toan theo thong
-        number_color = notice_colorM9
+        number_color = notice_colorM9 #! Ban toan theo dong
         if stt_count_with_d_m9 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m9 = f"{col_e_m8}:{stt_count_with_d_m9}:col_e_m9"
@@ -9496,7 +5441,7 @@ class TinhAndMauPage(QWidget):
         number_of_col_d = self.ban_info["meta"]["tables"][9]["col_d"][col_e_m9 - 1]
         btn_notice = self.ban_info["meta"]["tables"][9]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][9] else [[8, 36] for _ in range(120)]
         # number_color = btn_notice[col_e_m9 - 1] #! Ban toan theo thong
-        number_color = notice_colorM10
+        number_color = notice_colorM10 #! Ban toan theo dong
         if stt_count_with_d_m10 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m10 = f"{col_e_m9}:{stt_count_with_d_m10}:col_e_m10"
@@ -9648,29 +5593,32 @@ class TinhAndMauPage(QWidget):
             }
 
     def start_render_tables(self, index):
-        match index:
-            case 0:
-                self.renderTableColor()
-            case 1:
-                self.renderTableColorM2()
-            case 2:
-                self.renderTableColorM3()
-            case 3:
-                self.renderTableColorM4()
-            case 4:
-                self.renderTableColorM5()
-            case 5:
-                self.renderTableColorM6()
-            case 6:
-                self.renderTableColorM7()
-            case 7:
-                self.renderTableColorM8()
-            case 8:
-                self.renderTableColorM9()
-            case 9:
-                self.renderTableColorM10()
-            case _:
-                pass
+        try:
+            match index:
+                case 0:
+                    self.renderTableColor()
+                case 1:
+                    self.renderTableColorM2()
+                case 2:
+                    self.renderTableColorM3()
+                case 3:
+                    self.renderTableColorM4()
+                case 4:
+                    self.renderTableColorM5()
+                case 5:
+                    self.renderTableColorM6()
+                case 6:
+                    self.renderTableColorM7()
+                case 7:
+                    self.renderTableColorM8()
+                case 8:
+                    self.renderTableColorM9()
+                case 9:
+                    self.renderTableColorM10()
+                case _:
+                    pass
+        finally:
+            pass
 
     def find_column_by_index(self, arr, target_index, start, end):
         total_columns = 0
@@ -9691,62 +5639,147 @@ class TinhAndMauPage(QWidget):
         # If index is out of range
         return -1
 
-    def start_render_tables_row(self, index):
-        match index:
-            case 0:
-                if self.table_main_color:
-                    self.updateTableColor()
-            case 1:
-                if self.table_main_colorM2:
-                    self.updateTableColorM2()
-            case 2:
-                if self.table_main_colorM3:
-                    self.updateTableColorM3()
-            case 3:
-                if self.table_main_colorM4:
-                    self.updateTableColorM4()
-            case 4:
-                if self.table_main_colorM5:
-                    self.updateTableColorM5()
-            case 5:
-                if self.table_main_colorM6 :
-                    self.updateTableColorM6 ()
-            case 6:
-                if self.table_main_colorM7:
-                    self.updateTableColorM7()
-            case 7:
-                if self.table_main_colorM8:
-                    self.updateTableColorM8()
-            case 8:
-                if self.table_main_colorM9:
-                    self.updateTableColorM9()
-            case 9:
-                if self.table_main_colorM10:
-                    self.updateTableColorM10()
-            case _:
-                pass
+    # TODO Excel Function
+    def toggle_editable(self, enable_edit: bool):
+        """Bật/Tắt chế độ chỉnh sửa nhưng vẫn cho phép thay đổi định dạng"""
+        try:
+            # Tắt screen updating để tăng tốc độ
+            self.wb.app.screen_updating = False
+            self.wb.app.enable_events = False
+            
+            for sheet in self.wb.sheets:
+                try:
+                    # Bỏ bảo vệ sheet hiện tại
+                    sheet.api.Unprotect(Password=self.pwd)
+                except:
+                    # Bỏ qua nếu sheet không được bảo vệ
+                    pass
+                
+                # Lấy vùng dữ liệu
+                last_row = sheet.range("A1").end("down").row
+                last_col = sheet.range("A1").end("right").column
+                table_range = sheet.range((1, 1), (last_row, last_col))
+                
+                if enable_edit:
+                    # Mở khóa toàn bộ sheet
+                    table_range.api.Locked = False
+                    # Không bảo vệ lại sheet khi enable_edit=True
+                else:
+                    # Khóa toàn bộ sheet
+                    table_range.api.Locked = True
+                    # Bảo vệ lại sheet với các tùy chọn
+                    sheet.api.Protect(
+                        Password=self.pwd,
+                        AllowFormattingCells=True,
+                        AllowFormattingColumns=True,
+                        AllowFormattingRows=True,
+                        UserInterfaceOnly=True  # Cho phép VBA/Python thay đổi
+                    )
+        finally:
+            # Bật lại screen updating
+            self.wb.app.screen_updating = True
+            self.wb.app.enable_events = True
 
-    def start_clear_tables_row(self, index):
-        match index:
-            case 0:
-                self.table_scroll_color.clearSelection()
-            case 1:
-                self.table_scroll_colorM2.clearSelection()
-            case 2:
-                self.table_scroll_colorM3.clearSelection()
-            case 3:
-                self.table_scroll_colorM4.clearSelection()
-            case 4:
-                self.table_scroll_colorM5.clearSelection()
-            case 5:
-                self.table_scroll_colorM6.clearSelection()
-            case 6:
-                self.table_scroll_colorM7.clearSelection()
-            case 7:
-                self.table_scroll_colorM8.clearSelection()
-            case 8:
-                self.table_scroll_colorM9.clearSelection()
-            case 9:
-                self.table_scroll_colorM10.clearSelection()
-            case _:
+    def closeEvent(self, event):
+        try:
+            """Xử lý khi cửa sổ PySide6 đóng"""
+            if self.wb:
+                self.wb.close()  # Đóng workbook mà không lưu
+            if self.app:
+                self.app.quit()  # Đóng Excel ngay lập tức
+            event.accept()  # Chấp nhận sự kiện đóngB
+        except Exception as e:
+            print(f"Lỗi khi đóng Excel: {str(e)}")
+
+    def focus_sheet(self, sheet_index=0):
+        """
+        Focus vào sheet được chỉ định
+        :param sheet_index: index của sheet (mặc định là 0 - sheet đầu tiên)
+        """
+        try:
+            self.wb.app.screen_updating = False
+            
+            # Kiểm tra index hợp lệ
+            if sheet_index < 0 or sheet_index >= len(self.wb.sheets):
+                print(f"Sheet index {sheet_index} không hợp lệ")
+                return False
+                
+            target_sheet = self.wb.sheets[sheet_index]
+            
+            # Focus vào sheet
+            try:
+                target_sheet.select()
+                target_sheet.activate()
+            except Exception as e:
+                print(f"Không thể focus vào sheet: {e}")
+                return False
+                
+            # Scroll về ô A1 (tùy chọn)
+            try:
+                target_sheet.range('A1').select()
+            except:
                 pass
+                
+            return True
+            
+        except Exception as e:
+            print(f"Lỗi trong quá trình focus sheet: {e}")
+            return False
+            
+        finally:
+            self.wb.app.screen_updating = True
+
+    def get_column_name(self, col_num):
+        """Chuyển đổi số cột thành tên cột Excel (A, B, C, ..., AA, AB, ...)"""
+        result = ""
+        while col_num > 0:
+            col_num -= 1
+            result = chr(col_num % 26 + 65) + result
+            col_num //= 26
+        return result
+
+    def add_vba_code(self):
+        try:
+            basedir = os.path.dirname(__file__)
+            file_path = os.path.join(basedir,"..", "module.txt")
+            with open(file_path, "r", encoding="utf-8") as file:
+                vba_code = file.read().strip()  # Read the file content and strip whitespace
+            self.wb.api.VBProject.VBComponents.Add(1).CodeModule.AddFromString(vba_code)
+            return True
+        except Exception as e:
+            print(f"Không thể add Module vào VBA: {e}")
+            return False
+
+    def add_vba_code_sheets(self):
+        try:
+            basedir = os.path.dirname(__file__)
+            file_path = os.path.join(basedir, "..", "sheet.txt")
+            
+            with open(file_path, "r", encoding="utf-8") as file:
+                vba_code = file.read().strip()
+
+            for sheet in self.wb.sheets:
+                sheetIndex = sheet.api.Index
+                code_module = self.wb.api.VBProject.VBComponents.Item(f"Sheet{sheetIndex}").CodeModule
+                code_module.AddFromString(vba_code)
+
+        except Exception as e:
+            print(f"Không thể add VBA Code vào Sheet: {e}")
+            return False
+
+    def save_color_old_cell(self, item, sheet):
+        # / Khoi phuc du lieu mau neu co
+        if self.lastAddress != "":
+            lastItem = self.lastSheetName.range(self.lastAddress)
+            lastItem.color = self.lastColor
+            lastItem.font.color = self.lastFontColor
+
+        # / Save du lieu mau o cu
+        self.lastAddress = item.address
+        self.lastSheetName = sheet
+        self.lastColor = item.color
+        self.lastFontColor = item.font.color
+
+        item.font.color = (255, 255, 255)
+        item.color = (255, 0, 0)
+        item.select()

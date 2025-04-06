@@ -1,0 +1,38 @@
+Dim lastSheetName As String
+Dim lastCellAddress As String
+Dim lastInteriorColor As Long
+Dim lastFontColor As Long
+
+Sub GoToSheet(SheetName As String, cellAddress As String)
+    Dim targetCell As Range
+    
+    On Error Resume Next
+    ' Kick hoat sheet
+    ThisWorkbook.Worksheets(SheetName).Activate
+    
+    ' Lay o can to mau
+    Set targetCell = ThisWorkbook.Worksheets(SheetName).Range(cellAddress)
+    
+    ' Khoi phuc mau cu neu co
+    If lastSheetName <> "" And lastCellAddress <> "" Then
+        ' Khoi phuc mau cu
+        ThisWorkbook.Worksheets(lastSheetName).Range(lastCellAddress).Interior.Color = lastInteriorColor
+        ThisWorkbook.Worksheets(lastSheetName).Range(lastCellAddress).Font.Color = lastFontColor
+    End If
+    
+    ' Luu mau cu
+    lastInteriorColor = targetCell.Interior.Color
+    lastFontColor = targetCell.Font.Color
+    
+    ' To mau cho o moi
+    targetCell.Interior.Color = RGB(255, 0, 0) ' Màu d?
+    targetCell.Font.Color = RGB(255, 255, 255) ' Màu ch? tr?ng
+
+    ' Cap nhat thong tin o to mau
+    lastSheetName = SheetName
+    lastCellAddress = cellAddress
+
+    ' Chon o
+    targetCell.Select
+    On Error GoTo 0
+End Sub

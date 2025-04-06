@@ -32,12 +32,14 @@ from Controller.handler import (
     backupThong,
     saveAllThong,
     typeWithRecipe,
-    TachVaGhep,
-    saveBackupThong,convert_string_format,convert_string_format_type
+    saveBackupThong,convert_string_format,convert_string_format_type,changeThongPerLuot
 )
 import os
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
+import xlwings as xw
+import pandas as pd
+import math
 
 
 class ThongPage(QWidget):
@@ -55,6 +57,27 @@ class ThongPage(QWidget):
         # Setting application icon
         self.setWindowIcon(icon)
 
+        # / Kết nối với Excel
+        self.app = xw.App(visible=True)  # Mở Excel
+        self.wb = self.app.books.active  # Workbook hiện tại
+        self.sheet = self.wb.sheets[0]   # Sheet đầu tiên
+        
+        # Xác định phạm vi bảng (tự động tìm kích thước bảng)
+        last_row = self.sheet.range("A1").end("down").row
+        last_col = self.sheet.range("A1").end("right").column
+        self.table_range = self.sheet.range((1, 1), (last_row, last_col))
+
+        # 🌟 **Áp dụng định dạng cho toàn bảng**
+        self.table_range.api.Font.Name = "Arial"  # Font chữ
+        self.table_range.api.Font.Size = 24  # Cỡ chữ
+        self.table_range.api.HorizontalAlignment = -4108  # Căn giữa
+        self.table_range.api.VerticalAlignment = -4107  # Căn giữa theo chiều dọc
+        self.table_range.api.Borders.Weight = 2  # Độ dày đường viền
+        self.table_range.api.Font.Bold = True  # In đậm tiêu đề
+        self.table_range.api.NumberFormat = "@"
+
+        self.pwd = "rindev-pm"
+
         # / Load Data Bans
         self.bans_path = self.path.path_db()
         with open(self.bans_path, "r") as file:
@@ -69,8 +92,6 @@ class ThongPage(QWidget):
         with open(os.path.join(self.thong_path, "thongs.json"), "r") as file:
             self.thong_db = json.load(file)
 
-        # isThong_one = True
-        # if isThong_one:
         thong_sp_path = self.path.path_thong_sp_with_id(self.thong_db["id"])
         with open(thong_sp_path, 'r') as file:
             self.thong_sp = json.load(file)
@@ -145,11 +166,12 @@ class ThongPage(QWidget):
             current_ban_info_number = self.ban_info["meta"]["number"]
             current_number = current_ban_info_number
         self.changeDataThongWithNumber(current_number)
-        self.renderThongTable()
+        self.update_excel()
+        self.renderInfoPage()
         self.renderThongButton()
 
     # TODO Handler Render Component
-    def renderThongTable(self):
+    def renderInfoPage(self):
         value_thong = self.thong_db["value"]
         self.start_col = 0
         self.value_col = 0
@@ -205,115 +227,6 @@ class ThongPage(QWidget):
         self.note = QLabel(f"Cơ {note_name} - {note}")
         self.note.setFont(self.font)
         layout_table.addWidget(self.note)
-        # layout_table.addWidget(self.hidden)
-
-        self.table_title = QTableWidget()
-        self.table_title.setMaximumHeight(60)
-        self.table_title.setRowCount(1)
-        self.table_title.horizontalHeader().setHidden(True)
-        self.table_title.setRowHeight(0,40)
-        self.table_title.setVerticalHeaderLabels(["STT"])
-        layout_table.addWidget(self.table_title)
-
-        self.table_main = QTableWidget()
-        layout_table.addWidget(self.table_main)
-
-        # / Config Font
-        self.table_title.setFont(self.font)
-        self.table_title.horizontalHeader().setFont(self.font)
-        self.table_title.verticalHeader().setFont(self.font)
-
-        self.table_title.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-        self.table_main.setFont(self.font)
-        self.table_main.horizontalHeader().setFont(self.font)
-        self.table_main.verticalHeader().setFont(self.font)
-
-        self.table_main.setStyleSheet(
-            """
-                QTableView {
-                    gridline-color: black;
-                }
-            """
-        )
-
-        self.table_title.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_title.verticalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table_title.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
-
-        self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table_main.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
-        
-        # Setup Header
-        self.updateHeaderRow()
-        # Setup row
-        self.updateRowAndColumns()
-
-        # / Handler Events
-        def on_item_changed(item):
-            isEdit = self.table_main.editTriggers()
-            if isEdit == QTableWidget.EditTrigger.NoEditTriggers:
-                return
-            item_data = item.data(Qt.ItemDataRole.UserRole)
-            if item_data:
-                row = item_data.get("row")
-                index = item_data.get("index")
-                name = item_data.get("name")
-                pos = item_data.get("pos")
-
-                if name == "data_custom":
-                    self.thong_db["data"][index][row] = item.text()
-
-                if name == "thong":
-                    self.thong_data[index][row] = item.text()
-
-                if name == "thong_sp":
-                    current_number = self.ChangeNumber.currentIndex()
-                    if current_number == 0:
-                        self.thong_sp[row][index][pos] = item.text()
-                    else:
-                        value_old = self.thong_sp[row][index][pos]
-                        if f'{value_old}' != item.text():
-                            col = "E" if pos == 0 else "H"
-                            SendMessage(f'Chú ý bạn không thể chỉnh sửa dữ liệu ở cột {col}')
-                            item.setText(f'{value_old}')
-
-        def selectedRow():
-            # Lấy các hàng được chọn từ các mục được chọn
-            selected_items = self.table_main.selectedItems()
-            self.selected_row_indices = {item.row() for item in selected_items} if selected_items else set()
-
-            # Lấy chỉ số của các mục được chọn
-            selected_indexes = self.table_main.selectedIndexes()
-            if selected_indexes:
-                # Xác định hàng hiện tại được chọn
-                current_selected_row = selected_indexes[0].row()
-                if current_selected_row != getattr(self, 'prev_selected_row', None):
-                    self.prev_selected_row = current_selected_row
-
-                # Lưu danh sách các hàng được chọn
-                self.current_select = list({index.row() for index in selected_indexes})
-
-        # Kết nối sự kiện
-        self.table_main.itemSelectionChanged.connect(selectedRow)
-
-        self.table_main.itemChanged.connect(on_item_changed)
-
-        self.table_main.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_count)
-        self.table_title.horizontalScrollBar().valueChanged.connect(self.sync_horizontal_scroll_count)
-    
-    def sync_horizontal_scroll_count(self, value):
-        self.table_main.horizontalScrollBar().setValue(value)
-        self.table_title.horizontalScrollBar().setValue(value)
 
     def renderThongButton(self):
         self.button_wid_main = QWidget()
@@ -368,7 +281,7 @@ class ThongPage(QWidget):
         DeleteColor = QPushButton("Xóa Màu")
         DeleteColor.setStyleSheet(css_button_cancel)
         DeleteColor.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(DeleteColor, 0, 6)
+        # layout.addWidget(DeleteColor, 0, 6)
 
         # / Create ChangeNumber
         self.ChangeNumber = QComboBox()
@@ -377,13 +290,13 @@ class ThongPage(QWidget):
         self.ChangeNumber.addItem(f"Cơ gốc")
         for i in range(1, 11):
             self.ChangeNumber.addItem(f"Cơ {i}")
-        layout.addWidget(self.ChangeNumber, 0, 7)
+        layout.addWidget(self.ChangeNumber, 0, 6)
 
         # / Skip to end row
         skipToEnd = QPushButton("Về Cột Cuối")
         skipToEnd.setStyleSheet(css_button_start)
         skipToEnd.setCursor(QCursor(Qt.PointingHandCursor))
-        layout.addWidget(skipToEnd, 0, 8)
+        layout.addWidget(skipToEnd, 0, 7)
 
         # TODO Line 2
 
@@ -429,25 +342,25 @@ class ThongPage(QWidget):
         self.hidden.setCursor(Qt.PointingHandCursor)
         self.hidden.clicked.connect(self.button_show_abc)
         self.hidden.setFixedWidth(200)
-        layout.addWidget(self.hidden, 1, 4)
+        # layout.addWidget(self.hidden, 1, 4)
 
         # / Create SaveData
-        SettingType = QPushButton("Cài Đặt App")
+        SettingType = QPushButton("Cài Đặt Thông")
         SettingType.setStyleSheet(css_button_submit)
         SettingType.setCursor(QCursor(Qt.PointingHandCursor))
-        # layout.addWidget(SettingType, 1, 4)
+        layout.addWidget(SettingType, 1, 4)
 
         def changeTypeCount():
             types = self.HandlerData.text()
             if types == "Tắt Tùy Chỉnh":
-                self.table_main.setEditTriggers(QTableWidget.EditTrigger.DoubleClicked)
+                self.toggle_editable(True)
                 self.HandlerData.setText("Bật Tùy Chỉnh")
             else:
-                self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+                self.toggle_editable(False)
                 self.HandlerData.setText("Tắt Tùy Chỉnh")
 
         def saveChange():
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            self.toggle_editable(False)
             self.HandlerData.setText("Tắt Tùy Chỉnh")
             if self.ChangeNumber.currentIndex() == 0:
                 self.saveBackUp()
@@ -456,65 +369,110 @@ class ThongPage(QWidget):
 
         def changeTableNumber():
             # / Check isEditor
-            isEditor = self.table_main.editTriggers()
-            if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-                self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-                self.HandlerData.setText("Tắt Tùy Chỉnh")
+            self.toggle_editable(True)
+            self.HandlerData.setText("Tắt Tùy Chỉnh")
 
             value = self.ChangeNumber.currentIndex()
             text = self.ChangeNumber.currentText()
             self.save_stay(value)
             self.changeDataThongWithNumber(value)
-            self.table_main.clearContents()
-            self.updateRowAndColumns()
-            SendMessage(f"Bạn đã mở {text}")
+            self.update_excel()
             if value != 0:
                 note = Note[value - 1]
                 self.note.setText(f"Cơ {value} - {note}")
-                # self.note.setScaledContents(True)
             else:
                 note = Note[10]
                 self.note.setText(f"Cơ gốc - {note}")
-                # self.note.setScaledContents(False)
+            SendMessage(f"Bạn đã mở {text}")
 
         def copyRow_Click():
-            if len(self.current_select) < 2 or len(self.current_select) > 2:
-                SendMessage("Xin vui lòng chọn dòng chép và nhận!")
-                return
-            sender = self.prev_selected_row
-            receiver = [item for item in self.current_select if item != sender][0]
-            self.copyRowThong([sender, receiver])
+            # Lấy đối tượng App từ Workbook
+            app = self.sheet.book.app
+            try:
+                # Lấy vùng được chọn
+                selection = app.selection
+                if selection is None:
+                    SendMessage("Vui lòng chọn ít nhất một dòng!")
+                    return None
 
+                # Lấy tất cả các dòng từ các vùng chọn, giữ nguyên thứ tự
+                selected_rows = []
+                seen_rows = set()  # Để kiểm tra trùng lặp mà không thay đổi thứ tự
+                for area in selection.api.Areas:  # Duyệt qua từng vùng chọn riêng lẻ
+                    for row in area.Rows:  # Duyệt qua từng dòng trong vùng
+                        row_num = row.Row  # Không trừ 1 để giữ nguyên số dòng Excel
+                        if row_num not in seen_rows:  # Chỉ thêm nếu chưa gặp
+                            selected_rows.append(row_num)
+                            seen_rows.add(row_num)
+
+                # In danh sách dòng và kiểm tra số lượng
+                print(f"Các dòng được chọn (theo thứ tự): {selected_rows}")
+                if len(selected_rows) != 2:  # Yêu cầu đúng 2 dòng
+                    SendMessage("Xin vui lòng chọn đúng 2 dòng để tiến hành sao chép dữ liệu!")
+                    return None
+
+                # Gọi hàm sao chép với danh sách dòng giữ nguyên thứ tự
+                self.copyRowThong(selected_rows)
+                return selected_rows
+
+            except AttributeError as e:
+                print(f"Lỗi truy cập vùng chọn: {e}")
+                SendMessage("Không thể truy cập vùng chọn. Vui lòng thử lại!")
+                return None
+            except Exception as e:
+                print(f"Đã xảy ra lỗi: {e}")
+                SendMessage("Không thể sao chép dữ liệu. Vui lòng thử lại!")
+                return None
+            
         def saveFile_click():
             self.showQuestion()
 
         def type_with_button():
             # / Check isEditor
-            isEditor = self.table_main.editTriggers()
-            if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-                self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-                self.HandlerData.setText("Tắt Tùy Chỉnh")
-
+            self.toggle_editable(True)
+            self.HandlerData.setText("Tắt Tùy Chỉnh")
             number_thong = self.ChangeNumber.currentIndex()
             if number_thong != 0:
                 SendMessage("Chú ý khi nhập liệu phải về bảng thông gốc!")
                 return
             
-            if self.selected_row_indices:
-                # / Find Select Row
-                data_select = list(self.selected_row_indices)
-                if len(data_select) < 1:
-                    SendMessage("Xin vui lòng chọn dòng để nhập liệu")
-                    return
-                for row in data_select:
+            # Lấy đối tượng App từ Workbook
+            app = self.sheet.book.app
+            try:
+                # Lấy vùng được chọn
+                selection = app.selection
+                if selection is None:
+                    SendMessage("Vui lòng chọn ít nhất một dòng!")
+                    return None
+
+                # Lấy tất cả các dòng từ các vùng chọn, giữ nguyên thứ tự
+                selected_rows = []
+                seen_rows = set()  # Để kiểm tra trùng lặp mà không thay đổi thứ tự
+                for area in selection.api.Areas:  # Duyệt qua từng vùng chọn riêng lẻ
+                    for row in area.Rows:  # Duyệt qua từng dòng trong vùng
+                        row_num = row.Row  # Không trừ 1 để giữ nguyên số dòng Excel
+                        if row_num not in seen_rows:  # Chỉ thêm nếu chưa gặp
+                            selected_rows.append(row_num)
+                            seen_rows.add(row_num)
+
+                # In danh sách dòng và kiểm tra số lượng
+                if len(selected_rows) < 1:  # Yêu cầu đúng 2 dòng
+                    SendMessage("Xin vui lòng chọn tối thiểu 1 dòng để tiến hành nhập dữ liệu!")
+                    return None
+
+                # Gọi hàm sao chép với danh sách dòng giữ nguyên thứ tự
+                self.get_change_history()
+                for row in selected_rows:
+                    row_index = row - 3
                     # setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
                     data = {}
-                    data["row"] = row
+                    data["row"] = row_index
                     data["number"] = self.ban_info["meta"]['number']
                     data["setting"] = 1
                     data["stt"] = self.thong_db["stt"]
                     data["type_count"] = self.thong_db["type_count"]
                     data["value"] = self.thong_db["value"]
+                    data["thong_per_luot"] = self.thong_db["thong_per_luot"]
                     data["update"] = self.thong_data
                     data["thong_sp"] = self.thong_sp
 
@@ -525,51 +483,62 @@ class ThongPage(QWidget):
                 self.show_loading_screen()
                 self.thread = Thread()
                 self.thread.task_completed.connect(
-                    lambda: self.updateWidget([self.updateRowAndColumns])
+                    lambda: self.updateWidget([self.update_excel])
                 )
                 self.thread.task_completed.connect(
                     lambda: SendMessage("Bạn đã nhập liệu thành công")
                 )
                 self.thread.start()
-                self.selected_row_indices = None
 
-        def back_to_first():
-            # row = self.table_main.rowCount() - 2  # Get the current row
-            item = self.table_main.item(0, 0)  # Get the first column item
-            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            return
+            except AttributeError as e:
+                print(f"Lỗi truy cập vùng chọn: {e}")
+                SendMessage("Không thể truy cập vùng chọn. Vui lòng thử lại!")
+                return None
+            except Exception as e:
+                print(f"Đã xảy ra lỗi: {e}")
+                SendMessage("Không thể nhập dữ liệu tự động. Vui lòng thử lại!")
+                return None
 
-        def skip_to_end():
-            # row = self.table_main.rowCount() - 2  # Get the current row
-            col = self.table_main.columnCount() - 1  # Get the current row
-            item = self.table_main.item(0, col)  # Get the first column item
-            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            return
-        
-        def skip_to_mid():
-            # row = self.table_main.rowCount() - 2  # Get the current row
-            col = self.table_main.columnCount() - 1  # Get the current row
-            item = self.table_main.item(0, col // 2)  # Get the first column item
-            self.table_main.scrollToItem(item, QHeaderView.ScrollHint.PositionAtCenter)
-            return
+        def move_cursor(position: str):
+            """
+            Di chuyển con trỏ đến vị trí được chỉ định trong cột: "first", "middle", "last"
+            """
+            self.get_change_history()
+            data_range = self.sheet.range("F2").expand("right")  # Lấy phạm vi dữ liệu theo cột
+            total_cols = data_range.columns.count  # Số cột trong bảng
 
+            if total_cols == 0:
+                return  # Không có dữ liệu thì không làm gì cả
 
-        self.HandlerData.clicked.connect(changeTypeCount)
-        SaveData.clicked.connect(saveChange)
-        self.ChangeNumber.currentIndexChanged.connect(changeTableNumber)
-        BackUp.clicked.connect(self.backUpRows)
-        Delete.clicked.connect(self.delete_all_rows)
-        DeleteRow.clicked.connect(self.DeleteThongRow)
-        swapRow.clicked.connect(self.swapThongRow)
-        CopyRow.clicked.connect(copyRow_Click)
-        DeleteColor.clicked.connect(self.delete_color_click)
-        SaveFile.clicked.connect(saveFile_click)
-        SettingType.clicked.connect(self.setting_type_click)
-        ThongInput.clicked.connect(type_with_button)
-        save_back_up.clicked.connect(self.saveBackUp)
-        backToFirst.clicked.connect(back_to_first)
-        skipToEnd.clicked.connect(skip_to_end)
-        skipToMind.clicked.connect(skip_to_mid)
+            if position == "first":
+                col_index = 6  # Cột đầu tiên (A)
+            elif position == "middle":
+                col_index = (int(total_cols) / 2) + 1  # Cột giữa
+            elif position == "last":
+                col_index = total_cols  # Cột cuối cùng
+            else:
+                SendMessage("Vị trí không hợp lệ!")
+                return
+
+            cell = self.sheet.cells(2, col_index)  # Chọn ô đầu tiên của cột tương ứng (hàng 2)
+            cell.api.Activate()  # Di chuyển con trỏ đến ô đó
+
+        backToFirst.clicked.connect(lambda: move_cursor("first")) # Về Cột Đầu
+        swapRow.clicked.connect(self.swapThongRow) # Đổi Dòng DL
+        CopyRow.clicked.connect(copyRow_Click) # Chép Dòng DL
+        skipToMind.clicked.connect(lambda: move_cursor("middle")) # Về Cột Giữa
+        DeleteRow.clicked.connect(self.DeleteThongRow) # Xóa DL dòng
+        Delete.clicked.connect(self.delete_all_rows) # Xóa tất cả DL
+        DeleteColor.clicked.connect(self.delete_color_click) # Xóa Màu (Bỏ)
+        self.ChangeNumber.currentIndexChanged.connect(changeTableNumber) # Chọn bộ chuyển đổi
+        skipToEnd.clicked.connect(lambda: move_cursor("last")) # Về cột cuối
+        save_back_up.clicked.connect(self.saveBackUp) # Đặt DL gốc (Bỏ)
+        BackUp.clicked.connect(self.backUpRows) # Khôi phục DL gốc (Bỏ)
+        SaveFile.clicked.connect(saveFile_click) # Đồng Bộ DL
+        self.HandlerData.clicked.connect(changeTypeCount) # Bật/Tắt Tùy Chỉnh
+        SaveData.clicked.connect(saveChange) # Lưu
+        ThongInput.clicked.connect(type_with_button) # Nhập liệu Thông
+        SettingType.clicked.connect(self.setting_type_click) # Cài đặt thông
 
         
         # Default value
@@ -592,34 +561,10 @@ class ThongPage(QWidget):
         self.prev_selected_row = None
         self.current_select = []
 
-    def freeze_col_stt(self, value):
-        pass
-        # if value >= self.start_col:
-        #     self.table_main.horizontalHeader().moveSection(self.value_col, value)
-        #     self.value_col = value
-        # elif value < self.start_col:
-        #     value = self.start_col
-        #     self.table_main.horizontalHeader().moveSection(self.value_col, value)
-        #     self.value_col = value
-
-    def deleteOldWidgetThongs(self):
-        # / Delete old table main and buttons
-        if self.table_main:
-            self.table_main.deleteLater()
-            self.widget_main.layout().removeWidget(self.table_main)
-            self.table_main = None
-        if self.button_wid_main:
-            self.button_wid_main.deleteLater()
-            self.layout_thong.layout().removeWidget(self.button_wid_main)
-            self.button_wid_main = None
-
     def updateHeaderRow(self):
         value_thong = self.thong_db["value"]
-        colCount = value_thong
+        thong_per_luot = self.thong_db["thong_per_luot"]
         isThong_one = 200
-        self.table_main.setColumnCount(0)
-        self.table_main.setColumnCount(colCount + 4 + isThong_one)
-        self.table_title.setColumnCount(colCount + 4 + isThong_one)
 
         # Setting header Thong
 
@@ -650,10 +595,13 @@ class ThongPage(QWidget):
             [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
         ]
         thong_header_label = []  # Lưu nhãn tiêu đề
+        self.e_positions = []
+        self.h_positions = []
+        self.e_indices = []
+        self.h_indices = []
 
         # Biến số lượng cột và các giá trị liên quan
         total_columns = value_thong
-        isThong_one = 200  # Điều kiện thêm E
 
         if isThong_one != 0:
             # Số cột tổng cộng
@@ -662,22 +610,29 @@ class ThongPage(QWidget):
             # Số lượt trong mỗi tập
             rounds_per_set = 10
             # Số thông trong mỗi lượt
-            columns_per_round = 15
-
-            # Mảng lưu kết quả
-            thong_header_label = []
+            columns_per_round = thong_per_luot
 
             # Lặp qua từng tập
             for set_index in range(num_sets):
                 # Lặp qua từng lượt trong mỗi tập
                 for round_index in range(rounds_per_set):
+                    # Calculate index for coloring
+                    current_index = set_index * rounds_per_set + round_index
                     # Tính chỉ số cột bắt đầu và kết thúc của lượt
                     start_col = (set_index * rounds_per_set * columns_per_round) + (round_index * columns_per_round)
                     end_col = start_col + columns_per_round
+                    current_pos = len(thong_header_label) + 5
                     
                     # Thêm cột e và h trước mỗi lượt
                     e = f"E + {modifications_a[set_index][round_index]}"
                     h = f"H + {steps[set_index][round_index]}"
+
+                    self.e_positions.append((2, current_pos + 1))  # +1 because positions are 1-based in xlwings
+                    self.h_positions.append((2, current_pos + 2))
+                
+                    # Store indices for color determination
+                    self.e_indices.append(current_index)
+                    self.h_indices.append(current_index)
                     thong_header_label.append(e)
                     thong_header_label.append(h)
                     
@@ -688,12 +643,9 @@ class ThongPage(QWidget):
             thong_header_label = [f"T.{thong + 1}" for thong in range(total_columns)]
         
         header_labels = ["A", "B", "C", "D"] + thong_header_label
-        self.table_main.setHorizontalHeaderLabels(header_labels)
+        return header_labels
 
     def updateRowAndColumns(self):
-        if self.table_main is None:
-            return
-
         # Lấy dữ liệu cần thiết
         meta_number = self.stay.get('thong', 0)
         if meta_number == 0:
@@ -701,153 +653,100 @@ class ThongPage(QWidget):
             meta_number = current_ban_info_number
 
         stt = self.thong_db["stt"][meta_number]
-        value_thong = self.thong_db["value"]
         data_value = self.thong_db["data"]
         thong_data = self.thong_data
-        row_count = len(thong_data[0])
-
-        # Cấu hình bảng
-        self.table_main.clearContents()
-        self.table_main.setRowCount(0)
-        self.table_main.setRowCount(row_count)
-
-        # Hàm hỗ trợ tạo QTableWidgetItem
-        def create_table_item(value, alignment=Qt.AlignmentFlag.AlignCenter, background=None, thong_data=None):
-            item = QTableWidgetItem(str(value))
-            if alignment is not None:
-                item.setTextAlignment(alignment)
-            if background:
-                item.setBackground(background)
-            if thong_data is not None:
-                item.setData(Qt.ItemDataRole.UserRole, thong_data)
-            return item
 
         # * Cập nhật tiêu đề hàng (STT)
-        vertica_header = [f'{stt_value:02}' for i, stt_value in enumerate(stt)]
-        self.table_main.setVerticalHeaderLabels(vertica_header)
+        data_stt = []
+        for i, stt_value in enumerate(stt):
+            item = []
+            item.append(stt_value)
+            data_stt.append(item)
 
         # * Xử lý dữ liệu nếu cần thay đổi số
-        if meta_number != 0 and not self.isShow:
-            data_value = [
-                [TachVaGhep(meta_number, value) for value in row]
-                for row in data_value
-            ]
+        # if meta_number != 0 and not self.isShow:
+        #     data_value = [
+        #         [TachVaGhep(meta_number, value) for value in row]
+        #         for row in data_value
+        #     ]
 
+        data_custom = []
         # * Cập nhật dữ liệu từ data_value
-        for i, col_values in enumerate(data_value):
-            for j, cell_value in enumerate(col_values):
-                background = self.stt_highlight if i in (0, 2) else None
-                item = create_table_item(cell_value, background=background, thong_data={"row": j, "index": i, "name": "data_custom"})
-                self.table_main.setItem(j, i, item)
+        for i in range(131):
+            row_items = []
+            for j, cell_value in enumerate(data_value):
+                row_items.append(cell_value[i])
+            data_custom.append(row_items)
 
         # * Cập nhật dữ liệu từ thong_data
-        isThong_step = 15
-        if isThong_step == 15:
-            self.table_title.setSpan(0, 0, 1, 4)
-            count_luot = 0
+        info_headers = []
+        data_thong = []
+        thong_per_luot = self.thong_db["thong_per_luot"]
+        isThong_step = thong_per_luot
+        # if isThong_step == 15:
+        count_luot = 0
 
-            # Duyệt qua các tập (8 tập)
+        # Duyệt qua các tập (10 tập)
+        for tap_index in range(10):
+            for luot_title in range(10):  # Mỗi tập có 10 lượt
+                span_start_col = 6 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
+                span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
+                tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
+                
+                header_text = f"{tap}Lượt {count_luot + 1}"
+                # Excel range string
+                start_col_letter = xw.utils.col_name(span_start_col)
+                end_col_letter = xw.utils.col_name(span_start_col + span_colspan - 1)
+                range_str = f"{start_col_letter}1:{end_col_letter}1"
+
+                info_headers.append({
+                    'text': header_text,
+                    'range': range_str,
+                    'start_col_letter': start_col_letter,
+                    'end_col_letter': end_col_letter,
+                    'tap_index': tap_index,
+                    'luot_index': count_luot
+                })
+                count_luot += 1
+
+        for row in range(131):  # Số lượng hàng (131 là ví dụ)
+            data_row_thong = []
+            # Duyệt qua từng tập và lượt
             for tap_index in range(10):
-                for luot_title in range(10):  # Mỗi tập có 10 lượt
-                    span_start_col = 4 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
-                    span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
-                    tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
+                for luot in range(10):
+                    luot_index = tap_index * 10 + luot
+                    start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
 
-                    self.table_title.setSpan(0, span_start_col, 1, span_colspan)
-                    item = QTableWidgetItem(f"{tap}Lượt {count_luot + 1}")
-                    item.setTextAlignment(Qt.AlignCenter)
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignLeft)
-                    self.table_title.setItem(0, span_start_col, item)
-                    count_luot += 1
+                    # Thêm cột E và H
+                    if row < len(self.thong_sp) and luot_index < len(self.thong_sp[row]):
 
-            for row in range(131):  # Số lượng hàng (131 là ví dụ)
-                # Duyệt qua từng tập và lượt
-                for tap_index in range(10):
-                    for luot in range(10):
-                        luot_index = tap_index * 10 + luot
-                        start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
+                        # E column
+                        e_row = self.thong_sp[row][luot_index][0]
+                        data_row_thong.append(e_row)
 
-                        # Thêm cột E và H
-                        if row < len(self.thong_sp) and luot_index < len(self.thong_sp[row]):
-                            bg_color = QColor("#b581ff") if luot_index % 10 == 0 else QColor("#FFD700")
+                        # H column
+                        h_row = self.thong_sp[row][luot_index][1]
+                        data_row_thong.append(h_row)
 
-                            # E column
-                            e_row = self.thong_sp[row][luot_index][0]
-                            item_e = create_table_item(e_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 0})
-                            self.table_main.setItem(row, start_col, item_e)
-
-                            # H column
-                            h_row = self.thong_sp[row][luot_index][1]
-                            item_h = create_table_item(h_row, Qt.AlignmentFlag.AlignCenter, bg_color, {"row": row, "index": luot_index, "name": "thong_sp", "pos": 1})
-                            self.table_main.setItem(row, start_col + 1, item_h)
-
-                        # Thêm 10 cột thong
-                        thong_start_index = luot_index * isThong_step  # Tính chỉ số bắt đầu cho thong_data
-                        for thong_col in range(isThong_step):
-                            thong_index = thong_start_index + thong_col
-                            if thong_index < len(thong_data) and row < len(thong_data[thong_index]):
-                                thong_row = thong_data[thong_index][row]
-                                item = create_table_item(thong_row, Qt.AlignmentFlag.AlignCenter, None, {"row": row, "index": thong_index, "name": "thong"})
-                                self.table_main.setItem(
-                                    row,
-                                    start_col + 2 + thong_col,  # Sau 2 cột E và H
-                                    item,
-                                )
-
-
-        # else:
-        #     for i, thong_row in enumerate(thong_data):
-        #         for j, cell_value in enumerate(thong_row):
-        #             item = create_table_item(cell_value, thong_data={"row":row ,"index": i, "name": "thong"})
-        #             self.table_main.setItem(j, i + 4, item)
-
-        
-        # * To mau du lieu
-        # setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
-        # if setting == 1:
-        #     for i in range(0, value_thong, 30):
-        #         for k in range(30):
-        #             if k == 0:
-        #                 for r in range(row_count):
-        #                     item = self.table_main.item(r, i + k + 4)
-        #                     item.setBackground(QColor("#ffd867"))
-        #             elif k == 1:
-        #                 for r in range(row_count):
-        #                     item = self.table_main.item(r, i + k + 4)
-        #                     item.setBackground(QColor("#ffd867"))
-        # else:
-        #     for i in range(0, value_thong, 10):
-        #         for k in range(10):
-        #             if k == 0:
-        #                 for r in range(row_count):
-        #                     item = self.table_main.item(r, i + k + 4)
-        #                     item.setBackground(QColor("#ffd867"))
-
-        # Xóa màu click
-        self.delete_color_click()
+                    # Thêm 10 cột thong
+                    thong_start_index = luot_index * isThong_step  # Tính chỉ số bắt đầu cho thong_data
+                    for thong_col in range(isThong_step):
+                        thong_index = thong_start_index + thong_col
+                        if thong_index < len(thong_data) and row < len(thong_data[thong_index]):
+                            thong_row = thong_data[thong_index][row]
+                            data_row_thong.append(thong_row)
+            data_thong.append(data_row_thong)
+        return {
+            'headers': info_headers,
+            "custom": data_custom,
+            "data_thong": data_thong,
+            "data_stt": data_stt
+        }
 
     def delete_all_rows(self):
         rowCount = len(self.thong_data[0])
-        data_value = self.thong_db["data"]
-        current_number = self.ChangeNumber.currentIndex()
-        stt = self.thong_db["stt"][current_number]
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
-        
-
-        # self.table_main.setRowCount(0)
-        # self.table_main.setRowCount(rowCount)
-
-        # for i in range(len(data_value)):
-        #     value_col = data_value[i]
-        #     for j in range(len(value_col)):
-        #         item = QTableWidgetItem(f"{value_col[j]}")
-        #         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-        #         self.table_main.setItem(j, i, item)
-        #         if i == 0 or i == 2:
-        #             item.setBackground(self.stt_highlight)
+        self.toggle_editable(True)
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
 
         # * Delete du lieu Thong data * thong sp
         for row in range(rowCount):
@@ -859,15 +758,9 @@ class ThongPage(QWidget):
                 for i in range(len(self.thong_sp[0])):
                     self.thong_sp[row][i] = ["",""]
 
-
-
-        # * Render Rows STT First
-        vertica_header = [f'{stt_value:02}' for i, stt_value in enumerate(stt)]
-        self.table_main.setVerticalHeaderLabels(vertica_header)
-
         self.show_loading_screen()
         self.thread = Thread()
-        self.thread.task_completed.connect(lambda: self.updateWidget([self.updateRowAndColumns]))
+        self.thread.task_completed.connect(lambda: self.updateWidget([self.update_excel]))
         self.thread.task_completed.connect(
             lambda: SendMessage("Bạn đã xóa toàn bộ dữ liệu thành công")
         )
@@ -903,17 +796,11 @@ class ThongPage(QWidget):
         if number != 0:
             SendMessage(f"Không thể đặt DL gốc ở bộ chuyển đổi {number}")
             return
+        self.get_change_history()
         data = {}
-        data["id"] = self.thong_db["id"]
+        data["data"] = self.thong_db
         data["thong_data"] = self.thong_data
-        data["custom"] = self.thong_db["data"]
         data["thong_sp"] = self.thong_sp
-
-        # / Check isEditor
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
 
         res = saveBackupThong(data)
         self.thong_data = res["thong_data"]
@@ -955,14 +842,11 @@ class ThongPage(QWidget):
         self.thread.start()
 
     def saveThongRow(self):
+        self.get_change_history()
         data = {}
+        data["data"] = self.thong_db
         data["update"] = self.thong_data
-        data["custom"] = self.thong_db["data"]
-        data["id"] = self.thong_db["id"]
         data["number"] = self.ban_info["meta"]['number']
-        data["stt"] = self.thong_db["stt"]
-        data["change"] = self.thong_db["change"]
-        data["setting"] = self.thong_db["setting"]
 
         msg = saveThong(data)
 
@@ -978,10 +862,8 @@ class ThongPage(QWidget):
 
     def swapThongRow(self):
         # / Check isEditor
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
+        self.toggle_editable(True)
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
         # / Thong Data and Thong info
         current_number = self.ChangeNumber.currentIndex()
         stt = self.thong_db["stt"][current_number]
@@ -1020,12 +902,11 @@ class ThongPage(QWidget):
         self.thong_db["stt"][current_number] = shifted_stt
         self.thong_data = shifted_data
         self.thong_sp = shifted_thong_sp
-        # self.updateHeaderRow()
 
         self.show_loading_screen()
         self.thread = Thread()
         self.thread.task_completed.connect(
-            lambda: self.updateWidget([self.updateRowAndColumns])
+            lambda: self.updateWidget([self.update_excel])
         )
         self.thread.task_completed.connect(
             lambda: SendMessage(
@@ -1037,36 +918,49 @@ class ThongPage(QWidget):
 
     def DeleteThongRow(self):
         # / Check isEditor
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
-        if self.selected_row_indices is None:
-            SendMessage("Xin vui lòng chọn 1 dòng để tiến hành xóa dữ liệu!")
-            return
+        self.toggle_editable(True)  # Cho phép chỉnh sửa trước khi xóa
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
+        # Lấy đối tượng App từ Workbook
+        app = self.sheet.book.app  
 
-        # / Find Select Row
-        data_select = list(self.selected_row_indices)
-        for row in data_select:
-            for i in range(len(self.thong_data[0])):
-                self.thong_data[i][row] = ""
+        try:
+            # Lấy vùng được chọn
+            selection = app.selection
+            if selection is None:
+                SendMessage("Vui lòng chọn ít nhất một dòng!")
+                return None
 
-            isThong_one = True
-            if isThong_one:
-                for i in range(len(self.thong_sp[0])):
-                    self.thong_sp[row][i] = ["",""]
+            # Lấy tất cả các dòng từ các vùng chọn, giữ nguyên thứ tự
+            selected_rows = []
+            seen_rows = set()  # Để kiểm tra trùng lặp mà không thay đổi thứ tự
+            for area in selection.api.Areas:  # Duyệt qua từng vùng chọn riêng lẻ
+                for row in area.Rows:  # Duyệt qua từng dòng trong vùng
+                    row_num = row.Row  # Không trừ 1 để giữ nguyên số dòng Excel
+                    if row_num not in seen_rows:  # Chỉ thêm nếu chưa gặp
+                        selected_rows.append(row_num)
+                        seen_rows.add(row_num)
 
-        self.show_loading_screen()
-        self.thread = Thread()
-        self.thread.task_completed.connect(
-            lambda: self.updateWidget([self.updateRowAndColumns])
-        )
-        self.thread.task_completed.connect(
-            lambda: SendMessage(
-                "Đã xóa dữ liệu dòng thành công, xin vui lòng lưu dữ liệu lại"
-            )
-        )
-        self.thread.start()
+            # Xóa dòng
+            for row in selected_rows:
+                for i in range(len(self.thong_data[0])):
+                    self.thong_data[i][row - 3] = ""
+
+                isThong_one = True
+                if isThong_one:
+                    for i in range(len(self.thong_sp[0])):
+                        self.thong_sp[row - 3][i] = ["",""]
+
+            # Cập nhật giao diện
+            self.show_loading_screen()
+            self.thread = Thread()
+            self.thread.task_completed.connect(lambda: self.updateWidget([self.update_excel]))
+            self.thread.task_completed.connect(lambda: SendMessage(f"Đã xóa dòng {selected_rows.join(", ")} thành công, xin vui lòng lưu dữ liệu lại"))
+            self.thread.start()
+
+        except Exception as e:
+            print(f"Lỗi khi xóa dòng: {e}")
+            SendMessage("Không thể xóa dòng. Vui lòng thử lại!")
+
         return
 
     def changeDataThongWithNumber(self, number):
@@ -1078,24 +972,18 @@ class ThongPage(QWidget):
             data = json.load(file)
             self.thong_data = data
 
-        # SendMessage(f"Đã mở Bộ chuyển đổi {number}")
-
     def copyRowThong(self, selceted_rows):
         # / Check isEditor
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
+        self.toggle_editable(True)
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
 
-        row1 = selceted_rows[0]
-        row2 = selceted_rows[1]
-        row1_h = f"{row1 + 1:02}"  # Ensure proper formatting for display
-        row2_h = f"{row2 + 1:02}"
+        row1 = selceted_rows[0] - 3
+        row2 = selceted_rows[1] - 3
         # / Check row2 selected, if it not null is return
         for i in range(len(self.thong_data)):
             item = self.thong_data[i][row2]
             if len(str(item)) != 0:
-                SendMessage(f"Dòng nhận chưa được xóa dữ liệu! (Dòng {row2_h})")
+                SendMessage(f"Dòng nhận chưa được xóa dữ liệu! (Dòng {selceted_rows[1]})")
                 return
         for i in range(len(self.thong_data)):
             sender = self.thong_data[i][row1]
@@ -1104,11 +992,11 @@ class ThongPage(QWidget):
         self.show_loading_screen()
         self.thread = Thread()
         self.thread.task_completed.connect(
-            lambda: self.updateWidget([self.updateRowAndColumns])
+            lambda: self.updateWidget([self.update_excel])
         )
         self.thread.task_completed.connect(
             lambda: SendMessage(
-                f"Đã copy dữ liệu từ dòng {row1_h} sang dòng {row2_h} thành công!"
+                f"Đã copy dữ liệu từ dòng {selceted_rows[0]} sang dòng {selceted_rows[1]} thành công!"
             )
         )
         self.thread.start()
@@ -1116,7 +1004,7 @@ class ThongPage(QWidget):
         return
 
     def setting_type_click(self):
-        setting = self.thong_db["setting"]
+        setting = self.thong_db["thong_per_luot"]
         # / Config Icon Windows
         icon = self.path.path_logo()
 
@@ -1135,15 +1023,15 @@ class ThongPage(QWidget):
         setting_dialog_l = QGridLayout(setting_dialog_w)
         dialog_layout.addWidget(setting_dialog_w)
 
-        type_label = QLabel("Tên App (0: App Trắng; 1: App 1 Số; 2: App 2 Số)")
+        type_label = QLabel("Số thông mỗi lượt:")
         type_label.setStyleSheet(css_lable)
         setting_dialog_l.addWidget(type_label, 0, 0)
 
         type_input = QSpinBox()
         type_input.setFixedWidth(100)
         type_input.setStyleSheet(css_input)
-        type_input.setMinimum(0)
-        type_input.setMaximum(2)
+        type_input.setMinimum(1)
+        type_input.setMaximum(9999)
         type_input.setValue(setting)
         setting_dialog_l.addWidget(type_input, 1, 0)
 
@@ -1162,8 +1050,12 @@ class ThongPage(QWidget):
 
         # TODO Handler Button
         def submit_click():
-            self.thong_db["setting"] = type_input.value()
+            value = type_input.value()
+            self.thong_db["thong_per_luot"] = value
+            self.thong_db["value"] = value * 100 # 100 là tổng lượt toán
             dialog.reject()
+            SendMessage("Xin vui lòng mở lại bảng thông")
+            changeThongPerLuot({"data": self.thong_db, "update": self.thong_data})
 
         def cancel_click():
             dialog.reject()
@@ -1173,10 +1065,8 @@ class ThongPage(QWidget):
 
     def button_show_abc(self):
         # / Check isEditor
-        isEditor = self.table_main.editTriggers()
-        if isEditor != QTableWidget.EditTrigger.NoEditTriggers:
-            self.table_main.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-            self.HandlerData.setText("Tắt Tùy Chỉnh")
+        self.toggle_editable(True)
+        self.HandlerData.setText("Tắt Tùy Chỉnh")
             
         if self.isShow:
             self.hidden.setText("Hiện ABCD Gốc")
@@ -1184,7 +1074,7 @@ class ThongPage(QWidget):
             self.show_loading_screen()
             self.thread = Thread()
             self.thread.task_completed.connect(
-                lambda: self.updateWidget([self.updateRowAndColumns])
+                lambda: self.updateWidget([self.update_excel])
             )
             self.thread.start()
         else:
@@ -1193,7 +1083,7 @@ class ThongPage(QWidget):
             self.show_loading_screen()
             self.thread = Thread()
             self.thread.task_completed.connect(
-                lambda: self.updateWidget([self.updateRowAndColumns])
+                lambda: self.updateWidget([self.update_excel])
             )
             self.thread.start()
 
@@ -1226,21 +1116,20 @@ class ThongPage(QWidget):
         result = message.exec()
 
         if result == QMessageBox.Yes:
+            self.get_change_history()
             data = {}
             data["update"] = self.thong_data
-            data["custom"] = self.thong_db["data"]
-            data["name"] = self.thong_db["name"]
             data["number"] = self.ban_info["meta"]['number']
-            data["stt"] = self.thong_db["stt"]
-            data["change"] = self.thong_db["change"]
-            data["type_count"] = self.thong_db["type_count"]
-            data["pm"] = self.thong_db["pm"]
             data["thong_sp"] = self.thong_sp
-            # isThong_one = True
-            # if isThong_one:
-            #     data["thong_sp"] = self.thong_sp
+            data["data"] = self.thong_db
+            # data["custom"] = self.thong_db["data"]
+            # data["name"] = self.thong_db["name"]
+            # data["stt"] = self.thong_db["stt"]
+            # data["change"] = self.thong_db["change"]
+            # data["type_count"] = self.thong_db["type_count"]
+            # data["pm"] = self.thong_db["pm"]
+
             msg = saveAllThong(data)
-            self.delete_color_click()
             self.show_loading_screen()
             self.thread = Thread()
             self.thread.task_completed.connect(
@@ -1249,4 +1138,143 @@ class ThongPage(QWidget):
             self.thread.task_completed.connect(
                 lambda: SendMessage(msg)
             )
+            
             self.thread.start()
+
+    # TODO Excel Function
+    def get_change_history(self):
+        thong_per_luot = self.thong_db["thong_per_luot"]
+        meta_number = self.stay.get('thong', 0)
+        if meta_number == 0:
+            current_ban_info_number = self.ban_info["meta"]["number"]
+            meta_number = current_ban_info_number
+        # Đọc dữ liệu từ bảng
+        data_stt = pd.DataFrame(self.sheet.range("A3").expand().value)
+        data_all = pd.DataFrame(self.sheet.range("B2").expand().value)
+        # Bỏ hàng đầu tiên (index 0)
+        data_all = data_all.drop(index=0)
+
+        # Nếu bạn muốn reset lại index sau khi bỏ hàng
+        data_all.reset_index(drop=True, inplace=True)
+        data_all = data_all.fillna("")
+        
+        thong_custom = data_all.iloc[:, :4]
+        stt = data_stt.iloc[:, 0]
+        thong_data = []
+        thong_sp = []
+        # Xử lý phần còn lại của dữ liệu
+        remaining_data = data_all.iloc[:, 4:]
+        value_group = thong_per_luot + 2
+        for index, row in remaining_data.iterrows():
+            row_thong_sp = []
+            row_thong_data = []
+            
+            # Xử lý từng nhóm 17 cột
+            for i in range(0, len(row), value_group):
+                group = row.iloc[i:i+value_group]
+                
+                luot_thong_sp = [group.iloc[0], group.iloc[1]]  # 2 cột đầu
+                row_thong_sp.append(luot_thong_sp)
+                
+                # Thêm các cột còn lại vào thong_data
+                row_thong_data.extend(group.iloc[2:])
+            
+            thong_sp.append(row_thong_sp)
+            thong_data.append(row_thong_data)
+
+        # Chuyển đổi thành DataFrame để dễ xử lý
+        df_thong_data = pd.DataFrame(thong_data)
+        df_thong_custom = thong_custom.T.values.tolist()
+        df_thong_stt = stt.T.values.tolist()
+
+        # Gán dữ liệu cho self.thong_data (chuyển đổi lại thành định dạng bạn cần)
+        number_change = []
+        for j, thong in enumerate(df_thong_data.T.values.tolist()):
+            thong_index = []
+            for k, item in enumerate(thong):
+                if item != "":
+                    # Chuyển chuỗi thành số thực (float) trước
+                    item = float(item)
+                    # Sau đó áp dụng math.floor()
+                    item = math.floor(item)
+                    thong_index.append(item)
+                else:
+                    thong_index.append(item)
+            number_change.append(thong_index)
+        
+        self.thong_data = number_change  # Chuyển vị ma trận
+        self.thong_sp = thong_sp
+        self.thong_db["data"] = df_thong_custom
+        self.thong_db["stt"][meta_number] = df_thong_stt
+
+    def update_excel(self):
+        header_lables = self.updateHeaderRow()
+        data_row = self.updateRowAndColumns()
+        data_headers = data_row.get("headers")
+        data_stt = data_row.get("data_stt")
+        data_custom = data_row.get("custom")
+        data_thong = data_row.get("data_thong")
+        if data_headers:
+            for header in data_headers:
+                lable = header.get("text")
+                start_col_letter = header.get("start_col_letter")
+                self.sheet.range(f"{start_col_letter}1").value = lable
+
+        self.sheet.range("A2").value = [["STT"] + header_lables]  # Tiêu đề
+        self.sheet.range("A3:A3").value = data_stt
+        self.sheet.range("B3:E3").value = data_custom
+        self.sheet.range("F3").value = data_thong
+
+        for i, (row, col) in enumerate(self.e_positions):
+            # Get the column letter
+            col_letter = self.sheet.cells(1, col).address.split('$')[1]
+            # Color the entire column (or a specific range in that column)
+            column_range = f"{col_letter}:{col_letter}"  # Entire column
+            # Or specify a range like: f"{col_letter}2:{col_letter}100"
+            
+            # Apply color
+            if self.e_indices[i] % 10 == 0:
+                self.sheet.range(column_range).color = (255, 255, 102)
+            else:
+                self.sheet.range(column_range).color =  (77, 147, 217)
+
+        # Similar for H positions
+        for i, (row, col) in enumerate(self.h_positions):
+            col_letter = self.sheet.cells(1, col).address.split('$')[1]
+            column_range = f"{col_letter}:{col_letter}"
+            
+            if self.h_indices[i] % 10 == 0:
+                self.sheet.range(column_range).color = (255, 255, 102)
+            else:
+                self.sheet.range(column_range).color = (77, 147, 217)
+
+        # Tự động căn chỉnh kích thước cột dựa trên nội dung
+        self.sheet.autofit('c')  # 'c' để autofit các cột
+
+        # # Chọn ô B1 (Excel sẽ đóng băng tất cả cột bên trái ô này, tức là cột A)
+        self.sheet.range("F3").select()
+
+        # # Đóng băng cột A
+        self.wb.app.api.ActiveWindow.FreezePanes = True
+        self.toggle_editable(False)
+
+    def toggle_editable(self, enable_edit: bool):
+        """Bật/Tắt chế độ chỉnh sửa nhưng vẫn cho phép thay đổi định dạng"""
+        self.sheet.api.Unprotect(Password=self.pwd)  # Bỏ bảo vệ sheet trước khi thay đổi
+
+        if enable_edit:
+            self.table_range.api.Locked = False  # Mở khóa để chỉnh sửa dữ liệu
+        else:
+            self.table_range.api.Locked = True  # Khóa dữ liệu nhưng không khóa định dạng
+
+        # Bảo vệ sheet nhưng cho phép định dạng (AllowFormattingCells=True)
+        self.sheet.api.Protect(Password=self.pwd, AllowFormattingCells=True, AllowFormattingColumns=True, AllowFormattingRows=True)
+
+    def closeEvent(self, event):
+        """Xử lý khi cửa sổ PySide6 đóng"""
+        if self.wb:
+            self.wb.close()  # Đóng workbook mà không lưu
+        if self.app:
+            self.app.quit()  # Đóng Excel ngay lập tức
+        event.accept()  # Chấp nhận sự kiện đóng
+
