@@ -17,83 +17,186 @@ Private Sub Worksheet_BeforeRightClick(ByVal Target As Range, Cancel As Boolean)
     Dim nameWss() As String
     Dim i As Integer
     Dim dateValue As String
+    Dim configParts() As String
+    Dim searchCol As String
+    Dim targetRowIndex As Long
+    Dim targetColIndex As Long
+    Dim searchTarget As Range
+    Dim firstSearchAddress As String
+    Dim foundRow As Range
+    Dim col_a As String, t As Long, thong_range_1 As Long, stt_cot As String, col_d As String, col_t As String, col_e As String
+    Dim colTParts() As String
+    Dim searchValueNew As String
 
-    ' Kiem tra Target co du lieu khong
-    If IsEmpty(Target) Then
-        MsgBox "Du lieu khong duoc toan.", vbExclamation
+    ' L?y giá tr? ngày t? c?t A c?a dòng du?c click
+    dateValue = Me.Range("A" & Target.Row).Value
+
+    ' **--- X? lý giá tr? Target d?a trên Sheet Index ---**
+    If Me.Index = 1 Then ' Sheet Index 1 (tuong ?ng Index 0 theo mô t?)
+        ' Giá tr? dã có d?nh d?ng: col_a/t+thong_range_1+1/stt_cot/col_d
+        selectedValue = Target.Value
+        splitValues = Split(selectedValue, "/")
+        If UBound(splitValues) = 3 Then
+            col_a = splitValues(0)
+            t = CLng(splitValues(1)) ' Tính toán ngu?c l?i giá tr? t
+            stt_cot = splitValues(2)
+            col_d = splitValues(3)
+            
+            Set ws2 = ThisWorkbook.Worksheets(2) ' Ð?t tên bi?n cho sheet 2
+            Set foundDate = ws2.Columns("A").Find(What:=dateValue, LookIn:=xlValues, LookAt:=xlWhole)
+            If Not foundDate Is Nothing Then
+                ' Tìm giá tr? trong sheet 2 (s? d?ng selectedValue d? tìm)
+                Set found = ws2.Rows(foundDate.Row).Find(What:=selectedValue, LookIn:=xlValues, LookAt:=xlPart)
+                If Not found Is Nothing Then
+                    configParts = Split(found.Value, " - ")
+                    If UBound(configParts) >= 1 Then ' Ki?m tra có d? ph?n t?
+                        selectedValue2 = Trim(configParts(0)) ' Ð?t tên bi?n khác
+                        splitValues2 = Split(selectedValue2, "/")
+                        colTParts = Split(Trim(configParts(1)), "/")
+                        If UBound(colTParts) = 1 Then
+                            col_t = Trim(colTParts(0))
+                            col_e = Trim(colTParts(1))
+                        Else
+                            col_t = "" ' Ho?c giá tr? m?c d?nh khác
+                            col_e = "" ' Ho?c giá tr? m?c d?nh khác
+                        End If
+                    Else
+                        col_t = "" ' Ho?c giá tr? m?c d?nh khác
+                        col_e = "" ' Ho?c giá tr? m?c d?nh khác
+                    End If
+                Else
+                    MsgBox "Không tìm th?y d? li?u tuong ?ng trên Sheet 2.", vbExclamation
+                    Exit Sub ' Ho?c x? lý khác
+                End If
+            Else
+                MsgBox "Không tìm th?y ngày tuong ?ng trên Sheet 2.", vbExclamation
+                Exit Sub ' Ho?c x? lý khác
+            End If
+        Else
+            MsgBox "Du lieu khong duoc toan.", vbExclamation
+            Exit Sub
+        End If
+        
+    ElseIf Me.Index >= 2 And Me.Index <= 11 Then ' Sheet Index 2 d?n 11
+        ' Ki?m tra Target có d? li?u không
+        If IsEmpty(Target) Then
+            MsgBox "Du lieu khong duoc toan.", vbExclamation
+            Exit Sub
+        End If
+
+        ' Ki?m tra du li?u có d?u " - " hay không
+        configParts = Split(Target.Value, " - ")
+        selectedValue = Trim(configParts(0))
+        splitValues = Split(selectedValue, "/")
+        If UBound(splitValues) = 3 Then
+            col_a = splitValues(0)
+            t = CLng(splitValues(1)) ' Tính toán ngu?c l?i giá tr? t
+            stt_cot = splitValues(2)
+            col_d = splitValues(3)
+        Else
+            MsgBox "Du lieu khong duoc toan.", vbExclamation
+            Exit Sub
+        End If
+        colTParts = Split(Trim(configParts(1)), "/")
+        If UBound(colTParts) >= 1 Then
+            col_t = Trim(colTParts(0))
+            col_e = Trim(colTParts(1))
+        End If
+    Else
+        ' Các sheet khác (ngoài 0-10), b?n có th? thêm x? lý riêng n?u c?n
         Exit Sub
     End If
-
-    dateValue = Me.Range("A" & Target.Row).Value
     
-    ' Kiem tra du lieu co dau " - " hay khong
     If InStr(Target.Value, " - ") > 0 Then
         ' Tach du lieu tu dau "-"
-        selectedValue = Split(Target.Value, " - ")(0) ' Lay du lieu truoc dau " - "
+        searchValueNew = Split(Target.Value, " - ")(0) ' Lay du lieu truoc dau " - "
     Else
         ' Lay gia tri du lieu o can tim
-        selectedValue = Target.Value
+        searchValueNew = Target.Value
     End If
-    
-    ' Tach gia tri bang dau "/"
-    splitValues = Split(selectedValue, "/")
-    
-    ' Kiem tra du lieu co hop le
-    lengthCheck = UBound(splitValues) - LBound(splitValues) + 1
-    
-    If lengthCheck <> 4 Then
-        MsgBox "Du lieu khong duoc toan.", vbExclamation
-        Exit Sub
-    End If
-    
-    ' Lap qua tat ca cac sheet dang hien co
+
     result = ""
     data = ""
     nameWs = ""
-    For Each ws In ThisWorkbook.Worksheets
-        ' Bo qua sheet dang tim du lieu
-        If ws.Name <> Me.Name Then
-            ' Tim gia tri date trong sheet
-            Set foundDate = ws.Columns("A").Find(What:=dateValue, LookIn:=xlValues, LookAt:=xlWhole)
-            If Not foundDate Is Nothing Then
-                ' Tim gia tri trong sheet
-                Set found = ws.Rows(foundDate.Row).Find(What:=selectedValue, LookIn:=xlValues, LookAt:=xlPart)
-                If Not found Is Nothing Then
-                    result = result & "Ve " & ws.Name & vbCrLf
-                    data = data & found.Address & vbCrLf
-                    nameWs = nameWs & ws.Name & vbCrLf
+
+    ' **--- X? lý tìm ki?m d?a trên Sheet Index ---**
+    If Me.Index <> 12 Then ' Tìm ki?m trên các sheet khác (tr? sheet hi?n t?i và sheet 11)
+        For Each ws In ThisWorkbook.Worksheets
+            ' B? qua sheet hi?n t?i
+            If ws.Name <> Me.Name Then
+                ' Tìm giá tr? date trong sheet
+                Set foundDate = ws.Columns("A").Find(What:=dateValue, LookIn:=xlValues, LookAt:=xlWhole)
+                If Not foundDate Is Nothing Then
+                    ' Tìm giá tr? trong sheet
+                    Set found = ws.Rows(foundDate.Row).Find(What:=searchValueNew, LookIn:=xlValues, LookAt:=xlPart)
+                    If Not found Is Nothing Then
+                        result = result & "Ve " & ws.Name & vbCrLf
+                        data = data & found.Address & vbCrLf
+                        nameWs = nameWs & ws.Name & vbCrLf
+                    End If
                 End If
             End If
-        End If
-    Next ws
+        Next ws
+    End If
     
-    ' Neu khong tim thay du lieu
-    If result = "" Then
-        MsgBox "Du lieu khong duoc tim thay.", vbExclamation
+    If col_t = "?" Then
+        searchCol = col_a
     Else
-        ' Kiem tra va xoa menu da ton tai
+        searchCol = col_t
+    End If
+    
+    Dim targetValueToFind As String
+    targetValueToFind = "T. " & t
+
+    ' Tìm ô ch?a giá tr? "T. {t}" trong Sheet Index 12
+    With ThisWorkbook.Sheets(12).Cells
+        Set searchTarget = .Find(What:=targetValueToFind, LookIn:=xlValues, LookAt:=xlWhole)
+        If Not searchTarget Is Nothing Then
+            ' L?y ch? s? c?t c?a ô tìm th?y
+            targetColIndex = searchTarget.Column
+            
+            result = result & "Ve " & ThisWorkbook.Sheets(12).Name & vbCrLf
+            data = data & targetColIndex & vbCrLf
+            nameWs = nameWs & ThisWorkbook.Sheets(12).Name & vbCrLf
+            
+        End If
+    End With
+
+
+    ' **--- Hi?n th? Context Menu (n?u tìm th?y d? li?u ? các sheet khác) ---**
+    If result <> "" And Me.Index <> 12 Then
+        ' Ki?m tra và xóa menu dã t?n t?i
         On Error Resume Next
         Application.CommandBars("CustomContextMenu").Delete
         On Error GoTo 0
-        
-        ' Tao menu context new
+
+        ' T?o menu context new
         Set contextMenu = Application.CommandBars.Add("CustomContextMenu", msoBarPopup, False, True)
-        
-        ' Them cac tuy chon menu
+
+        ' Thêm các tùy ch?n menu
         lines = Split(result, vbCrLf)
         datas = Split(data, vbCrLf)
         nameWss = Split(nameWs, vbCrLf)
-
         
-        For i = LBound(lines) To UBound(lines) - 1 ' Bo qua dong cuoi cung
+        Dim lastIndex As Long
+        lastIndex = UBound(lines) - 1
+
+        For i = LBound(lines) To UBound(lines) - 1 ' B? qua dòng cu?i cùng
             Set item = contextMenu.Controls.Add(Type:=msoControlButton)
             item.Caption = lines(i)
-            item.OnAction = "'GoToSheet """ & nameWss(i) & """, """ & datas(i) & """'" ' Call func GoToSheet
+            
+            If i = lastIndex Then
+                item.OnAction = "'GoToBangThong """ & nameWss(i) & """, """ & ConvertColumnIndexToLetter(CLng(datas(i))) & """, """ & searchCol & """'"
+            Else
+                ' X? lý thông thu?ng cho các m?c khác
+                item.OnAction = "'GoToSheet """ & nameWss(i) & """, """ & datas(i) & """'"
+            End If
         Next i
-        
-        ' Hien thi menu
+
+        ' Hi?n th? menu
         contextMenu.ShowPopup
+    ElseIf result = "" And Me.Index <> 12 Then
+        MsgBox "Du lieu khong duoc tim thay o cac sheet khac.", vbExclamation
     End If
+
 End Sub
-
-

@@ -1208,6 +1208,11 @@ class ThongPage(QWidget):
         self.thong_db["stt"][meta_number] = df_thong_stt
 
     def update_excel(self):
+        last_row = self.sheet.range("A1").end("down").row
+        last_col = self.sheet.range("A1").end("right").column
+        table_range = self.sheet.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+
         header_lables = self.updateHeaderRow()
         data_row = self.updateRowAndColumns()
         data_headers = data_row.get("headers")

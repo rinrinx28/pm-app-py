@@ -773,7 +773,7 @@ class SettingTable(QDialog):
             "maxRow": self.maxRow["maxRow"],
             "buttons": self.ban_info["meta"]["buttons"],
             "tables": self.ban_info["meta"]["tables"],
-            "size": self.ban_info['size'] if self.ban_info['size'] else 28
+            "size": self.ban_info.get('size', 28)
         }
         msg = updateColorInsert(data)
         SendMessage(msg["msg"])
@@ -861,12 +861,12 @@ class SettingTable(QDialog):
 
             label_layout.addWidget(label)
             label_layout.addWidget(spin_label)
-            # label_layout.addWidget(btn_notice_label) # Ban toan theo thong 
-            # label_layout.addWidget(widget_btn_notice) # Ban toan theo thong
+            label_layout.addWidget(btn_notice_label) # Ban toan theo thong 
+            label_layout.addWidget(widget_btn_notice) # Ban toan theo thong
 
             spin_boxes.append(spin_label)
-            # spin_boxes.append(spin_label_btn_notice_first) # Ban toan theo thong
-            # spin_boxes.append(spin_label_btn_notice_second) # Ban toan theo thong
+            spin_boxes.append(spin_label_btn_notice_first) # Ban toan theo thong
+            spin_boxes.append(spin_label_btn_notice_second) # Ban toan theo thong
 
             # Thêm widget vào lưới 4 cột
             row = i // 4
@@ -919,7 +919,7 @@ class SettingTable(QDialog):
         config_bao_mau = QWidget()
         config_bao_mau.setStyleSheet("border: 1px solid #999;")
         config_bao_mau_l = QVBoxLayout(config_bao_mau)
-        layout.addWidget(config_bao_mau)
+        # layout.addWidget(config_bao_mau) # Toan theo dong
 
         # / Lable > SpinBox
         config_bao_mau_lable = QLabel(f"Báo màu m{type + 1}")
@@ -959,7 +959,7 @@ class SettingTable(QDialog):
         number_btn_notice_col = QWidget()
         number_btn_notice_col.setStyleSheet("border: 1px solid #999;")
         number_btn_notice_col_l = QVBoxLayout(number_btn_notice_col)
-        layout.addWidget(number_btn_notice_col)
+        layout.addWidget(number_btn_notice_col) 
 
         number_btn_notice_label = QLabel('Số nút màu')
         number_btn_notice_label.setStyleSheet("font-size: 24px;border: 0px;")

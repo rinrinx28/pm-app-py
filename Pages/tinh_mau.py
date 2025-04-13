@@ -129,6 +129,7 @@ class TinhAndMauPage(QWidget):
         self.sheet_m8 = self.wb.sheets.add(after=self.wb.sheets[7], name="Bang mau M8")
         self.sheet_m9 = self.wb.sheets.add(after=self.wb.sheets[8], name="Bang mau M9")
         self.sheet_m10 = self.wb.sheets.add(after=self.wb.sheets[9], name="Bang mau M10")
+        self.sheet_bangThong = self.wb.sheets.add(after=self.wb.sheets[10], name="Bang Thong")
 
         self.pwd = "rindev-pm"
 
@@ -295,6 +296,7 @@ class TinhAndMauPage(QWidget):
         self.loadData()
         # /Render Sheet Excel
         self.reload_widget()
+        self.renderTableThong()
         self.add_vba_code_sheets()
         self.focus_sheet()
         self.renderButton()
@@ -728,37 +730,47 @@ class TinhAndMauPage(QWidget):
         self.TableM1.clicked.connect(changeTableM1)
 
     def renderTableCount(self):
-        formatter = TableFormatter(self.sheet_bt)
-        # Config Header
-        header_thong =  self.updateHeaderCount()
-        # Render row
-        data_row = self.updateTableCount()
-        date_d = data_row.get("date_d")
-        data_r = data_row.get("data_r")
+        try:
+            last_row = self.sheet_bt.range("A1").end("down").row
+            last_col = self.sheet_bt.range("A1").end("right").column
+            table_range = self.sheet_bt.range((1, 1), (last_row, last_col))
+            table_range.clear_contents()
+            table_range.clear_formats()
 
-        headers = [["Ngày"] + header_thong]
-        self.sheet_bt.range("A1").value = headers # Tiêu đề
-        self.sheet_bt.range("A2:A2").value = date_d
-        self.sheet_bt.range("B2").value = data_r
+            formatter = TableFormatter(self.sheet_bt)
+            # Config Header
+            header_thong =  self.updateHeaderCount()
+            # Render row
+            data_row = self.updateTableCount()
+            date_d = data_row.get("date_d")
+            data_r = data_row.get("data_r")
 
-        # Chuẩn bị format rules và data menu
-        format_rules = []
-        for item in self.dataCount:
-            col = item['col'] + 3
-            row = item['row'] + 2
+            headers = [["Ngày"] + header_thong]
+            self.sheet_bt.range("A1").value = headers # Tiêu đề
+            self.sheet_bt.range("A2:A2").value = date_d
+            self.sheet_bt.range("B2").value = data_r
 
-            format_rules.append({
-                'row': row,
-                'col': col,
-                'color': item.get('color'),
-                'notice': item.get('notice')
-            })
-        # Áp dụng định dạng một lần
-        formatter.apply_formats(headers, format_rules)
+            # Chuẩn bị format rules và data menu
+            format_rules = []
+            for item in self.dataCount:
+                col = item['col'] + 3
+                row = item['row'] + 2
 
-        self.sheet_bt.range("B2").select()
+                format_rules.append({
+                    'row': row,
+                    'col': col,
+                    'color': item.get('color'),
+                    'notice': item.get('notice')
+                })
+            # Áp dụng định dạng một lần
+            formatter.apply_formats(headers, format_rules)
 
-        self.wb.app.api.ActiveWindow.FreezePanes = True
+            self.sheet_bt.range("B2").select()
+
+            self.wb.app.api.ActiveWindow.FreezePanes = True
+        except Exception as e:
+            print(f"Đã xảy ra lỗi khi cố găng Tải Dữ liệu bảng Tính {e}")
+            return False
 
     def get_title_text(self, type=None):
         if type is None:
@@ -793,72 +805,97 @@ class TinhAndMauPage(QWidget):
 
     # TODO Handle Table M1
     def renderTableColor(self):
-        formatter = TableFormatter(self.sheet_m1)
+        try:
+            last_row = self.sheet_m1.range("A1").end("down").row
+            last_col = self.sheet_m1.range("A1").end("right").column
+            table_range = self.sheet_m1.range((1, 1), (last_row, last_col))
+            table_range.clear_contents()
+            table_range.clear_formats()
 
-        # Config Header
-        header_thong =  self.updateHeaderColor()
-        # Render row
-        data_row = self.updateTableColor()
-        date_d = data_row.get("date_d")
-        data_r = data_row.get("data_r")
+            formatter = TableFormatter(self.sheet_m1)
 
-        headers = [["Ngày"] + header_thong]
-        self.sheet_m1.range("A1").value = headers # Tiêu đề
-        self.sheet_m1.range("A2:A2").value = date_d
-        self.sheet_m1.range("B2").value = data_r
+            # Config Header
+            header_thong =  self.updateHeaderColor()
+            # Render row
+            data_row = self.updateTableColor()
+            date_d = data_row.get("date_d")
+            data_r = data_row.get("data_r")
 
-        # Chuẩn bị format rules
-        format_rules = []
-        for item in self.dataColor:
-            format_rules.append({
-                'row': item['row'] + 2,
-                'col': item['col'] + 2,
-                'color': item.get('color'),
-                'notice': item.get('notice')
-            })
-        
-        # Áp dụng định dạng một lần
-        formatter.apply_formats(headers, format_rules)
+            headers = [["Ngày"] + header_thong]
+            self.sheet_m1.range("A1").value = headers # Tiêu đề
+            self.sheet_m1.range("A2:A2").value = date_d
+            self.sheet_m1.range("B2").value = data_r
 
-        self.sheet_m1.range("B2").select()
+            # Chuẩn bị format rules
+            format_rules = []
+            for item in self.dataColor:
+                format_rules.append({
+                    'row': item['row'] + 2,
+                    'col': item['col'] + 2,
+                    'color': item.get('color'),
+                    'notice': item.get('notice')
+                })
+            
+            # Áp dụng định dạng một lần
+            formatter.apply_formats(headers, format_rules)
 
-        self.wb.app.api.ActiveWindow.FreezePanes = True
+            self.sheet_m1.range("B2").select()
+
+            self.wb.app.api.ActiveWindow.FreezePanes = True
+        except Exception as e:
+            print(f"Lỗi trong quá trình Render Bảng M1: {e}")
+            return False
         
     # TODO Handle Table M2
     def renderTableColorM2(self):
-        formatter = TableFormatter(self.sheet_m2)
+        try:
+            last_row = self.sheet_m2.range("A1").end("down").row
+            last_col = self.sheet_m2.range("A1").end("right").column
+            table_range = self.sheet_m2.range((1, 1), (last_row, last_col))
+            table_range.clear_contents()
+            table_range.clear_formats()
 
-        # Config Header
-        header_thong =  self.updateHeaderColorM2()
-        # Render row
-        data_row = self.updateTableColorM2()
-        date_d = data_row.get("date_d")
-        data_r = data_row.get("data_r")
+            formatter = TableFormatter(self.sheet_m2)
 
-        headers = [["Ngày"] + header_thong]
-        self.sheet_m2.range("A1").value = headers # Tiêu đề
-        self.sheet_m2.range("A2:A2").value = date_d
-        self.sheet_m2.range("B2").value = data_r
+            # Config Header
+            header_thong =  self.updateHeaderColorM2()
+            # Render row
+            data_row = self.updateTableColorM2()
+            date_d = data_row.get("date_d")
+            data_r = data_row.get("data_r")
 
-        # Chuẩn bị format rules
-        format_rules = []
-        for item in self.dataColor2:
-            format_rules.append({
-                'row': item['row'] + 2,
-                'col': item['col'] + 2,
-                'color': item.get('color'),
-                'notice': item.get('notice')
-            })
-        
-        # Áp dụng định dạng một lần
-        formatter.apply_formats(headers, format_rules)
+            headers = [["Ngày"] + header_thong]
+            self.sheet_m2.range("A1").value = headers # Tiêu đề
+            self.sheet_m2.range("A2:A2").value = date_d
+            self.sheet_m2.range("B2").value = data_r
 
-        self.sheet_m2.range("B2").select()
+            # Chuẩn bị format rules
+            format_rules = []
+            for item in self.dataColor2:
+                format_rules.append({
+                    'row': item['row'] + 2,
+                    'col': item['col'] + 2,
+                    'color': item.get('color'),
+                    'notice': item.get('notice')
+                })
+            
+            # Áp dụng định dạng một lần
+            formatter.apply_formats(headers, format_rules)
 
-        self.wb.app.api.ActiveWindow.FreezePanes = True
-        
+            self.sheet_m2.range("B2").select()
+
+            self.wb.app.api.ActiveWindow.FreezePanes = True
+        except Exception as e:
+            print(f"Đã xảy ra lỗi khi cố găng tải dữ liệu bảng M2 {e}")
+            return False
+    
     # TODO Handle Table M3
     def renderTableColorM3(self):
+        last_row = self.sheet_m3.range("A1").end("down").row
+        last_col = self.sheet_m3.range("A1").end("right").column
+        table_range = self.sheet_m3.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m3)
 
         # Config Header
@@ -890,8 +927,13 @@ class TinhAndMauPage(QWidget):
 
         self.wb.app.api.ActiveWindow.FreezePanes = True
         
-    # TODO Handle Table M6
+    # TODO Handle Table M4
     def renderTableColorM4(self):
+        last_row = self.sheet_m4.range("A1").end("down").row
+        last_col = self.sheet_m4.range("A1").end("right").column
+        table_range = self.sheet_m4.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m4)
 
         # Config Header
@@ -925,6 +967,11 @@ class TinhAndMauPage(QWidget):
         
     # TODO Handle Table M5
     def renderTableColorM5(self):
+        last_row = self.sheet_m5.range("A1").end("down").row
+        last_col = self.sheet_m5.range("A1").end("right").column
+        table_range = self.sheet_m5.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m5)
 
         # Config Header
@@ -958,6 +1005,11 @@ class TinhAndMauPage(QWidget):
         
     # TODO Handle Table M6
     def renderTableColorM6(self):
+        last_row = self.sheet_m6.range("A1").end("down").row
+        last_col = self.sheet_m6.range("A1").end("right").column
+        table_range = self.sheet_m6.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m6)
 
         # Config Header
@@ -991,6 +1043,11 @@ class TinhAndMauPage(QWidget):
         
     # TODO Handle Table M7
     def renderTableColorM7(self):
+        last_row = self.sheet_m7.range("A1").end("down").row
+        last_col = self.sheet_m7.range("A1").end("right").column
+        table_range = self.sheet_m7.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m7)
 
         # Config Header
@@ -1024,6 +1081,11 @@ class TinhAndMauPage(QWidget):
         
     # TODO Handle Table M8
     def renderTableColorM8(self):
+        last_row = self.sheet_m8.range("A1").end("down").row
+        last_col = self.sheet_m8.range("A1").end("right").column
+        table_range = self.sheet_m8.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m8)
 
         # Config Header
@@ -1057,6 +1119,11 @@ class TinhAndMauPage(QWidget):
         
     # TODO Handle Table M9
     def renderTableColorM9(self):
+        last_row = self.sheet_m9.range("A1").end("down").row
+        last_col = self.sheet_m9.range("A1").end("right").column
+        table_range = self.sheet_m9.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m9)
 
         # Config Header
@@ -1090,6 +1157,11 @@ class TinhAndMauPage(QWidget):
         
     # TODO Handle Table M10
     def renderTableColorM10(self):
+        last_row = self.sheet_m10.range("A1").end("down").row
+        last_col = self.sheet_m10.range("A1").end("right").column
+        table_range = self.sheet_m10.range((1, 1), (last_row, last_col))
+        table_range.clear_contents()
+        table_range.clear_formats()
         formatter = TableFormatter(self.sheet_m10)
 
         # Config Header
@@ -1120,7 +1192,264 @@ class TinhAndMauPage(QWidget):
         self.sheet_m10.range("B2").select()
 
         self.wb.app.api.ActiveWindow.FreezePanes = True
+    
+    # TODO Hanle Table Thong
+    def renderTableThong(self):
+        try:
+            # Focus Sheet
+            self.sheet_bangThong.select()
+            self.sheet_bangThong.activate()
+
+            # Format Cells
+            # Xác định phạm vi bảng (tự động tìm kích thước bảng)
+            last_row = self.sheet_bangThong.range("A1").end("down").row
+            last_col = self.sheet_bangThong.range("A1").end("right").column
+            table_range = self.sheet_bangThong.range((1, 1), (last_row, last_col))
+
+            # 🌟 **Áp dụng định dạng cho toàn bảng**
+            table_range.api.Font.Name = "Arial"  # Font chữ
+            table_range.api.Font.Size = 24  # Cỡ chữ
+            table_range.api.HorizontalAlignment = -4108  # Căn giữa
+            table_range.api.VerticalAlignment = -4107  # Căn giữa theo chiều dọc
+            table_range.api.Borders.Weight = 2  # Độ dày đường viền
+            table_range.api.Font.Bold = True  # In đậm tiêu đề
+            table_range.api.NumberFormat = "@"
+
+            header_lables = self.updateHeaderRowThong()
+            data_row = self.updateRowAndColumnsThong()
+            data_headers = data_row.get("headers")
+            data_stt = data_row.get("data_stt")
+            data_custom = data_row.get("custom")
+            data_thong = data_row.get("data_thong")
+            if data_headers:
+                for header in data_headers:
+                    lable = header.get("text")
+                    start_col_letter = header.get("start_col_letter")
+                    self.sheet_bangThong.range(f"{start_col_letter}1").value = lable
+
+            self.sheet_bangThong.range("A2").value = [["STT"] + header_lables]  # Tiêu đề
+            self.sheet_bangThong.range("A3:A3").value = data_stt
+            self.sheet_bangThong.range("B3:E3").value = data_custom
+            self.sheet_bangThong.range("F3").value = data_thong
+
+            for i, (row, col) in enumerate(self.e_positions):
+                # Get the column letter
+                col_letter = self.sheet_bangThong.cells(1, col).address.split('$')[1]
+                # Color the entire column (or a specific range in that column)
+                column_range = f"{col_letter}:{col_letter}"  # Entire column
+                # Or specify a range like: f"{col_letter}2:{col_letter}100"
+                
+                # Apply color
+                if self.e_indices[i] % 10 == 0:
+                    self.sheet_bangThong.range(column_range).color = (255, 255, 102)
+                else:
+                    self.sheet_bangThong.range(column_range).color =  (77, 147, 217)
+
+            # Similar for H positions
+            for i, (row, col) in enumerate(self.h_positions):
+                col_letter = self.sheet_bangThong.cells(1, col).address.split('$')[1]
+                column_range = f"{col_letter}:{col_letter}"
+                
+                if self.h_indices[i] % 10 == 0:
+                    self.sheet_bangThong.range(column_range).color = (255, 255, 102)
+                else:
+                    self.sheet_bangThong.range(column_range).color = (77, 147, 217)
+
+            # Tự động căn chỉnh kích thước cột dựa trên nội dung
+            self.sheet_bangThong.autofit('c')  # 'c' để autofit các cột
+
+            # # Chọn ô F3
+            self.sheet_bangThong.range("F3").select()
+
+            # # Đóng băng cột A
+            self.wb.app.api.ActiveWindow.FreezePanes = True
+            self.toggle_editable(False)
+
+        except Exception as e:
+                print(f"Lỗi trong quá trình focus sheet: {e}")
+                return False
+    
+    # TODO Update HeaderRowThong
+    def updateHeaderRowThong(self):
+        value_thong = self.thong_db["value"]
+        thong_per_luot = self.thong_db["thong_per_luot"]
+        isThong_one = 200
+
+        # Setting header Thong
+
+        steps = [
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
+            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
+            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
+            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
+            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
+            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+        ]
+
+        # Initialize modifications for array a in each step
+        modifications_a = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+        ]
+        thong_header_label = []  # Lưu nhãn tiêu đề
+        self.e_positions = []
+        self.h_positions = []
+        self.e_indices = []
+        self.h_indices = []
+
+        # Biến số lượng cột và các giá trị liên quan
+        total_columns = value_thong
+
+        if isThong_one != 0:
+            # Số cột tổng cộng
+            # Số tập
+            num_sets = 10
+            # Số lượt trong mỗi tập
+            rounds_per_set = 10
+            # Số thông trong mỗi lượt
+            columns_per_round = thong_per_luot
+
+            # Lặp qua từng tập
+            for set_index in range(num_sets):
+                # Lặp qua từng lượt trong mỗi tập
+                for round_index in range(rounds_per_set):
+                    # Calculate index for coloring
+                    current_index = set_index * rounds_per_set + round_index
+                    # Tính chỉ số cột bắt đầu và kết thúc của lượt
+                    start_col = (set_index * rounds_per_set * columns_per_round) + (round_index * columns_per_round)
+                    end_col = start_col + columns_per_round
+                    current_pos = len(thong_header_label) + 5
+                    
+                    # Thêm cột e và h trước mỗi lượt
+                    e = f"E + {modifications_a[set_index][round_index]}"
+                    h = f"H + {steps[set_index][round_index]}"
+
+                    self.e_positions.append((2, current_pos + 1))  # +1 because positions are 1-based in xlwings
+                    self.h_positions.append((2, current_pos + 2))
+                
+                    # Store indices for color determination
+                    self.e_indices.append(current_index)
+                    self.h_indices.append(current_index)
+                    thong_header_label.append(e)
+                    thong_header_label.append(h)
+                    
+                    # Thêm các cột thông
+                    for thong in range(start_col, end_col):
+                        thong_header_label.append(f"T. {thong + 1}")
+        else:
+            thong_header_label = [f"T. {thong + 1}" for thong in range(total_columns)]
         
+        header_labels = ["A", "B", "C", "D"] + thong_header_label
+        return header_labels
+    
+    # TODO Update HeaderRowThong
+    def updateRowAndColumnsThong(self):
+        # Lấy dữ liệu cần thiết
+        meta_number = self.bans_db["meta"]["number"]
+
+        stt = self.thong_db["stt"][meta_number]
+        data_value = self.thong_db["data"]
+        thong_data = self.thong_info
+
+        # * Cập nhật tiêu đề hàng (STT)
+        data_stt = []
+        for i, stt_value in enumerate(stt):
+            item = []
+            item.append(stt_value)
+            data_stt.append(item)
+
+        # * Xử lý dữ liệu nếu cần thay đổi số
+        # if meta_number != 0 and not self.isShow:
+        #     data_value = [
+        #         [TachVaGhep(meta_number, value) for value in row]
+        #         for row in data_value
+        #     ]
+
+        data_custom = []
+        # * Cập nhật dữ liệu từ data_value
+        for i in range(131):
+            row_items = []
+            for j, cell_value in enumerate(data_value):
+                row_items.append(cell_value[i])
+            data_custom.append(row_items)
+
+        # * Cập nhật dữ liệu từ thong_data
+        info_headers = []
+        data_thong = []
+        thong_per_luot = self.thong_db["thong_per_luot"]
+        isThong_step = thong_per_luot
+        # if isThong_step == 15:
+        count_luot = 0
+
+        # Duyệt qua các tập (10 tập)
+        for tap_index in range(10):
+            for luot_title in range(10):  # Mỗi tập có 10 lượt
+                span_start_col = 6 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
+                span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
+                tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
+                
+                header_text = f"{tap}Lượt {count_luot + 1}"
+                # Excel range string
+                start_col_letter = xw.utils.col_name(span_start_col)
+                end_col_letter = xw.utils.col_name(span_start_col + span_colspan - 1)
+                range_str = f"{start_col_letter}1:{end_col_letter}1"
+
+                info_headers.append({
+                    'text': header_text,
+                    'range': range_str,
+                    'start_col_letter': start_col_letter,
+                    'end_col_letter': end_col_letter,
+                    'tap_index': tap_index,
+                    'luot_index': count_luot
+                })
+                count_luot += 1
+
+        for row in range(131):  # Số lượng hàng (131 là ví dụ)
+            data_row_thong = []
+            # Duyệt qua từng tập và lượt
+            for tap_index in range(10):
+                for luot in range(10):
+                    luot_index = tap_index * 10 + luot
+                    start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
+
+                    # Thêm cột E và H
+                    if row < len(self.thong_sp) and luot_index < len(self.thong_sp[row]):
+
+                        # E column
+                        e_row = self.thong_sp[row][luot_index][0]
+                        data_row_thong.append(e_row)
+
+                        # H column
+                        h_row = self.thong_sp[row][luot_index][1]
+                        data_row_thong.append(h_row)
+
+                    # Thêm 10 cột thong
+                    thong_start_index = luot_index * isThong_step  # Tính chỉ số bắt đầu cho thong_data
+                    for thong_col in range(isThong_step):
+                        thong_index = thong_start_index + thong_col
+                        if thong_index < len(thong_data) and row < len(thong_data[thong_index]):
+                            thong_row = thong_data[thong_index][row]
+                            data_row_thong.append(thong_row)
+            data_thong.append(data_row_thong)
+        return {
+            'headers': info_headers,
+            "custom": data_custom,
+            "data_thong": data_thong,
+            "data_stt": data_stt
+        }
+
     # TODO Handler Button
     def clearLayout(self, layout):
         while layout.count():
@@ -2995,8 +3324,8 @@ class TinhAndMauPage(QWidget):
                                 # / Config number col_d M1
                                 number_col_d_m1 = tables[0]["col_d"][col_d - 1]
                                 btn_notice_m1 = tables[0]["btn_notice"] if "btn_notice" in tables[0] else [[8, 36] for _ in range(1500)]
-                                # number_color_m1 = btn_notice_m1[col_d - 1] #! Ban toan theo thong
-                                number_color_m1 = notice_colorM1 #! Ban toan theo dong
+                                number_color_m1 = btn_notice_m1[col_d - 1] #! Ban toan theo thong
+                                # number_color_m1 = notice_colorM1 #! Ban toan theo dong
 
                                 # / Start Check count handler with if and else
                                 if stt_count_with_d <= number_col_d_m1:
@@ -3054,7 +3383,7 @@ class TinhAndMauPage(QWidget):
                                     dataColorM1 = {
                                         "row": countRow,
                                         "col": col_color,
-                                        "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}",
+                                        "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}",
                                         "color": isEqual,
                                         "action": {
                                             "name": "count",
@@ -3116,8 +3445,8 @@ class TinhAndMauPage(QWidget):
                                         # / Config number col_d M1
                                         number_col_d_m2 = tables[1]["col_d"][col_e - 1]
                                         btn_notice_m2 = tables[1]["btn_notice"] if "btn_notice" in tables[1] else [[8, 36] for _ in range(1500)]
-                                        # number_color_m2 = btn_notice_m2[col_e - 1] #! Ban toan theo thong
-                                        number_color_m2 = notice_colorM2 #! Ban toan theo dong
+                                        number_color_m2 = btn_notice_m2[col_e - 1] #! Ban toan theo thong
+                                        # number_color_m2 = notice_colorM2 #! Ban toan theo dong
 
                                         if stt_count_with_d_m2 <= number_col_d_m2:
                                             # / Start count color with col_e
@@ -3153,7 +3482,7 @@ class TinhAndMauPage(QWidget):
                                             dataColorM2 = {
                                                 "row": countRow,
                                                 "col": col_color_m2,
-                                                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}",
+                                                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}",
                                                 "color": isEqual,
                                                 "action": {
                                                     "name": "count",
@@ -3214,8 +3543,8 @@ class TinhAndMauPage(QWidget):
                                                     col_e_m2 - 1
                                                 ]
                                                 btn_notice_m3 = tables[2]["btn_notice"] if "btn_notice" in tables[2] else [[8, 36] for _ in range(1500)]
-                                                # number_color_m3 = btn_notice_m3[col_e_m2 - 1] #! Ban toan theo thong
-                                                number_color_m3 = notice_colorM3 #! Ban toan theo dong
+                                                number_color_m3 = btn_notice_m3[col_e_m2 - 1] #! Ban toan theo thong
+                                                # number_color_m3 = notice_colorM3 #! Ban toan theo dong
 
                                                 if (
                                                     stt_count_with_d_m3
@@ -3263,7 +3592,7 @@ class TinhAndMauPage(QWidget):
                                                     dataColorM3 = {
                                                         "row": countRow,
                                                         "col": col_color_m3,
-                                                        "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}",
+                                                        "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}",
                                                         "color": isEqual,
                                                         "action": {
                                                             "name": "count",
@@ -4417,8 +4746,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][3]["col_d"][col_e_m3 - 1]
         btn_notice = self.ban_info["meta"]["tables"][3]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][3] else [[8, 36] for _ in range(120)]
-        # number_color = btn_notice[col_e_m3 - 1] #! Ban toan theo thong
-        number_color = notice_colorM4 #! Ban toan theo dong
+        number_color = btn_notice[col_e_m3 - 1] #! Ban toan theo thong
+        # number_color = notice_colorM4 #! Ban toan theo dong
         if stt_count_with_d_m4 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m4 = f"{col_e_m3}:{stt_count_with_d_m4}:col_e_m4"
@@ -4450,7 +4779,7 @@ class TinhAndMauPage(QWidget):
             dataColorM4 = {
                 "row": countRow,
                 "col": col_color_m4,
-                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}",
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}",
                 "color": isEqual,
                 "action": {
                     "name": "count",
@@ -4555,8 +4884,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][4]["col_d"][col_e_m4 - 1]
         btn_notice = self.ban_info["meta"]["tables"][4]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][4] else [[8, 36] for _ in range(120)]
-        # number_color = btn_notice[col_e_m4 - 1]  #! Ban toan theo thong
-        number_color = notice_colorM5 #! Ban toan theo dong
+        number_color = btn_notice[col_e_m4 - 1]  #! Ban toan theo thong
+        # number_color = notice_colorM5 #! Ban toan theo dong
         if stt_count_with_d_m5 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m5 = f"{col_e_m4}:{stt_count_with_d_m5}:col_e_m5"
@@ -4588,7 +4917,7 @@ class TinhAndMauPage(QWidget):
             dataColorM5 = {
                 "row": countRow,
                 "col": col_color_m5,
-                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}",
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}",
                 "color": isEqual,
                 "action": {
                     "name": "count",
@@ -4706,8 +5035,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][5]["col_d"][col_e_m5 - 1]
         btn_notice = self.ban_info["meta"]["tables"][5]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][5] else [[8, 36] for _ in range(120)]
-        # number_color = btn_notice[col_e_m5 - 1] #! Ban toan theo thong
-        number_color = notice_colorM6 #! Ban toan theo dong
+        number_color = btn_notice[col_e_m5 - 1] #! Ban toan theo thong
+        # number_color = notice_colorM6 #! Ban toan theo dong
         if stt_count_with_d_m6 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m6 = f"{col_e_m5}:{stt_count_with_d_m6}:col_e_m6"
@@ -4739,7 +5068,7 @@ class TinhAndMauPage(QWidget):
             dataColorM6 = {
                 "row": countRow,
                 "col": col_color_m6,
-                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}",
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}",
                 "color": isEqual,
                 "action": {
                     "name": "count",
@@ -4870,8 +5199,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][6]["col_d"][col_e_m6 - 1]
         btn_notice = self.ban_info["meta"]["tables"][6]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][6] else [[8, 36] for _ in range(120)]
-        # number_color = btn_notice[col_e_m6 - 1] #! Ban toan theo thong
-        number_color = notice_colorM7 #! Ban toan theo dong
+        number_color = btn_notice[col_e_m6 - 1] #! Ban toan theo thong
+        # number_color = notice_colorM7 #! Ban toan theo dong
         if stt_count_with_d_m7 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m7 = f"{col_e_m6}:{stt_count_with_d_m7}:col_e_m7"
@@ -4903,7 +5232,7 @@ class TinhAndMauPage(QWidget):
             dataColorM7 = {
                 "row": countRow,
                 "col": col_color_m7,
-                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}",
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}",
                 "color": isEqual,
                 "action": {
                     "name": "count",
@@ -5047,8 +5376,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][7]["col_d"][col_e_m7 - 1]
         btn_notice = self.ban_info["meta"]["tables"][7]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][7] else [[8, 36] for _ in range(120)]
-        # number_color = btn_notice[col_e_m7 - 1] #! Ban toan theo thong
-        number_color = notice_colorM8 #! Ban toan theo dong
+        number_color = btn_notice[col_e_m7 - 1] #! Ban toan theo thong
+        # number_color = notice_colorM8 #! Ban toan theo dong
         if stt_count_with_d_m8 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m8 = f"{col_e_m7}:{stt_count_with_d_m8}:col_e_m8"
@@ -5080,7 +5409,7 @@ class TinhAndMauPage(QWidget):
             dataColorM8 = {
                 "row": countRow,
                 "col": col_color_m8,
-                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}",
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}",
                 "color": isEqual,
                 "action": {
                     "name": "count",
@@ -5237,8 +5566,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][8]["col_d"][col_e_m8 - 1]
         btn_notice = self.ban_info["meta"]["tables"][8]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][8] else [[8, 36] for _ in range(120)]
-        # number_color = btn_notice[col_e_m8 - 1] #! Ban toan theo thong
-        number_color = notice_colorM9 #! Ban toan theo dong
+        number_color = btn_notice[col_e_m8 - 1] #! Ban toan theo thong
+        # number_color = notice_colorM9 #! Ban toan theo dong
         if stt_count_with_d_m9 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m9 = f"{col_e_m8}:{stt_count_with_d_m9}:col_e_m9"
@@ -5270,7 +5599,7 @@ class TinhAndMauPage(QWidget):
             dataColorM9 = {
                 "row": countRow,
                 "col": col_color_m9,
-                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}/{col_e_m9}",
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}/{col_e_m9}",
                 "color": isEqual,
                 "action": {
                     "name": "count",
@@ -5440,8 +5769,8 @@ class TinhAndMauPage(QWidget):
         ]  # So thu tu cua so dem
         number_of_col_d = self.ban_info["meta"]["tables"][9]["col_d"][col_e_m9 - 1]
         btn_notice = self.ban_info["meta"]["tables"][9]["btn_notice"] if "btn_notice" in self.ban_info["meta"]["tables"][9] else [[8, 36] for _ in range(120)]
-        # number_color = btn_notice[col_e_m9 - 1] #! Ban toan theo thong
-        number_color = notice_colorM10 #! Ban toan theo dong
+        number_color = btn_notice[col_e_m9 - 1] #! Ban toan theo thong
+        # number_color = notice_colorM10 #! Ban toan theo dong
         if stt_count_with_d_m10 <= number_of_col_d:
             # / Start count color with col_e
             col_e_count_m10 = f"{col_e_m9}:{stt_count_with_d_m10}:col_e_m10"
@@ -5473,7 +5802,7 @@ class TinhAndMauPage(QWidget):
             dataColorM10 = {
                 "row": countRow,
                 "col": col_color_m10,
-                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}/{col_e_m9}/{col_e_m10}",
+                "data": f"{col_a}/{t + thong_range_1 + 1}/{stt_cot}/{col_d} - {col_t if col_t else "?"}/{col_e}/{col_e_m2}/{col_e_m3}/{col_e_m4}/{col_e_m5}/{col_e_m6}/{col_e_m7}/{col_e_m8}/{col_e_m9}/{col_e_m10}",
                 "color": isEqual,
                 "action": {
                     "name": "count",

@@ -2189,8 +2189,8 @@ def copy_files_into_folders(source_folder, destination_folder):
 
 
 def create():
-    current_dir = r"D:\Python\chu-kien\data-test"
-    default_dir = r"D:\Python\chu-kien\data-test\1"
+    current_dir = r"D:\Data"
+    default_dir = r"D:\Data\1"
     arr_folder = ["image", "number"]
 
     thong_per_luot = 15

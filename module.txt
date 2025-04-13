@@ -3,15 +3,15 @@ Dim lastCellAddress As String
 Dim lastInteriorColor As Long
 Dim lastFontColor As Long
 
-Sub GoToSheet(SheetName As String, cellAddress As String)
+Sub GoToSheet(sheetName As String, cellAddress As String)
     Dim targetCell As Range
     
     On Error Resume Next
     ' Kick hoat sheet
-    ThisWorkbook.Worksheets(SheetName).Activate
+    ThisWorkbook.Worksheets(sheetName).Activate
     
     ' Lay o can to mau
-    Set targetCell = ThisWorkbook.Worksheets(SheetName).Range(cellAddress)
+    Set targetCell = ThisWorkbook.Worksheets(sheetName).Range(cellAddress)
     
     ' Khoi phuc mau cu neu co
     If lastSheetName <> "" And lastCellAddress <> "" Then
@@ -29,10 +29,82 @@ Sub GoToSheet(SheetName As String, cellAddress As String)
     targetCell.Font.Color = RGB(255, 255, 255) ' Màu ch? tr?ng
 
     ' Cap nhat thong tin o to mau
-    lastSheetName = SheetName
+    lastSheetName = sheetName
     lastCellAddress = cellAddress
 
     ' Chon o
     targetCell.Select
     On Error GoTo 0
 End Sub
+
+Sub GoToBangThong(sheetName As String, colIndex As String, searchCell As String)
+    Dim ws As Worksheet
+    Dim searchRange As Range
+    Dim foundCell As Range
+    Dim firstAddress As String
+    Dim foundRows As New Collection ' S? d?ng Collection d? luu các dòng
+    Dim i As Long
+    Dim unionRange As Range ' Ð?i tu?ng Range d? th?c hi?n Multi Select
+
+    ' Kích ho?t sheet
+    Set ws = ThisWorkbook.Worksheets(sheetName)
+    ws.Activate
+
+    ' Ch?n toàn b? c?t
+    ws.Columns(colIndex).EntireColumn.Select
+
+    ' Thi?t l?p ph?m vi tìm ki?m là c?t dã ch?n
+    Set searchRange = Selection
+
+    ' Tìm ki?m giá tr? trong ph?m vi dã ch?n
+    Set foundCell = searchRange.Find(What:=searchCell, LookIn:=xlValues, LookAt:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False)
+
+    ' N?u tìm th?y ít nh?t m?t ô
+    If Not foundCell Is Nothing Then
+        firstAddress = foundCell.Address
+
+        ' L?p qua t?t c? các ô tìm th?y
+        Do
+            ' Thêm dòng vào Collection
+            foundRows.Add foundCell.EntireRow
+
+            Set foundCell = searchRange.FindNext(foundCell)
+        Loop While Not foundCell Is Nothing And foundCell.Address <> firstAddress
+
+        ' Sau khi tìm xong, th?c hi?n Multi Select
+        If foundRows.Count > 0 Then
+            ' Thi?t l?p unionRange ban d?u là c?t colIndex
+            Set unionRange = ws.Columns(colIndex)
+
+            ' Thêm các dòng tìm th?y vào unionRange
+            For i = 1 To foundRows.Count
+                Set unionRange = Union(unionRange, foundRows(i))
+            Next i
+
+            ' Ch?n d?ng th?i c?t và các dòng
+            unionRange.Select
+
+            ' B?n có th? th?c hi?n các thao tác khác v?i vùng dã ch?n ? dây
+        Else
+            MsgBox "Khong tim thay gia tri '" & searchCell & "' trong cot " & colIndex & " cua sheet '" & sheetName & "'.", vbInformation
+        End If
+
+    Else
+        MsgBox "Khong tim thay gia tri '" & searchCell & "' trong cot " & colIndex & " cua sheet '" & sheetName & "'.", vbInformation
+    End If
+End Sub
+
+Function ConvertColumnIndexToLetter(ColumnIndex As Long) As String
+    Dim Dividend As Long
+    Dim Modulo As Long
+    Dim ColumnLetter As String
+
+    Dividend = ColumnIndex
+    Do While Dividend > 0
+        Modulo = (Dividend - 1) Mod 26
+        ColumnLetter = Chr(65 + Modulo) & ColumnLetter
+        Dividend = (Dividend - Modulo - 1) \ 26
+    Loop
+
+    ConvertColumnIndexToLetter = ColumnLetter
+End Function

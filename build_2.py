@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # Chỉ định các thư mục và file cần di chuyển
     current_dir = os.path.dirname(os.path.abspath(__file__))
     files_and_dirs_to_move = [f"{current_dir}/dist", f"{current_dir}/build"]
-    destination_directory = "D:\Python\chu-kien\Build\App-Dong"
+    destination_directory = "D:\App-thong"
     # Kiểm tra cách thư mục build và xóa
     for file in files_and_dirs_to_move:
         if os.path.exists(file):
