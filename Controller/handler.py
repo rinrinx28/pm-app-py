@@ -728,6 +728,147 @@ def saveAllThong(data):
     return f"Đã đồng bộ dữ liệu"
 
 
+# def typeWithRecipe(data):
+#     row = data["row"]
+#     setting = data["setting"]
+#     value = data["value"]
+#     thong_sp = data["thong_sp"]
+#     update = data["update"]
+#     thong_per_luot = data["thong_per_luot"]
+#     col = value
+#     # / Create new Rowstep = 0
+#     if setting == 1:
+#         # Initialize data
+#         steps = [
+#             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+#             [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
+#             [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
+#             [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+#             [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
+#             [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
+#             [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
+#             [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+#             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+#             [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+#         ]
+
+#         # Initialize modifications for array a in each step
+#         modifications_a = [
+#             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#             [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
+#             [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+#             [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+#             [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+#             [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+#             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+#             [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+#             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#             [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+#         ]
+
+#         # Initialize result containers
+#         current_thong_data = [0] * value
+#         thong_value_data = []
+
+#         # Process data for each tap and luot
+#         for count in range(10):  # 10 tập
+#             for count_h in range(10):  # Mỗi tập 10 lượt
+#                 # Calculate E and H
+#                 e = (int(thong_sp[row][0][0]) + modifications_a[count][count_h]) % 10
+#                 h = (int(thong_sp[row][0][1]) + steps[count][count_h]) % 10
+
+#                 # Determine starting index for thong in current_thong_data
+#                 thong_start_index = (
+#                     count * 10 + count_h
+#                 ) * thong_per_luot  # Tính chỉ số dựa trên tập và lượt
+
+#                 # Generate thong_per_luot thong values for this luot
+#                 for thong_index in range(thong_per_luot):
+#                     thong = thong_index + thong_start_index
+#                     if thong_index == 0:
+#                         current_thong_data[thong] = (e + h) % 10
+#                     elif thong_index == 1:
+#                         current_thong_data[thong] = (
+#                             h + current_thong_data[thong - 1]
+#                         ) % 10
+#                     else:
+#                         current_thong_data[thong] = (
+#                             current_thong_data[thong - 2]
+#                             + current_thong_data[thong - 1]
+#                         ) % 10
+
+#                 # Append E and H values to thong_value_data
+#                 thong_value_data.append([e, h])
+
+#         # Save processed thong_sp for the current row
+#         thong_sp[row] = thong_value_data
+
+#         # Update thong_data matrix
+#         for thong_index, value in enumerate(current_thong_data):
+#             update[thong_index][row] = value
+
+#     if setting == 2:
+#         for i in range(0, col, 100):
+#             if i == 0:
+#                 for k in range(i, i + 100, 10):
+#                     for l in range(10):
+#                         if k == 0:
+#                             update[k + l][row] = update[k + l][row]
+#                         else:
+#                             update[k + l][row] = 0
+#             else:
+#                 for k in range(i, i + 100, 10):
+#                     for l in range(10):
+#                         update[k + l][row] = 0
+
+#         for i in range(0, col, 100):
+#             for k in range(i, i + 100, 10):
+#                 for l in range(10):
+#                     if i == 0:
+#                         if k == 0:
+#                             if l > 0:
+#                                 first = update[k + l - 1][row]
+#                                 c = (int(first[0]) + int(first[1])) % 10
+#                                 d = (int(first[1]) + c) % 10
+#                                 update[k + l][row] = f"{c}{d}"
+#                         else:
+#                             if l == 0:
+#                                 first = update[k + l - 10][row]
+#                                 c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
+#                                 update[k + l][row] = f"{c}"
+#                             else:
+#                                 first = update[k + l - 1][row]
+#                                 c = (int(first[0]) + int(first[1])) % 10
+#                                 d = (int(first[1]) + c) % 10
+#                                 update[k + l][row] = f"{c}{d}"
+
+#                     else:
+#                         if k == 100:
+#                             if l == 0:
+#                                 first = update[98][row]
+#                                 second = update[99][row]
+#                                 update[100][row] = f"{first[1]}{second[0]}"
+#                             else:
+#                                 first = update[k + l - 1][row]
+#                                 c = (int(first[0]) + int(first[1])) % 10
+#                                 d = (int(first[1]) + c) % 10
+#                                 update[k + l][row] = f"{c}{d}"
+
+#                         else:
+#                             if l == 0:
+#                                 first = update[k + l - 10][row]
+#                                 c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
+#                                 update[k + l][row] = f"{c}"
+#                             else:
+#                                 first = update[k + l - 1][row]
+#                                 c = (int(first[0]) + int(first[1])) % 10
+#                                 d = (int(first[1]) + c) % 10
+#                                 update[k + l][row] = f"{c}{d}"
+
+#     return data
+
+# TODO Refactor typeWithRecipe function
+
 def typeWithRecipe(data):
     row = data["row"]
     setting = data["setting"]
@@ -735,137 +876,91 @@ def typeWithRecipe(data):
     thong_sp = data["thong_sp"]
     update = data["update"]
     thong_per_luot = data["thong_per_luot"]
-    col = value
-    # / Create new Rowstep = 0
+    steps = data.get("steps")
+    modifications_a = data.get("modifications_a")
+
     if setting == 1:
-        # Initialize data
-        steps = [
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
-            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
-            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
-            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
-            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
-            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-        ]
-
-        # Initialize modifications for array a in each step
-        modifications_a = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
-            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
-            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
-        ]
-
-        # Initialize result containers
-        current_thong_data = [0] * value
-        thong_value_data = []
-
-        # Process data for each tap and luot
-        for count in range(10):  # 10 tập
-            for count_h in range(10):  # Mỗi tập 10 lượt
-                # Calculate E and H
-                e = (int(thong_sp[row][0][0]) + modifications_a[count][count_h]) % 10
-                h = (int(thong_sp[row][0][1]) + steps[count][count_h]) % 10
-
-                # Determine starting index for thong in current_thong_data
-                thong_start_index = (
-                    count * 10 + count_h
-                ) * thong_per_luot  # Tính chỉ số dựa trên tập và lượt
-
-                # Generate thong_per_luot thong values for this luot
-                for thong_index in range(thong_per_luot):
-                    thong = thong_index + thong_start_index
-                    if thong_index == 0:
-                        current_thong_data[thong] = (e + h) % 10
-                    elif thong_index == 1:
-                        current_thong_data[thong] = (
-                            h + current_thong_data[thong - 1]
-                        ) % 10
-                    else:
-                        current_thong_data[thong] = (
-                            current_thong_data[thong - 2]
-                            + current_thong_data[thong - 1]
-                        ) % 10
-
-                # Append E and H values to thong_value_data
-                thong_value_data.append([e, h])
-
-        # Save processed thong_sp for the current row
-        thong_sp[row] = thong_value_data
-
-        # Update thong_data matrix
-        for thong_index, value in enumerate(current_thong_data):
-            update[thong_index][row] = value
-
-    if setting == 2:
-        for i in range(0, col, 100):
-            if i == 0:
-                for k in range(i, i + 100, 10):
-                    for l in range(10):
-                        if k == 0:
-                            update[k + l][row] = update[k + l][row]
-                        else:
-                            update[k + l][row] = 0
-            else:
-                for k in range(i, i + 100, 10):
-                    for l in range(10):
-                        update[k + l][row] = 0
-
-        for i in range(0, col, 100):
-            for k in range(i, i + 100, 10):
-                for l in range(10):
-                    if i == 0:
-                        if k == 0:
-                            if l > 0:
-                                first = update[k + l - 1][row]
-                                c = (int(first[0]) + int(first[1])) % 10
-                                d = (int(first[1]) + c) % 10
-                                update[k + l][row] = f"{c}{d}"
-                        else:
-                            if l == 0:
-                                first = update[k + l - 10][row]
-                                c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
-                                update[k + l][row] = f"{c}"
-                            else:
-                                first = update[k + l - 1][row]
-                                c = (int(first[0]) + int(first[1])) % 10
-                                d = (int(first[1]) + c) % 10
-                                update[k + l][row] = f"{c}{d}"
-
-                    else:
-                        if k == 100:
-                            if l == 0:
-                                first = update[98][row]
-                                second = update[99][row]
-                                update[100][row] = f"{first[1]}{second[0]}"
-                            else:
-                                first = update[k + l - 1][row]
-                                c = (int(first[0]) + int(first[1])) % 10
-                                d = (int(first[1]) + c) % 10
-                                update[k + l][row] = f"{c}{d}"
-
-                        else:
-                            if l == 0:
-                                first = update[k + l - 10][row]
-                                c = f"{(int(first[0]) + 1) % 10}{(int(first[1]) + 1) % 10}"
-                                update[k + l][row] = f"{c}"
-                            else:
-                                first = update[k + l - 1][row]
-                                c = (int(first[0]) + int(first[1])) % 10
-                                d = (int(first[1]) + c) % 10
-                                update[k + l][row] = f"{c}{d}"
+        if not steps or not modifications_a:
+            raise ValueError("Missing steps or modifications_a for setting 1")
+        process_setting_1(row, value, thong_sp, thong_per_luot, update, steps, modifications_a)
+    elif setting == 2:
+        process_setting_2(row, value, update)
 
     return data
+
+def generate_thong_values(e, h, thong_per_luot, thong_start_index, current_thong_data):
+    for thong_index in range(thong_per_luot):
+        thong = thong_index + thong_start_index
+        if thong_index == 0:
+            current_thong_data[thong] = (e + h) % 10
+        elif thong_index == 1:
+            current_thong_data[thong] = (h + current_thong_data[thong - 1]) % 10
+        else:
+            current_thong_data[thong] = (
+                current_thong_data[thong - 2] + current_thong_data[thong - 1]
+            ) % 10
+
+def process_setting_1(row, value, thong_sp, thong_per_luot, update, steps, modifications_a):
+    current_thong_data = [0] * value
+    thong_value_data = []
+
+    for count in range(1):
+        for count_h in range(3):
+            e = (int(thong_sp[row][0][0]) + modifications_a[count][count_h]) % 10
+            h = (int(thong_sp[row][0][1]) + steps[count][count_h]) % 10
+
+            thong_start_index = (count * 3 + count_h) * thong_per_luot
+            generate_thong_values(e, h, thong_per_luot, thong_start_index, current_thong_data)
+
+            thong_value_data.append([e, h])
+
+    thong_sp[row] = thong_value_data
+
+    for thong_index, val in enumerate(current_thong_data):
+        update[thong_index][row] = val
+
+def process_setting_2(row, col, update):
+    for i in range(0, col, 100):
+        for k in range(i, i + 100, 10):
+            for l in range(10):
+                update[k + l][row] = 0
+
+    for i in range(0, col, 100):
+        for k in range(i, i + 100, 10):
+            for l in range(10):
+                if i == 0:
+                    if k == 0:
+                        if l > 0:
+                            first = update[k + l - 1][row]
+                            c = (int(first[0]) + int(first[1])) % 10
+                            d = (int(first[1]) + c) % 10
+                            update[k + l][row] = f"{c}{d}"
+                    else:
+                        if l == 0:
+                            first = update[k + l - 10][row]
+                            c = (int(first[0]) + 1) % 10
+                            d = (int(first[1]) + 1) % 10
+                            update[k + l][row] = f"{c}{d}"
+                        else:
+                            first = update[k + l - 1][row]
+                            c = (int(first[0]) + int(first[1])) % 10
+                            d = (int(first[1]) + c) % 10
+                            update[k + l][row] = f"{c}{d}"
+                else:
+                    if k == 100 and l == 0:
+                        first = update[98][row]
+                        second = update[99][row]
+                        update[100][row] = f"{first[1]}{second[0]}"
+                    elif l == 0:
+                        first = update[k + l - 10][row]
+                        c = (int(first[0]) + 1) % 10
+                        d = (int(first[1]) + 1) % 10
+                        update[k + l][row] = f"{c}{d}"
+                    else:
+                        first = update[k + l - 1][row]
+                        c = (int(first[0]) + int(first[1])) % 10
+                        d = (int(first[1]) + c) % 10
+                        update[k + l][row] = f"{c}{d}"
 
 def changeThongPerLuot(data):
     thong_path = Path().path_thong()

@@ -33,7 +33,7 @@ import socket
 # from PySide6.QtCore import QRect
 
 basedir = os.path.dirname(__file__)
-data_sp_dir = r"C:/data_sp"
+data_sp_dir = r"D:/data_sp"
 APP_NAME = "Project Management"
 
 # Set up unique application ID on Windows
@@ -266,7 +266,7 @@ class AppSelectionDialog(QDialog):
         self.show()
 
     def login_app(self, value):
-        pwd_path = os.path.join(r"C:/data_pwd", f"{self.type_pm}", "pwd.txt")
+        pwd_path = os.path.join(r"D:/data_pwd", f"{self.type_pm}", "pwd.txt")
         with open(pwd_path, "r") as file:
             pwd = file.read().strip()
 
@@ -464,7 +464,7 @@ class AppSelectionDialog(QDialog):
         if type_count == 6:
             skip = 150
         with open(file_path, "w") as file:
-            file.write(fr"C:/data/{index + skip}")
+            file.write(fr"D:/data/{index + skip}")
 
     def open_app(self, index, type_count):
         self.modify_text_file(index, type_count)
@@ -545,7 +545,7 @@ class ChangePwd(QDialog):
 
     def change_pwd(self, value):
         print(self.main.type_pm)
-        pwd_path = os.path.join(r"C:/data_pwd", f"{self.main.type_pm}", "pwd.txt")
+        pwd_path = os.path.join(r"D:/data_pwd", f"{self.main.type_pm}", "pwd.txt")
         with open(pwd_path, "w") as file:
             file.write(value)
         SendMessage("Xin vui lòng đăng nhập lại!")

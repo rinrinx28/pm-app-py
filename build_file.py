@@ -175,33 +175,6 @@ def createThongData(data):
     thong_file = []
     thong_file_sp = []
     step = 0
-    # Define steps
-    steps = [
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-        [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
-        [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
-        [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
-        [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
-        [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
-        [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-    ]
-
-    # Initialize modifications for array a in each step
-    modifications_a = [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
-        [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-        [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-        [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
-        [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-        [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
-    ]
 
     # Process data in steps
     step_size = 1500 // 8
@@ -2191,10 +2164,10 @@ def copy_files_into_folders(source_folder, destination_folder):
 def create():
     current_dir = r"D:\Data"
     default_dir = r"D:\Data\1"
-    arr_folder = ["image", "number"]
+    arr_folder = ["image", "number", "config"]
 
-    thong_per_luot = 15
-    luot_count = 100
+    thong_per_luot = 60
+    luot_count = 3
     value = thong_per_luot * luot_count
 
     data_thong = createThongData({"value": value})

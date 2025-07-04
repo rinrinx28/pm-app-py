@@ -51,3 +51,11 @@ class Path:
     def path_db(self):
         path = os.path.join(self.current_dir, "db", "index.json")
         return path
+    
+    def path_config_steps(self):
+        path = os.path.join(self.current_dir, "config", "steps.json")
+        return path
+    
+    def path_config_modifications(self):
+        path = os.path.join(self.current_dir, "config", "modifications.json")
+        return path

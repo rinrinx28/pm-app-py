@@ -1276,33 +1276,12 @@ class TinhAndMauPage(QWidget):
         isThong_one = 200
 
         # Setting header Thong
+        with open(self.path.path_config_steps(), "r") as file:
+            steps = json.load(file)
+        
+        with open(self.path.path_config_modifications(), "r") as file:
+            modifications_a = json.load(file)
 
-        steps = [
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
-            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
-            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
-            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
-            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
-            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-        ]
-
-        # Initialize modifications for array a in each step
-        modifications_a = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
-            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
-            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
-        ]
         thong_header_label = []  # Lưu nhãn tiêu đề
         self.e_positions = []
         self.h_positions = []
@@ -1315,9 +1294,9 @@ class TinhAndMauPage(QWidget):
         if isThong_one != 0:
             # Số cột tổng cộng
             # Số tập
-            num_sets = 10
+            num_sets = 1
             # Số lượt trong mỗi tập
-            rounds_per_set = 10
+            rounds_per_set = 3
             # Số thông trong mỗi lượt
             columns_per_round = thong_per_luot
 
@@ -1394,8 +1373,8 @@ class TinhAndMauPage(QWidget):
         count_luot = 0
 
         # Duyệt qua các tập (10 tập)
-        for tap_index in range(10):
-            for luot_title in range(10):  # Mỗi tập có 10 lượt
+        for tap_index in range(1):
+            for luot_title in range(3):  # Mỗi tập có 10 lượt
                 span_start_col = 6 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
                 span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
                 tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
@@ -1419,9 +1398,9 @@ class TinhAndMauPage(QWidget):
         for row in range(131):  # Số lượng hàng (131 là ví dụ)
             data_row_thong = []
             # Duyệt qua từng tập và lượt
-            for tap_index in range(10):
-                for luot in range(10):
-                    luot_index = tap_index * 10 + luot
+            for tap_index in range(1):
+                for luot in range(3):
+                    luot_index = tap_index * 3 + luot
                     start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
 
                     # Thêm cột E và H

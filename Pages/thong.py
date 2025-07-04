@@ -34,6 +34,7 @@ from Controller.handler import (
     typeWithRecipe,
     saveBackupThong,convert_string_format,convert_string_format_type,changeThongPerLuot
 )
+from Pages.dialogs.SettingThongDialog import SettingThongDialog
 import os
 from Pages.common.loading import LoadingScreen
 from Pages.common.thread import Thread
@@ -98,6 +99,13 @@ class ThongPage(QWidget):
             
         with open(os.path.join(self.current_dir, "db", 'stay.json'), "r") as file:
             self.stay = json.load(file)
+
+        with open(self.path.path_config_steps(), "r") as file:
+            self.steps = json.load(file)
+        
+        with open(self.path.path_config_modifications(), "r") as file:
+            self.modifications = json.load(file)
+
         # / Config LoadingScreen
         self.loadingScreen = LoadingScreen(self.path.path_loading())
 
@@ -462,6 +470,11 @@ class ThongPage(QWidget):
 
                 # Gọi hàm sao chép với danh sách dòng giữ nguyên thứ tự
                 self.get_change_history()
+                with open(self.path.path_config_steps(), "r") as file:
+                    steps = json.load(file)
+                
+                with open(self.path.path_config_modifications(), "r") as file:
+                    modifications = json.load(file)
                 for row in selected_rows:
                     row_index = row - 3
                     # setting = 1 if self.thong_db["type_count"] == 3 else 1 if self.thong_db["type_count"] == 0 else self.thong_db["type_count"]
@@ -475,6 +488,8 @@ class ThongPage(QWidget):
                     data["thong_per_luot"] = self.thong_db["thong_per_luot"]
                     data["update"] = self.thong_data
                     data["thong_sp"] = self.thong_sp
+                    data["steps"] = steps
+                    data["modifications_a"] = modifications
 
                     result = typeWithRecipe(data)
                     self.thong_data = result["update"]
@@ -568,32 +583,14 @@ class ThongPage(QWidget):
 
         # Setting header Thong
 
-        steps = [
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-            [3, 4, 5, 6, 7, 8, 9, 0, 1, 2],
-            [7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
-            [8, 9, 0, 1, 2, 3, 4, 5, 6, 7],
-            [2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
-            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4],
-            [9, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
-        ]
+        
+        with open(self.path.path_config_steps(), "r") as file:
+            steps = json.load(file)
+        
+        with open(self.path.path_config_modifications(), "r") as file:
+            modifications = json.load(file)
 
-        # Initialize modifications for array a in each step
-        modifications_a = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
-            [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-            [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
-            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-            [6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
-        ]
+
         thong_header_label = []  # Lưu nhãn tiêu đề
         self.e_positions = []
         self.h_positions = []
@@ -606,9 +603,9 @@ class ThongPage(QWidget):
         if isThong_one != 0:
             # Số cột tổng cộng
             # Số tập
-            num_sets = 10
+            num_sets = 1
             # Số lượt trong mỗi tập
-            rounds_per_set = 10
+            rounds_per_set = 3
             # Số thông trong mỗi lượt
             columns_per_round = thong_per_luot
 
@@ -624,7 +621,7 @@ class ThongPage(QWidget):
                     current_pos = len(thong_header_label) + 5
                     
                     # Thêm cột e và h trước mỗi lượt
-                    e = f"E + {modifications_a[set_index][round_index]}"
+                    e = f"E + {modifications[set_index][round_index]}"
                     h = f"H + {steps[set_index][round_index]}"
 
                     self.e_positions.append((2, current_pos + 1))  # +1 because positions are 1-based in xlwings
@@ -686,12 +683,14 @@ class ThongPage(QWidget):
         # if isThong_step == 15:
         count_luot = 0
 
-        # Duyệt qua các tập (10 tập)
-        for tap_index in range(10):
-            for luot_title in range(10):  # Mỗi tập có 10 lượt
+        # Duyệt qua các tập (1 tập)
+        for tap_index in range(1):
+            for luot_title in range(3):  # Mỗi tập có 3 lượt
                 span_start_col = 6 + count_luot * (isThong_step + 2)  # Cộng thêm 2 cột E và H
                 span_colspan = isThong_step + 2  # Gồm 5 cột thong và 2 cột E, H
-                tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
+                # tap = f"Tập {tap_index + 1} - " if luot_title == 0 else ""  # Gắn nhãn tập nếu là lượt đầu của tập
+
+                tap = ""
                 
                 header_text = f"{tap}Lượt {count_luot + 1}"
                 # Excel range string
@@ -712,9 +711,9 @@ class ThongPage(QWidget):
         for row in range(131):  # Số lượng hàng (131 là ví dụ)
             data_row_thong = []
             # Duyệt qua từng tập và lượt
-            for tap_index in range(10):
-                for luot in range(10):
-                    luot_index = tap_index * 10 + luot
+            for tap_index in range(1):
+                for luot in range(3):
+                    luot_index = tap_index * 3 + luot
                     start_col = 4 + luot_index * (isThong_step + 2)  # Vị trí bắt đầu cho lượt (bao gồm E và H)
 
                     # Thêm cột E và H
@@ -1004,65 +1003,15 @@ class ThongPage(QWidget):
         return
 
     def setting_type_click(self):
-        setting = self.thong_db["thong_per_luot"]
-        # / Config Icon Windows
-        icon = self.path.path_logo()
-
-        # / Create Dialog Windows
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Cài Đặt Bảng Thông")
-        dialog.setWindowIcon(QIcon(icon))
-        dialog.show()
-
-        # / Dialog Main Layout
-        dialog_layout = QVBoxLayout()
-        dialog.setLayout(dialog_layout)
-
-        # / Dialog setting Layout
-        setting_dialog_w = QWidget()
-        setting_dialog_l = QGridLayout(setting_dialog_w)
-        dialog_layout.addWidget(setting_dialog_w)
-
-        type_label = QLabel("Số thông mỗi lượt:")
-        type_label.setStyleSheet(css_lable)
-        setting_dialog_l.addWidget(type_label, 0, 0)
-
-        type_input = QSpinBox()
-        type_input.setFixedWidth(100)
-        type_input.setStyleSheet(css_input)
-        type_input.setMinimum(1)
-        type_input.setMaximum(9999)
-        type_input.setValue(setting)
-        setting_dialog_l.addWidget(type_input, 1, 0)
-
-        # / Dialog Button layout
-        button_dialog_w = QWidget()
-        button_dialog_l = QHBoxLayout(button_dialog_w)
-        dialog_layout.addWidget(button_dialog_w)
-
-        submit = QPushButton("Lưu")
-        submit.setStyleSheet(css_button_submit)
-        button_dialog_l.addWidget(submit)
-
-        cancel = QPushButton("Thoát")
-        cancel.setStyleSheet(css_button_cancel)
-        button_dialog_l.addWidget(cancel)
-
-        # TODO Handler Button
-        def submit_click():
-            value = type_input.value()
-            self.thong_db["thong_per_luot"] = value
-            self.thong_db["value"] = value * 100 # 100 là tổng lượt toán
-            dialog.reject()
-            SendMessage("Xin vui lòng mở lại bảng thông")
-            changeThongPerLuot({"data": self.thong_db, "update": self.thong_data})
-
-        def cancel_click():
-            dialog.reject()
-
-        submit.clicked.connect(submit_click)
-        cancel.clicked.connect(cancel_click)
-
+        dialog = SettingThongDialog(
+            parent=self,
+            icon_path=self.path.path_logo(),
+            config_dir=os.path.join(self.current_dir, "config"),
+            update_excel=self.update_excel,
+            toggle_editer=self.toggle_editable,
+        )
+        dialog.exec()
+    
     def button_show_abc(self):
         # / Check isEditor
         self.toggle_editable(True)
